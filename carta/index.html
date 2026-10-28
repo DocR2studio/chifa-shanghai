@@ -759,7 +759,7 @@
       if (r.status === 404) { setSes(null); return cerrarMesaVista(); }
       d = await r.json();
     } catch { return mmMsg('😕 Sin conexión con el restaurante, reintentando…'); }
-    if (($('mmMsg').textContent || '').startsWith('😕')) mmMsg('');
+    { const t0 = $('mmMsg').textContent || ''; if (t0.startsWith('😕') || (t0.startsWith('✅') && !d.pedidos.some((p) => p.estado === 'pendiente'))) mmMsg(''); }
     $('mmTitulo').innerHTML = (d.modalidad === 'llevar' ? '🥡 ' + esc(d.nombre || 'Para llevar') : '🏮 Mesa ' + esc(d.mesa)) + '<small>Chifa Shanghai · Mi mesa</small>';
     if (d.cerrada) return pintarFin('Cuenta cerrada, ¡gracias!', 'Gracias por visitarnos 🥢 ¡Vuelve pronto!');
     if (d.todoRechazado) return pintarFin('El mozo no confirmó tu pedido', 'Si crees que es un error, llama al mozo o pídele en persona.');
