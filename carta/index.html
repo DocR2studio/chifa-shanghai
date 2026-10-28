@@ -788,15 +788,25 @@
     lastEstado = d;
   }
   $('mmAnadir').onclick = () => { cerrarMesaVista(); window.scrollTo(0, 0); };
+  let llamarT = null, llamado = false;
+  function esperaLlamar(seg) {
+    const b = $('mmLlamar'); clearInterval(llamarT); b.disabled = true;
+    const tick = () => {
+      if (seg <= 0) { clearInterval(llamarT); b.disabled = false; b.textContent = llamado ? '🔔 Volver a llamar' : '🔔 Llamar mozo'; return; }
+      b.textContent = '🔔 Volver a llamar (' + seg + ')'; seg--;
+    };
+    tick(); llamarT = setInterval(tick, 1000);
+  }
   $('mmLlamar').onclick = async () => {
     const ses = getSes(); if (!ses) return;
     const b = $('mmLlamar'); b.disabled = true;
     try {
       const r = await fetch(API + '/api/chifa/cliente/llamar', { method: 'POST', headers: hdr({ 'X-Cliente-Token': ses.token }) });
       const d = await r.json().catch(() => ({}));
-      mmMsg(r.ok ? '🔔 ¡Listo! Avisamos al mozo, ya viene.' : (r.status === 429 ? '' : '🙏 ') + (d.error || 'No se pudo avisar'));
-    } catch { mmMsg('😕 Sin conexión, llama al mozo con la mano 🔔'); }
-    setTimeout(() => { b.disabled = false; }, 45000);
+      if (r.ok) { llamado = true; mmMsg('🔔 ¡Listo! Avisamos al mozo, ya viene.'); esperaLlamar(15); }
+      else if (r.status === 429) { llamado = true; mmMsg('🔔 Ya avisamos al mozo. Puedes volver a llamar en unos segundos.'); esperaLlamar(d.espera || 15); }
+      else { mmMsg('🙏 ' + (d.error || 'No se pudo avisar')); b.disabled = false; }
+    } catch { mmMsg('😕 Sin conexión, llama al mozo con la mano 🔔'); b.disabled = false; }
   };
   // Al volver a la pestaña / app: refrescar al instante y reanudar el sondeo
   const alVolver = () => { if (!getSes()) return adicBar(); if ($('miMesa').style.display === 'flex') { cargando = false; cargarMesa(); arrancarPoll(); } else adicBar(); };
