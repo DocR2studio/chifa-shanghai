@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Carta — Chifa Shanghai · Abancay</title>
@@ -727,8 +728,10 @@
   const setSes = (v) => v ? localStorage.setItem(SKEY, JSON.stringify(v)) : localStorage.removeItem(SKEY);
   const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const hdr = (x) => Object.assign({ 'ngrok-skip-browser-warning': '1' }, x || {});
-  let pollT = null, lastEstado = null;
-  function abrirMesa() { $('miMesa').style.display = 'flex'; $('cartSheet').style.display = 'none'; adicBar(); cargarMesa(); clearInterval(pollT); pollT = setInterval(cargarMesa, 6000); }
+  let pollT = null, lastEstado = null, cargando = false, fallos404 = 0;
+  const POLL_MS = 4000;
+  function arrancarPoll() { clearInterval(pollT); pollT = setInterval(cargarMesa, POLL_MS); }
+  function abrirMesa() { $('miMesa').style.display = 'flex'; $('cartSheet').style.display = 'none'; adicBar(); cargando = false; cargarMesa(); arrancarPoll(); }
   function cerrarMesaVista() { $('miMesa').style.display = 'none'; clearInterval(pollT); pollT = null; adicBar(); }
   function adicBar() {
     const ses = getSes(), b = $('adicBar');
@@ -753,12 +756,23 @@
   }
   async function cargarMesa() {
     const ses = getSes(); if (!ses) return cerrarMesaVista();
+    if (cargando) return; cargando = true;
     let d;
+    const ctl = window.AbortController ? new AbortController() : null;
+    const to = setTimeout(() => ctl && ctl.abort(), 8000);
     try {
-      const r = await fetch(API + '/api/chifa/cliente/mesa', { headers: hdr({ 'X-Cliente-Token': ses.token }), cache: 'no-store' });
-      if (r.status === 404) { setSes(null); return cerrarMesaVista(); }
+      const r = await fetch(API + '/api/chifa/cliente/mesa?t=' + Date.now(), { headers: hdr({ 'X-Cliente-Token': ses.token }), cache: 'no-store', signal: ctl ? ctl.signal : undefined });
+      if (r.status === 404) {
+        // Solo borrar la mesa si el servidor dice "sin pedidos" varias veces seguidas
+        if (++fallos404 >= 3) { setSes(null); return cerrarMesaVista(); }
+        return mmMsg('😕 Buscando tu pedido…');
+      }
+      if (!r.ok) throw new Error('http ' + r.status);
       d = await r.json();
+      fallos404 = 0;
     } catch { return mmMsg('😕 Sin conexión con el restaurante, reintentando…'); }
+    finally { clearTimeout(to); cargando = false; }
+    if ($('miMesa').style.display !== 'flex') return;
     { const t0 = $('mmMsg').textContent || ''; if (t0.startsWith('😕') || (t0.startsWith('✅') && !d.pedidos.some((p) => p.estado === 'pendiente'))) mmMsg(''); }
     $('mmTitulo').innerHTML = (d.modalidad === 'llevar' ? '🥡 ' + esc(d.nombre || 'Para llevar') : '🏮 Mesa ' + esc(d.mesa)) + '<small>Chifa Shanghai · Mi mesa</small>';
     if (d.cerrada) return pintarFin('Cuenta cerrada, ¡gracias!', 'Gracias por visitarnos 🥢 ¡Vuelve pronto!');
@@ -783,7 +797,13 @@
     } catch { mmMsg('😕 Sin conexión, llama al mozo con la mano 🙋'); }
     setTimeout(() => { b.disabled = false; }, 45000);
   };
-  window.addEventListener('pageshow', () => { if (getSes()) abrirMesa(); else adicBar(); });
+  // Al volver a la pestaña / app: refrescar al instante y reanudar el sondeo
+  const alVolver = () => { if (!getSes()) return adicBar(); if ($('miMesa').style.display === 'flex') { cargando = false; cargarMesa(); arrancarPoll(); } else adicBar(); };
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') alVolver(); });
+  window.addEventListener('focus', alVolver);
+  window.addEventListener('online', alVolver);
+  window.addEventListener('pageshow', (e) => { if (getSes()) { if (e.persisted || $('miMesa').style.display !== 'flex') abrirMesa(); else alVolver(); } else adicBar(); });
+  window.addEventListener('storage', (e) => { if (e.key === SKEY) { if (getSes()) abrirMesa(); else cerrarMesaVista(); } });
   if (getSes()) abrirMesa();
 
   $('cbVer').onclick = () => { $('csMsg').className = 'cs-msg'; $('cartSheet').style.display = 'flex'; };
