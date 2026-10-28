@@ -1,15 +1,6 @@
 <!doctype html><html lang="es"><head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Tutorial · Chifa Shanghai</title><style>
-body{margin:0;font-family:system-ui,-apple-system,Roboto,sans-serif;background:#fff8e6;color:#3a0b0e}
-header{background:linear-gradient(#d61f2a,#9e0f17);color:#fff;padding:22px 18px;text-align:center;border-bottom:4px solid #d4a017}
-header h1{margin:0;font-size:1.7rem}header p{margin:6px 0 0;color:#ffe9a6}
-main{padding:18px;max-width:560px;margin:auto;display:grid;gap:16px}
-.paso{background:#fff;border:2px solid #f2c94c;border-radius:18px;padding:16px}
-.paso h2{margin:0 0 10px;color:#b3121b;font-size:1.15rem}
-.media{aspect-ratio:16/9;border-radius:12px;background:repeating-linear-gradient(45deg,#fff1c7 0 12px,#fff8e6 12px 24px);display:flex;align-items:center;justify-content:center;color:#9e0f17;font-weight:700}
-a.back{display:block;text-align:center;background:#d4a017;color:#5a0a0e;font-weight:800;text-decoration:none;padding:18px;border-radius:16px;font-size:1.2rem}
-</style></head><body>
+<title>Tutorial · Chifa Shanghai</title></head><body>
 <!-- PIN de mesa (se pide una vez por celular) -->
 <style>
 #pinGate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:#fff4d6;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -40,10 +31,33 @@ a.back{display:block;text-align:center;background:#d4a017;color:#5a0a0e;font-wei
   });
 })();
 </script>
-<header><h1>▶️ Tutorial</h1><p>Chifa Shanghai · Abancay</p></header><main>
-<div class="paso"><h2>Paso 1 · Escanea el QR</h2><div class="media">Próximamente</div></div>
-<div class="paso"><h2>Paso 2 · Elige tus platos</h2><div class="media">Próximamente</div></div>
-<div class="paso"><h2>Paso 3 · Haz tu pedido</h2><div class="media">Próximamente</div></div>
-<a class="back" href="../">← Volver</a></main><a id="verMesa" href="../carta/" style="display:none;position:fixed;top:calc(12px + env(safe-area-inset-top));right:12px;z-index:99990;padding:11px 14px;border-radius:16px;border:2px solid #d4a017;background:linear-gradient(#d61f2a,#9e0f17);color:#fff;font:800 15px system-ui,-apple-system,sans-serif;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.35)">🏮 Ver mi mesa</a>
+<style>
+html,body{height:100%}
+body{margin:0;font-family:system-ui,-apple-system,Roboto,sans-serif;background:#fff4d6;color:#3a0b0e;position:relative;min-height:100%}
+body::before{content:"";position:fixed;inset:0;background:url(../gatos-fondo.jpg) 0 0/150px 150px repeat;opacity:.2;z-index:0;pointer-events:none}
+.wrap{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:18px 16px calc(24px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:16px;min-height:100vh;box-sizing:border-box;justify-content:center}
+h1{margin:0;text-align:center;color:#b3121b;font-size:1.7rem;letter-spacing:.05em}
+h1 small{display:block;font-size:.85rem;color:#7a1a1e;letter-spacing:0;font-weight:600;margin-top:4px}
+.vbox{position:relative;border:4px solid #d4a017;border-radius:22px;overflow:hidden;background:#fff;box-shadow:0 10px 26px rgba(158,15,23,.25);aspect-ratio:4/3}
+.vbox video{display:block;width:100%;height:100%;object-fit:contain;background:#fff}
+#play{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;border:0;background:rgba(255,244,214,.55);cursor:pointer;font:800 1.3rem system-ui,-apple-system,sans-serif;color:#9e0f17}
+#play span.c{width:96px;height:96px;border-radius:50%;background:linear-gradient(#d61f2a,#9e0f17);border:4px solid #d4a017;display:flex;align-items:center;justify-content:center;color:#fff;font-size:2.6rem;box-shadow:0 8px 22px rgba(158,15,23,.4);padding-left:8px;box-sizing:border-box}
+.btn{display:block;text-align:center;text-decoration:none;font-weight:800;font-size:1.2rem;padding:18px;border-radius:20px;border:3px solid #9e0f17;background:linear-gradient(#f2c94c,#c89a1c);color:#5a0a0e;box-shadow:0 8px 20px rgba(158,15,23,.25)}
+.btn.red{background:linear-gradient(#d61f2a,#9e0f17);color:#fff;border-color:#d4a017}
+.row{display:flex;gap:12px}.row .btn{flex:1}
+</style>
+<div class="wrap">
+<h1>▶️ Tutorial<small>Cómo usar la carta digital · Chifa Shanghai</small></h1>
+<div class="vbox"><video id="tv" src="tutorial.mp4?v=1" poster="poster-tutorial.jpg" playsinline webkit-playsinline controls preload="metadata"></video>
+<button type="button" id="play" aria-label="Ver tutorial"><span class="c">▶</span>Toca para ver el tutorial 🔊</button></div>
+<div class="row"><a class="btn" href="../#menu">← Volver</a><a class="btn red" href="../carta/">Pedir ya 🥢</a></div>
+</div>
+<script>
+(function(){var v=document.getElementById('tv'),b=document.getElementById('play');
+b.onclick=function(){b.style.display='none';v.muted=false;v.volume=1;v.currentTime=0;var p=v.play();if(p&&p.catch)p.catch(function(){b.style.display='flex'})};
+v.addEventListener('play',function(){b.style.display='none'});
+v.addEventListener('ended',function(){b.style.display='flex';b.lastChild.textContent='Ver otra vez 🔁'});})();
+</script>
+<a id="verMesa" href="../carta/" style="display:none;position:fixed;top:calc(12px + env(safe-area-inset-top));right:12px;z-index:99990;padding:11px 14px;border-radius:16px;border:2px solid #d4a017;background:linear-gradient(#d61f2a,#9e0f17);color:#fff;font:800 15px system-ui,-apple-system,sans-serif;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.35)">🏮 Ver mi mesa</a>
 <script>(function(){function f(){var s=null;try{s=JSON.parse(localStorage.getItem('chifaMesaSesion')||'null')}catch(e){}var a=document.getElementById('verMesa');if(s&&s.token){a.style.display='block';if(s.mesa&&s.modalidad!=='llevar')a.textContent='🏮 Mi mesa '+String(s.mesa).replace(/^0+(?=\d)/,'')}else a.style.display='none'}f();window.addEventListener('pageshow',f);document.addEventListener('visibilitychange',f)})();</script>
 </body></html>
