@@ -784,7 +784,7 @@
       const cls = p.estado === 'pendiente' ? 'pend' : p.estado === 'rechazado' ? 'rech' : '';
       const st = p.estado === 'pendiente' ? '<span class="mm-st pe">⏳ Esperando confirmación del mozo</span>' : p.estado === 'rechazado' ? '<span class="mm-st no">✖ El mozo no confirmó tu pedido</span>' : '<span class="mm-st ok">✔ Confirmado · en cocina</span>';
       return `<div class="mm-ped ${cls}"><div class="mm-h"><span>${i ? 'Adicional' : 'Pedido'} #${p.id}</span>${st}</div>${p.items.map((it) => `<div class="mm-l"><span>${it.qty}× ${esc(it.name)}</span><span>${fmt(it.qty * it.price)}</span></div>`).join('')}</div>`;
-    }).join('') + `<div class="mm-cuenta"><span>Cuenta</span><span>${fmt(d.cuenta)}</span></div><p class="mm-note">${vis.some((p) => p.estado === 'pendiente') ? 'La cuenta suma solo lo confirmado por el mozo.' : 'Pide la cuenta al mozo cuando termines.'}${hayRech ? ' Los pedidos tachados no se cobran.' : ''}</p>`;
+    }).join('') + `<div class="mm-cuenta"><span>Cuenta</span><span>${fmt(d.cuenta)}</span></div><p class="mm-note">${vis.some((p) => p.estado === 'pendiente') ? 'La cuenta suma solo lo confirmado por el mozo.' : 'Cuando gustes cancelar, acércate a caja, por favor. ¡Muchas gracias por tu visita y buen provecho! 🥢'}${hayRech ? ' Los pedidos tachados no se cobran.' : ''}</p>`;
     lastEstado = d;
   }
   $('mmAnadir').onclick = () => { cerrarMesaVista(); window.scrollTo(0, 0); };
