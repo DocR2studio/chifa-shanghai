@@ -752,7 +752,7 @@
     clearInterval(pollT); pollT = null; setSes(null);
     $('mmActions').innerHTML = '<button type="button" id="mmNuevo" style="border:2px solid var(--gold);background:linear-gradient(#d61f2a,#9e0f17);color:#fff">Volver a la carta</button>';
     $('mmLlamar').style.display = 'none';
-    $('mmLista').innerHTML = `<div class="mm-fin"><div style="font-size:3rem">🏮</div><h3>${titulo}</h3><p>${texto}</p></div>`;
+    $('mmLista').innerHTML = `<div class="mm-fin">${/cerrada/i.test(titulo) ? '<img src="gato-gracias.png" alt="" style="width:180px;max-width:60%;height:auto;display:block;margin:0 auto">' : '<div style="font-size:3rem">🏮</div>'}<h3>${titulo}</h3><p>${texto}</p></div>`;
     $('mmNuevo').onclick = () => { location.reload(); };
   }
   async function cargarMesa() {
