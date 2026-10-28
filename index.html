@@ -1,0 +1,73 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Bienvenido · Chifa Shanghai</title><meta name="theme-color" content="#b3121b">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+.scr{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s;padding:20px}
+.hide{opacity:0;pointer-events:none}
+#splash img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:.18}
+.btn{position:relative;border:3px solid #d4a017;background:linear-gradient(#d61f2a,#9e0f17);color:#fff;font-weight:800;border-radius:22px;
+ font-size:1.6rem;padding:22px 34px;box-shadow:0 8px 22px rgba(158,15,23,.35);text-decoration:none;display:block;text-align:center;width:min(86vw,380px);cursor:pointer}
+.btn small{display:block;font-size:.9rem;font-weight:500;color:#ffe9a6;margin-top:4px}
+.btn.gold{background:linear-gradient(#f2c94c,#c8960c);color:#5a0a0e;border-color:#9e0f17}.btn.gold small{color:#7a1a1e}
+#img{background:#fff;cursor:pointer}#img img{max-width:100%;max-height:88vh;object-fit:contain}
+.hint{margin-top:10px;color:#9e0f17;font-weight:600;animation:p 1.6s infinite}@keyframes p{50%{opacity:.35}}
+#menu{gap:26px;background:#fff4d6}
+#menu::before{content:"";position:absolute;inset:0;background:url(gatos-fondo.jpg) 0 0/150px 150px repeat;opacity:.2;z-index:0}
+#menu>*{position:relative;z-index:1}
+h1{background:rgba(255,255,255,.85);padding:10px 22px;border-radius:18px;border:2px solid #d4a017}
+.row{display:flex;gap:12px;width:min(94vw,460px)}
+.btn.cat{flex:1;width:auto;min-height:120px;padding:18px 8px;font-size:1.45rem;justify-content:center;border-radius:26px 26px 22px 22px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.btn.cat img{width:96px;height:96px;border-radius:50%;background:#fff;border:3px solid #d4a017;object-fit:cover;mix-blend-mode:normal}
+.btn.gold.cat img{border-color:#9e0f17}
+h1{color:#b3121b;font-size:2rem;text-align:center}h1 span{display:block;color:#c8960c;font-size:1rem;letter-spacing:.2em}
+</style></head><body>
+<!-- PIN de mesa (se pide una vez por celular) -->
+<style>
+#pinGate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:#fff4d6;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#pinGate::before{content:"";position:absolute;inset:0;background:url(gatos-fondo.jpg) 0 0/150px 150px repeat;opacity:.22}
+#pinGate .pg-card{position:relative;width:min(90vw,360px);background:rgba(255,255,255,.94);border:3px solid #d4a017;border-radius:26px;padding:26px 20px;text-align:center;box-shadow:0 10px 30px rgba(158,15,23,.3)}
+#pinGate h2{color:#b3121b;font-size:1.5rem;letter-spacing:.06em}#pinGate p{color:#7a1a1e;margin:6px 0 16px;font-weight:600}
+#pinGate input{width:100%;font-size:2.2rem;text-align:center;letter-spacing:.55em;padding:12px;border-radius:16px;border:3px solid #d4a017;color:#9e0f17;background:#fff}
+#pinGate button{margin-top:14px;width:100%;padding:16px;border:3px solid #d4a017;border-radius:18px;background:linear-gradient(#d61f2a,#9e0f17);color:#fff;font-weight:800;font-size:1.25rem}
+#pinGate .pg-err{color:#c41e2a;font-weight:700;min-height:1.3em;margin-top:10px}
+</style>
+<div id="pinGate" style="display:none"><form class="pg-card" id="pgForm">
+<h2>🏮 Chifa Shanghai</h2><p>Ingresa el PIN de tu mesa<br><small>(lo encuentras en la mesa o pídelo al mozo)</small></p>
+<input id="pgPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" placeholder="••••">
+<button type="submit">Entrar 🥢</button><div class="pg-err" id="pgErr"></div></form></div>
+<script>
+(function(){
+  var HASH='8f448ad26111793f0bdf05728c2d2ff71c378b3a8a573222a1cca7678bb3a7cd',SALT='chifa-shanghai-mesa:',KEY='chifaMesaPin';
+  function sha(s){return crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)).then(function(b){return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')})}
+  var g=document.getElementById('pinGate');
+  window.chifaPinReady=new Promise(function(done){
+    var saved=localStorage.getItem(KEY)||'';
+    sha(SALT+saved).then(function(h){
+      if(saved&&h===HASH){g.remove();return done(saved);}
+      g.style.display='flex';setTimeout(function(){document.getElementById('pgPin').focus()},50);
+      document.getElementById('pgForm').onsubmit=function(e){e.preventDefault();var v=document.getElementById('pgPin').value.trim();
+        sha(SALT+v).then(function(h2){if(h2===HASH){localStorage.setItem(KEY,v);g.remove();done(v);}else{document.getElementById('pgErr').textContent='PIN incorrecto, intenta otra vez';document.getElementById('pgPin').value='';}})};
+    });
+  });
+})();
+</script>
+
+<div id="splash" class="scr"><img src="bienvenida.jpg" alt=""><button class="btn" id="go">🏮 Toca para entrar<small>Chifa Shanghai · Abancay</small></button></div>
+<div id="vid" class="scr hide" style="background:#fff;padding:0"><video id="v" src="video.mp4" poster="poster.jpg" playsinline webkit-playsinline preload="auto" style="width:100%;height:100%;object-fit:contain"></video><button id="skip" style="position:absolute;top:calc(14px + env(safe-area-inset-top));right:14px;background:rgba(255,255,255,.85);color:#9e0f17;border:2px solid #d4a017;border-radius:20px;padding:8px 16px;font-weight:800;font-size:1rem">Saltar ⏭</button></div>
+<div id="img" class="scr hide"><img src="bienvenida.jpg" alt="Bienvenido a Chifa Shanghai"><p class="hint">Toca la imagen para continuar</p></div>
+<div id="menu" class="scr hide">
+<div class="row"><a class="btn cat" id="pedir" href="carta/">Pedir ya 🥢</a>
+<a class="btn cat gold" id="tuto" href="tutorial/">Tutorial</a></div></div>
+<audio id="a1" src="hola.mp3" preload="auto" playsinline></audio>
+
+<script>
+const $=id=>document.getElementById(id),a1=$('a1'),v=$('v');let done=false;
+function show(id){['splash','vid','img','menu'].forEach(s=>$(s).classList.toggle('hide',s!==id))}
+function toImg(){if(done)return;done=true;v.pause();show('img');a1.currentTime=0;a1.play().catch(()=>{})}
+v.addEventListener('ended',toImg);v.addEventListener('error',toImg);
+$('go').onclick=()=>{show('vid');a1.muted=true;a1.play().then(()=>{a1.pause();a1.muted=false}).catch(()=>{a1.muted=false});v.play().catch(toImg)};
+$('skip').onclick=e=>{e.stopPropagation();toImg()};
+$('img').onclick=()=>{a1.pause();show('menu')};
+</script></body></html>

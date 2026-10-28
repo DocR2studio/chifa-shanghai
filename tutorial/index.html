@@ -1,0 +1,46 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tutorial · Chifa Shanghai</title><style>
+body{margin:0;font-family:system-ui,-apple-system,Roboto,sans-serif;background:#fff8e6;color:#3a0b0e}
+header{background:linear-gradient(#d61f2a,#9e0f17);color:#fff;padding:22px 18px;text-align:center;border-bottom:4px solid #d4a017}
+header h1{margin:0;font-size:1.7rem}header p{margin:6px 0 0;color:#ffe9a6}
+main{padding:18px;max-width:560px;margin:auto;display:grid;gap:16px}
+.paso{background:#fff;border:2px solid #f2c94c;border-radius:18px;padding:16px}
+.paso h2{margin:0 0 10px;color:#b3121b;font-size:1.15rem}
+.media{aspect-ratio:16/9;border-radius:12px;background:repeating-linear-gradient(45deg,#fff1c7 0 12px,#fff8e6 12px 24px);display:flex;align-items:center;justify-content:center;color:#9e0f17;font-weight:700}
+a.back{display:block;text-align:center;background:#d4a017;color:#5a0a0e;font-weight:800;text-decoration:none;padding:18px;border-radius:16px;font-size:1.2rem}
+</style></head><body>
+<!-- PIN de mesa (se pide una vez por celular) -->
+<style>
+#pinGate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:#fff4d6;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#pinGate::before{content:"";position:absolute;inset:0;background:url(../gatos-fondo.jpg) 0 0/150px 150px repeat;opacity:.22}
+#pinGate .pg-card{position:relative;width:min(90vw,360px);background:rgba(255,255,255,.94);border:3px solid #d4a017;border-radius:26px;padding:26px 20px;text-align:center;box-shadow:0 10px 30px rgba(158,15,23,.3)}
+#pinGate h2{color:#b3121b;font-size:1.5rem;letter-spacing:.06em}#pinGate p{color:#7a1a1e;margin:6px 0 16px;font-weight:600}
+#pinGate input{width:100%;font-size:2.2rem;text-align:center;letter-spacing:.55em;padding:12px;border-radius:16px;border:3px solid #d4a017;color:#9e0f17;background:#fff}
+#pinGate button{margin-top:14px;width:100%;padding:16px;border:3px solid #d4a017;border-radius:18px;background:linear-gradient(#d61f2a,#9e0f17);color:#fff;font-weight:800;font-size:1.25rem}
+#pinGate .pg-err{color:#c41e2a;font-weight:700;min-height:1.3em;margin-top:10px}
+</style>
+<div id="pinGate" style="display:none"><form class="pg-card" id="pgForm">
+<h2>🏮 Chifa Shanghai</h2><p>Ingresa el PIN de tu mesa<br><small>(lo encuentras en la mesa o pídelo al mozo)</small></p>
+<input id="pgPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" placeholder="••••">
+<button type="submit">Entrar 🥢</button><div class="pg-err" id="pgErr"></div></form></div>
+<script>
+(function(){
+  var HASH='8f448ad26111793f0bdf05728c2d2ff71c378b3a8a573222a1cca7678bb3a7cd',SALT='chifa-shanghai-mesa:',KEY='chifaMesaPin';
+  function sha(s){return crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)).then(function(b){return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')})}
+  var g=document.getElementById('pinGate');
+  window.chifaPinReady=new Promise(function(done){
+    var saved=localStorage.getItem(KEY)||'';
+    sha(SALT+saved).then(function(h){
+      if(saved&&h===HASH){g.remove();return done(saved);}
+      g.style.display='flex';setTimeout(function(){document.getElementById('pgPin').focus()},50);
+      document.getElementById('pgForm').onsubmit=function(e){e.preventDefault();var v=document.getElementById('pgPin').value.trim();
+        sha(SALT+v).then(function(h2){if(h2===HASH){localStorage.setItem(KEY,v);g.remove();done(v);}else{document.getElementById('pgErr').textContent='PIN incorrecto, intenta otra vez';document.getElementById('pgPin').value='';}})};
+    });
+  });
+})();
+</script>
+<header><h1>▶️ Tutorial</h1><p>Chifa Shanghai · Abancay</p></header><main>
+<div class="paso"><h2>Paso 1 · Escanea el QR</h2><div class="media">Próximamente</div></div>
+<div class="paso"><h2>Paso 2 · Elige tus platos</h2><div class="media">Próximamente</div></div>
+<div class="paso"><h2>Paso 3 · Haz tu pedido</h2><div class="media">Próximamente</div></div>
+<a class="back" href="../">← Volver</a></main></body></html>
