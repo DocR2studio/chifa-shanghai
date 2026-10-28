@@ -668,7 +668,7 @@
 #adicBar button{margin-left:8px;border:0;border-radius:10px;padding:6px 10px;font-weight:800;background:#3a0a0d;color:#f2c94c}
 </style>
 <div id="miMesa" role="dialog" aria-label="Mi mesa">
-  <div class="mm-top"><h2 id="mmTitulo">🏮 Mi mesa<small>Chifa Shanghai</small></h2><button type="button" id="mmLlamar">🙋 Llamar mozo</button></div>
+  <div class="mm-top"><h2 id="mmTitulo">🏮 Mi mesa<small>Chifa Shanghai</small></h2><button type="button" id="mmLlamar">🔔 Llamar mozo</button></div>
   <div class="mm-body"><div class="mm-msg" id="mmMsg"></div><div id="mmLista"></div></div>
   <div class="mm-actions" id="mmActions"><button type="button" id="mmAnadir">➕ Añadir</button></div>
 </div>
@@ -794,8 +794,8 @@
     try {
       const r = await fetch(API + '/api/chifa/cliente/llamar', { method: 'POST', headers: hdr({ 'X-Cliente-Token': ses.token }) });
       const d = await r.json().catch(() => ({}));
-      mmMsg(r.ok ? '🙋 ¡Listo! Avisamos al mozo, ya viene.' : '🙏 ' + (d.error || 'No se pudo avisar'));
-    } catch { mmMsg('😕 Sin conexión, llama al mozo con la mano 🙋'); }
+      mmMsg(r.ok ? '🔔 ¡Listo! Avisamos al mozo, ya viene.' : (r.status === 429 ? '' : '🙏 ') + (d.error || 'No se pudo avisar'));
+    } catch { mmMsg('😕 Sin conexión, llama al mozo con la mano 🔔'); }
     setTimeout(() => { b.disabled = false; }, 45000);
   };
   // Al volver a la pestaña / app: refrescar al instante y reanudar el sondeo
