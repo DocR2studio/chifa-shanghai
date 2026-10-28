@@ -641,7 +641,37 @@
 .cs-msg.err{display:block;background:rgba(196,30,42,.18);border:2px solid #c41e2a;color:#ffb0b0}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
 .page{padding-bottom:110px}
+#miMesa{position:fixed;inset:0;z-index:70;display:none;flex-direction:column;background:#0d0b10;color:#f5ead0;overflow:auto;-webkit-overflow-scrolling:touch}
+#miMesa .mm-top{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;padding:14px 14px 12px;padding-top:calc(14px + env(safe-area-inset-top));background:linear-gradient(#1a0d10,#0d0b10);border-bottom:2px solid var(--gold)}
+#miMesa .mm-top h2{flex:1;margin:0;font-size:1.25rem;color:var(--gold-bright);letter-spacing:.03em}
+#miMesa .mm-top h2 small{display:block;font-size:.78rem;color:#f5ead0;opacity:.7;letter-spacing:0;font-weight:600}
+#mmLlamar{border:2px solid var(--gold);border-radius:14px;padding:10px 12px;font-weight:800;font-size:.95rem;background:linear-gradient(#d61f2a,#9e0f17);color:#fff;white-space:nowrap}
+#mmLlamar:disabled{opacity:.6}
+#miMesa .mm-body{max-width:720px;width:100%;margin:0 auto;padding:14px;box-sizing:border-box;flex:1}
+.mm-ped{border:1px solid #3a3020;border-radius:14px;padding:10px 12px;margin:0 0 10px;background:#15131a}
+.mm-ped.pend{border-color:#f2c94c;background:rgba(242,201,76,.07)}
+.mm-ped.rech{border-color:#7a2a2e;background:rgba(196,30,42,.1);opacity:.85}
+.mm-ped .mm-h{display:flex;justify-content:space-between;font-weight:800;font-size:.9rem;margin-bottom:4px}
+.mm-st{font-size:.85rem;font-weight:700}.mm-st.ok{color:#7fe0a6}.mm-st.pe{color:#f2c94c}.mm-st.no{color:#ff9a9a}
+.mm-l{display:flex;justify-content:space-between;gap:8px;padding:2px 0;font-size:.97rem}
+.mm-ped.rech .mm-l{text-decoration:line-through;opacity:.7}
+.mm-cuenta{display:flex;justify-content:space-between;align-items:center;font-size:1.3rem;font-weight:900;border-top:2px solid var(--gold);margin-top:6px;padding:12px 2px;color:var(--gold-bright)}
+.mm-note{font-size:.85rem;opacity:.75;margin:-4px 0 12px}
+.mm-actions{position:sticky;bottom:0;padding:12px 14px calc(12px + env(safe-area-inset-bottom));background:rgba(13,11,16,.97);border-top:1px solid #3a3020;display:flex;gap:10px}
+.mm-actions button{flex:1;border-radius:14px;padding:14px;font-weight:800;font-size:1.05rem}
+#mmAnadir{border:2px solid var(--gold);background:linear-gradient(#f2c94c,#c89a1c);color:#3a0a0d}
+.mm-msg{display:none;border-radius:12px;padding:10px 12px;margin:0 0 12px;font-weight:700}
+.mm-msg.on{display:block;background:rgba(242,201,76,.12);border:1px solid #f2c94c}
+.mm-fin{text-align:center;padding:40px 10px}.mm-fin h3{color:var(--gold-bright);font-size:1.6rem;margin:10px 0}
+#adicBar{display:none;position:sticky;top:0;z-index:40;background:#f2c94c;color:#3a0a0d;font-weight:800;padding:10px 14px;text-align:center;font-size:.95rem}
+#adicBar button{margin-left:8px;border:0;border-radius:10px;padding:6px 10px;font-weight:800;background:#3a0a0d;color:#f2c94c}
 </style>
+<div id="miMesa" role="dialog" aria-label="Mi mesa">
+  <div class="mm-top"><h2 id="mmTitulo">🏮 Mi mesa<small>Chifa Shanghai</small></h2><button type="button" id="mmLlamar">🙋 Llamar mozo</button></div>
+  <div class="mm-body"><div class="mm-msg" id="mmMsg"></div><div id="mmLista"></div></div>
+  <div class="mm-actions" id="mmActions"><button type="button" id="mmAnadir">➕ Añadir</button></div>
+</div>
+<div id="adicBar"></div>
 <div id="cartBar"><div class="in"><div class="t"><span id="cbCount">0 platos</span><b id="cbTotal">S/ 0.00</b></div><button type="button" id="cbVer">Ver mi pedido</button></div></div>
 <div id="cartSheet"><div class="sh">
   <h3>🥢 Mi pedido</h3><div id="csLines"></div>
@@ -691,34 +721,101 @@
     setQ(code, q + (b.classList.contains('plus') ? 1 : -1));
   });
   const msg = (t, ok) => { const m = $('csMsg'); m.className = 'cs-msg ' + (ok ? 'ok' : 'err'); m.textContent = t; };
+  // —— Mi mesa: sesión por token secreto guardado en este celular ——
+  const SKEY = 'chifaMesaSesion';
+  const getSes = () => { try { return JSON.parse(localStorage.getItem(SKEY) || 'null'); } catch { return null; } };
+  const setSes = (v) => v ? localStorage.setItem(SKEY, JSON.stringify(v)) : localStorage.removeItem(SKEY);
+  const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const hdr = (x) => Object.assign({ 'ngrok-skip-browser-warning': '1' }, x || {});
+  let pollT = null, lastEstado = null;
+  function abrirMesa() { $('miMesa').style.display = 'flex'; $('cartSheet').style.display = 'none'; adicBar(); cargarMesa(); clearInterval(pollT); pollT = setInterval(cargarMesa, 6000); }
+  function cerrarMesaVista() { $('miMesa').style.display = 'none'; clearInterval(pollT); pollT = null; adicBar(); }
+  function adicBar() {
+    const ses = getSes(), b = $('adicBar');
+    if (ses && $('miMesa').style.display !== 'flex') {
+      b.style.display = 'block';
+      b.innerHTML = `➕ Añadiendo a ${ses.mesa && ses.modalidad !== 'llevar' ? 'Mesa ' + esc(ses.mesa) : 'tu pedido'}<button type="button" id="abVer">Ver mi mesa</button>`;
+      $('abVer').onclick = abrirMesa;
+    } else b.style.display = 'none';
+    const ad = !!ses;
+    document.querySelector('.cs-row [data-mod]').parentElement.style.display = ad ? 'none' : '';
+    $('csMesaBox').style.display = ad || mod !== 'mesa' ? 'none' : ''; $('csNomBox').style.display = !ad && mod === 'llevar' ? '' : 'none';
+    $('csEnviar').textContent = ad ? 'Enviar adicional' : 'Enviar pedido';
+    document.querySelector('#cartSheet h3').textContent = ad ? '➕ Adicional' : '🥢 Mi pedido';
+  }
+  function mmMsg(t) { const m = $('mmMsg'); m.textContent = t || ''; m.className = 'mm-msg' + (t ? ' on' : ''); }
+  function pintarFin(titulo, texto) {
+    clearInterval(pollT); pollT = null; setSes(null);
+    $('mmActions').innerHTML = '<button type="button" id="mmNuevo" style="border:2px solid var(--gold);background:linear-gradient(#d61f2a,#9e0f17);color:#fff">Volver a la carta</button>';
+    $('mmLlamar').style.display = 'none';
+    $('mmLista').innerHTML = `<div class="mm-fin"><div style="font-size:3rem">🏮</div><h3>${titulo}</h3><p>${texto}</p></div>`;
+    $('mmNuevo').onclick = () => { location.reload(); };
+  }
+  async function cargarMesa() {
+    const ses = getSes(); if (!ses) return cerrarMesaVista();
+    let d;
+    try {
+      const r = await fetch(API + '/api/chifa/cliente/mesa', { headers: hdr({ 'X-Cliente-Token': ses.token }), cache: 'no-store' });
+      if (r.status === 404) { setSes(null); return cerrarMesaVista(); }
+      d = await r.json();
+    } catch { return mmMsg('😕 Sin conexión con el restaurante, reintentando…'); }
+    if (($('mmMsg').textContent || '').startsWith('😕')) mmMsg('');
+    $('mmTitulo').innerHTML = (d.modalidad === 'llevar' ? '🥡 ' + esc(d.nombre || 'Para llevar') : '🏮 Mesa ' + esc(d.mesa)) + '<small>Chifa Shanghai · Mi mesa</small>';
+    if (d.cerrada) return pintarFin('Cuenta cerrada, ¡gracias!', 'Gracias por visitarnos 🥢 ¡Vuelve pronto!');
+    if (d.todoRechazado) return pintarFin('El mozo no confirmó tu pedido', 'Si crees que es un error, llama al mozo o pídele en persona.');
+    const vis = d.pedidos.filter((p) => p.estado !== 'pagado' && p.estado !== 'anulado');
+    const hayRech = vis.some((p) => p.estado === 'rechazado');
+    $('mmLista').innerHTML = vis.map((p, i) => {
+      const cls = p.estado === 'pendiente' ? 'pend' : p.estado === 'rechazado' ? 'rech' : '';
+      const st = p.estado === 'pendiente' ? '<span class="mm-st pe">⏳ Esperando confirmación del mozo</span>' : p.estado === 'rechazado' ? '<span class="mm-st no">✖ El mozo no confirmó tu pedido</span>' : '<span class="mm-st ok">✔ Confirmado · en cocina</span>';
+      return `<div class="mm-ped ${cls}"><div class="mm-h"><span>${i ? 'Adicional' : 'Pedido'} #${p.id}</span>${st}</div>${p.items.map((it) => `<div class="mm-l"><span>${it.qty}× ${esc(it.name)}</span><span>${fmt(it.qty * it.price)}</span></div>`).join('')}</div>`;
+    }).join('') + `<div class="mm-cuenta"><span>Cuenta</span><span>${fmt(d.cuenta)}</span></div><p class="mm-note">${vis.some((p) => p.estado === 'pendiente') ? 'La cuenta suma solo lo confirmado por el mozo.' : 'Pide la cuenta al mozo cuando termines.'}${hayRech ? ' Los pedidos tachados no se cobran.' : ''}</p>`;
+    lastEstado = d;
+  }
+  $('mmAnadir').onclick = () => { cerrarMesaVista(); window.scrollTo(0, 0); };
+  $('mmLlamar').onclick = async () => {
+    const ses = getSes(); if (!ses) return;
+    const b = $('mmLlamar'); b.disabled = true;
+    try {
+      const r = await fetch(API + '/api/chifa/cliente/llamar', { method: 'POST', headers: hdr({ 'X-Cliente-Token': ses.token }) });
+      const d = await r.json().catch(() => ({}));
+      mmMsg(r.ok ? '🙋 ¡Listo! Avisamos al mozo, ya viene.' : '🙏 ' + (d.error || 'No se pudo avisar'));
+    } catch { mmMsg('😕 Sin conexión, llama al mozo con la mano 🙋'); }
+    setTimeout(() => { b.disabled = false; }, 45000);
+  };
+  window.addEventListener('pageshow', () => { if (getSes()) abrirMesa(); else adicBar(); });
+  if (getSes()) abrirMesa();
+
   $('cbVer').onclick = () => { $('csMsg').className = 'cs-msg'; $('cartSheet').style.display = 'flex'; };
   $('csSeguir').onclick = () => { $('cartSheet').style.display = 'none'; };
   $('cartSheet').onclick = (e) => { if (e.target.id === 'cartSheet') $('cartSheet').style.display = 'none'; };
   document.querySelectorAll('[data-mod]').forEach((b) => b.onclick = () => {
-    mod = b.dataset.mod; document.querySelectorAll('[data-mod]').forEach((x) => x.classList.toggle('on', x === b));
+    mod = b.dataset.mod; document.querySelectorAll('[data-mod]').forEach((x) => x.classList.toggle('on', x === b)); if (getSes()) return adicBar();
     $('csMesaBox').style.display = mod === 'mesa' ? '' : 'none'; $('csNomBox').style.display = mod === 'llevar' ? '' : 'none';
   });
   $('csEnviar').onclick = async () => {
     if (!cart.size) return msg('Agrega al menos un plato 🥢');
-    if (mod === 'mesa' && !$('csMesa').value) return msg('Elige tu número de mesa');
-    if (mod === 'llevar' && $('csNombre').value.trim().length < 2) return msg('Escribe tu nombre');
+    const ses0 = getSes();
+    if (!ses0 && mod === 'mesa' && !$('csMesa').value) return msg('Elige tu número de mesa');
+    if (!ses0 && mod === 'llevar' && $('csNombre').value.trim().length < 2) return msg('Escribe tu nombre');
     const pin = await (window.chifaPinReady || Promise.resolve(localStorage.getItem('chifaMesaPin') || ''));
     $('csEnviar').disabled = true; $('csEnviar').textContent = 'Enviando…';
     try {
       const r = await fetch(API + '/api/chifa/cliente/pedidos', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1', 'X-Mesa-Pin': pin },
+        headers: Object.assign({ 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1', 'X-Mesa-Pin': pin }, ses0 ? { 'X-Cliente-Token': ses0.token } : {}),
         body: JSON.stringify({ modalidad: mod, mesa: $('csMesa').value, nombre: $('csNombre').value, notas: $('csNota').value, website: $('csWeb').value,
           items: [...cart].map(([code, qty]) => ({ code, qty })) }),
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) { if (d.pin) localStorage.removeItem('chifaMesaPin'); throw new Error(d.error || 'No se pudo enviar'); }
       [...cart.keys()].forEach((c) => setQ(c, 0)); $('csNota').value = '';
-      $('cartSheet').style.display = 'flex';
+      if (d.token) setSes({ token: d.token, mesa: d.mesa, modalidad: d.adicional && ses0 ? ses0.modalidad : mod });
       msg('✅ ¡Tu pedido fue enviado! El mozo lo confirmará en un momento.', true);
+      setTimeout(() => { abrirMesa(); mmMsg('✅ ¡Enviado! Espera que el mozo lo confirme.'); }, 900);
     } catch (e) {
       msg(e instanceof TypeError ? '😕 No pudimos conectar con el restaurante. Intenta de nuevo o pide al mozo.' : '😕 ' + e.message);
-    } finally { $('csEnviar').disabled = false; $('csEnviar').textContent = 'Enviar pedido'; }
+    } finally { $('csEnviar').disabled = false; $('csEnviar').textContent = getSes() ? 'Enviar adicional' : 'Enviar pedido'; }
   };
 })();
 </script>
