@@ -678,7 +678,7 @@
   <h3>🥢 Mi pedido</h3><div id="csLines"></div>
   <div class="cs-total"><span>Total</span><span id="csTotal">S/ 0.00</span></div>
   <div class="cs-row"><button type="button" class="cs-chip on" data-mod="mesa">🍽 En mesa</button><button type="button" class="cs-chip" data-mod="llevar">🥡 Para llevar</button></div>
-  <div id="csMesaBox"><label>Número de mesa<select id="csMesa"><option value="">Elige tu mesa…</option></select></label></div>
+  <div id="csMesaBox"><div id="csMesaFija" style="font-weight:800;font-size:1.1rem;padding:10px 12px;border:2px solid var(--gold);border-radius:12px;margin:8px 0;text-align:center">🍽 Mesa 3</div><label id="csMesaSel" style="display:none">Número de mesa<select id="csMesa"><option value="">Elige tu mesa…</option></select></label></div>
   <div id="csNomBox" style="display:none"><label>Tu nombre<input id="csNombre" maxlength="40" autocomplete="name" placeholder="Para llamarte"></label></div>
   <label>Nota (opcional)<textarea id="csNota" rows="2" maxlength="200" placeholder="Sin ají, poca sal, etc."></textarea></label>
   <input class="hp" id="csWeb" tabindex="-1" autocomplete="off" aria-hidden="true">
@@ -690,12 +690,13 @@
   // ⚙️ Config: servidor de pedidos (cambiar aquí si cambia el link)
   const CHIFA_API_BASE = 'https://gala-blurt-dweller.ngrok-free.dev';
   const API = /ngrok-free\.dev$|^localhost$|^127\./.test(location.hostname) ? '' : CHIFA_API_BASE;
-  const MAX_Q = 10, MESAS = ['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15'];
+  const MAX_Q = 10, MESAS = ['03']; // ⚙️ Mesas para clientes (por ahora solo Mesa 3)
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => 'S/ ' + Number(n).toFixed(2);
   const byCode = new Map(); MENU.forEach((c) => c.items.forEach((it) => byCode.set(it.code, it)));
   const cart = new Map(); let mod = 'mesa';
   $('csMesa').innerHTML += MESAS.map((m) => `<option value="${m}">Mesa ${m}</option>`).join('');
+  if (MESAS.length === 1) { $('csMesa').value = MESAS[0]; $('csMesaFija').textContent = '🍽 Mesa ' + parseInt(MESAS[0], 10); } else { $('csMesaFija').style.display = 'none'; $('csMesaSel').style.display = ''; }
   document.querySelectorAll('.item').forEach((li) => {
     const code = li.dataset.code;
     li.insertAdjacentHTML('beforeend', `<div class="add-ctrl" data-c="${code}"><button type="button" class="minus" aria-label="Quitar">−</button><span class="q">0</span><button type="button" class="plus" aria-label="Agregar">+</button></div>`);
@@ -774,7 +775,7 @@
     finally { clearTimeout(to); cargando = false; }
     if ($('miMesa').style.display !== 'flex') return;
     { const t0 = $('mmMsg').textContent || ''; if (t0.startsWith('😕') || (t0.startsWith('✅') && !d.pedidos.some((p) => p.estado === 'pendiente'))) mmMsg(''); }
-    $('mmTitulo').innerHTML = (d.modalidad === 'llevar' ? '🥡 ' + esc(d.nombre || 'Para llevar') : '🏮 Mesa ' + esc(d.mesa)) + '<small>Chifa Shanghai · Mi mesa</small>';
+    $('mmTitulo').innerHTML = (d.modalidad === 'llevar' ? '🥡 ' + esc(d.nombre || 'Para llevar') : '🏮 Mesa ' + esc(String(d.mesa).replace(/^0+(?=\d)/, ''))) + '<small>Chifa Shanghai · Mi mesa</small>';
     if (d.cerrada) return pintarFin('Cuenta cerrada, ¡gracias!', 'Gracias por visitarnos 🥢 ¡Vuelve pronto!');
     if (d.todoRechazado) return pintarFin('El mozo no confirmó tu pedido', 'Si crees que es un error, llama al mozo o pídele en persona.');
     const vis = d.pedidos.filter((p) => p.estado !== 'pagado' && p.estado !== 'anulado');
