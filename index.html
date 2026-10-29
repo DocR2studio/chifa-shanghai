@@ -4,25 +4,40 @@
 <title>Bienvenido · Chifa Shanghai</title><meta name="theme-color" content="#b3121b">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
-.scr{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s;padding:20px}
-.hide{opacity:0;pointer-events:none}
-#splash img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:.18}
-.btn{position:relative;border:3px solid #d4a017;background:linear-gradient(#d61f2a,#9e0f17);color:#fff;font-weight:800;border-radius:22px;
- font-size:1.6rem;padding:22px 34px;box-shadow:0 8px 22px rgba(158,15,23,.35);text-decoration:none;display:block;text-align:center;width:min(86vw,380px);cursor:pointer}
-.btn small{display:block;font-size:.9rem;font-weight:500;color:#ffe9a6;margin-top:4px}
-.btn.gold{background:linear-gradient(#f2c94c,#c8960c);color:#5a0a0e;border-color:#9e0f17}.btn.gold small{color:#7a1a1e}
-#img{background:#fff;cursor:pointer}#img img{max-width:100%;max-height:88vh;object-fit:contain}
-.hint{margin-top:10px;color:#9e0f17;font-weight:600;animation:p 1.6s infinite}@keyframes p{50%{opacity:.35}}
-#menu{gap:26px;background:#fff4d6}
-#menu::before{content:"";position:absolute;inset:0;background:url(gatos-fondo.jpg) 0 0/150px 150px repeat;opacity:.2;z-index:0}
-#menu>*{position:relative;z-index:1}
-h1{background:rgba(255,255,255,.85);padding:10px 22px;border-radius:18px;border:2px solid #d4a017}
-.row{display:flex;gap:12px;width:min(94vw,460px)}
-.btn.cat{flex:1;width:auto;min-height:120px;padding:18px 8px;font-size:1.45rem;justify-content:center;border-radius:26px 26px 22px 22px;display:flex;flex-direction:column;align-items:center;gap:8px}
-.btn.cat img{width:96px;height:96px;border-radius:50%;background:#fff;border:3px solid #d4a017;object-fit:cover;mix-blend-mode:normal}
-.btn.gold.cat img{border-color:#9e0f17}
-h1{color:#b3121b;font-size:2rem;text-align:center}h1 span{display:block;color:#c8960c;font-size:1rem;letter-spacing:.2em}
+body{background:#fff8e7;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#3a0a0d;padding-bottom:calc(78px + env(safe-area-inset-bottom))}
+a{color:inherit;text-decoration:none}
+.top{background:linear-gradient(160deg,#d61f2a,#9e0f17);color:#fff;padding:calc(18px + env(safe-area-inset-top)) 18px 70px;border-radius:0 0 30px 30px;position:relative;overflow:hidden}
+.top::before{content:"";position:absolute;inset:0;background:url(gatos-fondo.jpg) 0 0/130px 130px repeat;opacity:.1}
+.top>*{position:relative}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:46px;height:46px;border-radius:50%;background:#fff;border:3px solid #f2c94c;display:grid;place-items:center;font-size:24px}
+.brand b{font-size:1.3rem;letter-spacing:.03em;display:block}.brand small{color:#ffe9a6;font-size:.8rem}
+.mesaBtn{margin-left:auto;background:#f2c94c;color:#5a0a0e;font-weight:800;font-size:.85rem;padding:8px 12px;border-radius:14px;display:none}
+.hi{margin-top:18px;font-size:1.55rem;font-weight:800}.hi span{display:block;font-size:.95rem;font-weight:500;color:#ffe9a6;margin-top:3px}
+.hero{margin:-52px 16px 0;position:relative;border-radius:24px;overflow:hidden;box-shadow:0 10px 28px rgba(158,15,23,.28);background:#fff;cursor:pointer;border:3px solid #f2c94c}
+.hero img{width:100%;height:170px;object-fit:cover;display:block}
+.hero .play{position:absolute;left:12px;bottom:12px;background:rgba(0,0,0,.6);color:#fff;font-weight:700;font-size:.9rem;padding:8px 12px;border-radius:14px}
+.acts{display:grid;grid-template-columns:1.4fr 1fr;gap:12px;margin:16px}
+.act{border-radius:22px;padding:16px;font-weight:800;font-size:1.25rem;display:flex;flex-direction:column;gap:4px;box-shadow:0 6px 16px rgba(158,15,23,.22)}
+.act small{font-weight:500;font-size:.8rem;opacity:.9}.act i{font-style:normal;font-size:1.8rem}
+.act.p{background:linear-gradient(#d61f2a,#9e0f17);color:#fff}.act.t{background:linear-gradient(#f7d46a,#d4a017);color:#5a0a0e}
+h3{margin:22px 16px 10px;font-size:1.15rem;display:flex;align-items:center;justify-content:space-between}
+h3 a{font-size:.85rem;color:#b3121b;font-weight:700}
+.hs{display:flex;gap:12px;overflow-x:auto;padding:2px 16px 8px;scroll-snap-type:x mandatory;scrollbar-width:none}.hs::-webkit-scrollbar{display:none}
+.nov{flex:0 0 82%;scroll-snap-align:start;border-radius:20px;padding:16px;color:#fff;min-height:118px;display:flex;flex-direction:column;justify-content:space-between}
+.nov b{font-size:1.1rem}.nov p{font-size:.85rem;opacity:.92;margin-top:4px}.nov span{font-size:2rem}
+.n1{background:linear-gradient(135deg,#b3121b,#e0452c)}.n2{background:linear-gradient(135deg,#7a1a1e,#c8960c)}.n3{background:linear-gradient(135deg,#1f2a44,#b3121b)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 16px}
+.tile{background:#fff;border-radius:18px;padding:12px 4px;text-align:center;font-size:.74rem;font-weight:700;box-shadow:0 3px 10px rgba(158,15,23,.12)}
+.tile i{font-style:normal;display:block;font-size:1.7rem;margin-bottom:4px}
+.dish{flex:0 0 150px;scroll-snap-align:start;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 4px 12px rgba(158,15,23,.14)}
+.dish .em{height:92px;display:grid;place-items:center;font-size:2.8rem;background:linear-gradient(#fff1c9,#ffe2a0)}
+.dish div{padding:10px}.dish b{display:block;font-size:.88rem;line-height:1.2;min-height:2.4em}.dish span{color:#b3121b;font-weight:800;font-size:.95rem}
+.tabs{position:fixed;left:0;right:0;bottom:0;background:#fff;display:flex;border-top:1px solid #f0dcb0;padding:6px 0 calc(6px + env(safe-area-inset-bottom));box-shadow:0 -4px 16px rgba(0,0,0,.08);z-index:50}
+.tabs a{flex:1;text-align:center;font-size:.72rem;font-weight:700;color:#8a6a5a}.tabs a i{font-style:normal;display:block;font-size:1.35rem}
+.tabs a.on{color:#b3121b}
+#vid{position:fixed;inset:0;background:#000;z-index:200;display:none}#vid video{width:100%;height:100%;object-fit:contain}
+#vid button{position:absolute;top:calc(14px + env(safe-area-inset-top));right:14px;background:rgba(255,255,255,.9);color:#9e0f17;border:2px solid #d4a017;border-radius:20px;padding:8px 16px;font-weight:800}
 </style></head><body>
 <!-- PIN de mesa (se pide una vez por celular) -->
 <style>
@@ -54,24 +69,53 @@ h1{color:#b3121b;font-size:2rem;text-align:center}h1 span{display:block;color:#c
   });
 })();
 </script>
-
-<div id="splash" class="scr"><img src="bienvenida.jpg" alt=""><button class="btn" id="go">🏮 Toca para entrar<small>Chifa Shanghai · Abancay</small></button></div>
-<div id="vid" class="scr hide" style="background:#fff;padding:0"><video id="v" src="video.mp4" poster="poster.jpg" playsinline webkit-playsinline preload="auto" style="width:100%;height:100%;object-fit:contain"></video><button id="skip" style="position:absolute;top:calc(14px + env(safe-area-inset-top));right:14px;background:rgba(255,255,255,.85);color:#9e0f17;border:2px solid #d4a017;border-radius:20px;padding:8px 16px;font-weight:800;font-size:1rem">Saltar ⏭</button></div>
-<div id="img" class="scr hide"><img src="bienvenida.jpg" alt="Bienvenido a Chifa Shanghai"><p class="hint">Toca la imagen para continuar</p></div>
-<div id="menu" class="scr hide">
-<div class="row"><a class="btn cat" id="pedir" href="carta/">Pedir ya 🥢</a>
-<a class="btn cat gold" id="tuto" href="tutorial/">Tutorial</a></div></div>
+<header class="top">
+ <div class="brand"><div class="logo">🏮</div><div><b>Chifa Shanghai</b><small>Abancay · Carta digital</small></div><a class="mesaBtn" id="verMesa" href="carta/">🏮 Mi mesa</a></div>
+ <div class="hi" id="hi">¡Hola! 👋<span>¿Qué se te antoja hoy?</span></div>
+</header>
+<div class="hero" id="hero"><img src="bienvenida.jpg" alt="Bienvenido a Chifa Shanghai"><div class="play">▶ Ver bienvenida</div></div>
+<div class="acts">
+ <a class="act p" id="pedir" href="carta/"><i>🥢</i>Pedir ya<small>Arma tu pedido desde la mesa</small></a>
+ <a class="act t" id="tuto" href="tutorial/"><i>🎬</i>Ver tutorial<small>Aprende a pedir</small></a>
+</div>
+<h3>Novedades</h3>
+<div class="hs">
+ <a class="nov n1" href="carta/"><span>📱</span><div><b>Nueva carta digital</b><p>Pide desde tu celular, el mozo confirma tu pedido.</p></div></a>
+ <a class="nov n2" href="carta/"><span>🔔</span><div><b>Llama al mozo desde tu mesa</b><p>Usa el botón 🔔 en “Mi mesa” cuando lo necesites.</p></div></a>
+ <a class="nov n3" href="tutorial/"><span>🎬</span><div><b>¿Primera vez?</b><p>Mira el tutorial y pide en segundos.</p></div></a>
+</div>
+<h3>Shop <a href="carta/">Ver carta ›</a></h3>
+<div class="grid">
+ <a class="tile" href="carta/#chaufas"><i>🍚</i>Chaufas</a>
+ <a class="tile" href="carta/#tallarines"><i>🍜</i>Tallarines</a>
+ <a class="tile" href="carta/#aeropuerto"><i>✈️</i>Aeropuerto</a>
+ <a class="tile" href="carta/#platos-saltados"><i>🥘</i>Saltados</a>
+ <a class="tile" href="carta/#sopas"><i>🍲</i>Sopas</a>
+ <a class="tile" href="carta/#platos-dulces"><i>🍯</i>Dulces</a>
+ <a class="tile" href="carta/#combos"><i>👨‍👩‍👧‍👦</i>Combos</a>
+ <a class="tile" href="carta/#bebidas"><i>🥤</i>Bebidas</a>
+</div>
+<h3>Lo más vendido <a href="carta/">Ver todo ›</a></h3>
+<div class="hs">
+ <a class="dish" href="carta/#chaufas"><div class="em">🍚</div><div><b>Chaufa con pollo</b><span>S/ 13.00</span></div></a>
+ <a class="dish" href="carta/#tallarines"><div class="em">🍜</div><div><b>Tallarín saltado con pollo</b><span>S/ 15.00</span></div></a>
+ <a class="dish" href="carta/#aeropuerto"><div class="em">✈️</div><div><b>Aeropuerto de pollo</b><span>S/ 16.00</span></div></a>
+ <a class="dish" href="carta/#platos-saltados"><div class="em">🥩</div><div><b>Lomo saltado de carne</b><span>S/ 19.00</span></div></a>
+ <a class="dish" href="carta/#platos-dulces"><div class="em">🍯</div><div><b>Kamlu wantán</b><span>S/ 19.00</span></div></a>
+ <a class="dish" href="carta/#combos"><div class="em">👨‍👩‍👧‍👦</div><div><b>Combo 04 personas</b><span>S/ 90.00</span></div></a>
+</div>
+<div style="height:20px"></div>
+<nav class="tabs">
+ <a class="on" href="./"><i>🏠</i>Inicio</a><a href="carta/"><i>📖</i>Carta</a><a href="tutorial/"><i>🎬</i>Tutorial</a><a href="carta/" id="tabMesa"><i>🏮</i>Mi mesa</a>
+</nav>
+<div id="vid"><video id="v" src="video.mp4" poster="poster.jpg" playsinline webkit-playsinline preload="none"></video><button id="skip">Cerrar ✕</button></div>
 <audio id="a1" src="hola.mp3" preload="auto" playsinline></audio>
-
 <script>
-const $=id=>document.getElementById(id),a1=$('a1'),v=$('v');let done=false;
-function show(id){['splash','vid','img','menu'].forEach(s=>$(s).classList.toggle('hide',s!==id))}
-function toImg(){if(done)return;done=true;v.pause();show('img');a1.currentTime=0;a1.play().catch(()=>{})}
-v.addEventListener('ended',toImg);v.addEventListener('error',toImg);
-$('go').onclick=()=>{show('vid');a1.muted=true;a1.play().then(()=>{a1.pause();a1.muted=false}).catch(()=>{a1.muted=false});v.play().catch(toImg)};
-$('skip').onclick=e=>{e.stopPropagation();toImg()};
-$('img').onclick=()=>{a1.pause();show('menu')};
-if(location.hash==='#menu')show('menu');
-</script><a id="verMesa" href="carta/" style="display:none;position:fixed;top:calc(12px + env(safe-area-inset-top));right:12px;z-index:99990;padding:11px 14px;border-radius:16px;border:2px solid #d4a017;background:linear-gradient(#d61f2a,#9e0f17);color:#fff;font:800 15px system-ui,-apple-system,sans-serif;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.35)">🏮 Ver mi mesa</a>
-<script>(function(){function f(){var s=null;try{s=JSON.parse(localStorage.getItem('chifaMesaSesion')||'null')}catch(e){}var a=document.getElementById('verMesa');if(s&&s.token){a.style.display='block';if(s.mesa&&s.modalidad!=='llevar')a.textContent='🏮 Mi mesa '+String(s.mesa).replace(/^0+(?=\d)/,'')}else a.style.display='none'}f();window.addEventListener('pageshow',f);document.addEventListener('visibilitychange',f)})();</script>
+const $=id=>document.getElementById(id),v=$('v'),a1=$('a1'),vb=$('vid');
+function close(){v.pause();vb.style.display='none';a1.currentTime=0;a1.play().catch(()=>{})}
+$('hero').onclick=()=>{vb.style.display='block';v.currentTime=0;v.play().catch(close)};
+v.addEventListener('ended',close);$('skip').onclick=()=>{v.pause();vb.style.display='none'};
+const h=new Date().getHours();$('hi').firstChild.nodeValue=(h<12?'¡Buenos días! ☀️':h<19?'¡Buenas tardes! 👋':'¡Buenas noches! 🌙');
+(function(){function f(){var s=null;try{s=JSON.parse(localStorage.getItem('chifaMesaSesion')||'null')}catch(e){}var a=$('verMesa');if(s&&s.token){a.style.display='block';if(s.mesa&&s.modalidad!=='llevar')a.textContent='🏮 Mi mesa '+String(s.mesa).replace(/^0+(?=\d)/,'')}else a.style.display='none'}f();window.addEventListener('pageshow',f);document.addEventListener('visibilitychange',f)})();
+</script>
 </body></html>

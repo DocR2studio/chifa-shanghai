@@ -851,5 +851,6 @@
 })();
 </script>
 
+<script>/*deep-link categoria desde inicio*/window.addEventListener("load",function(){var h=decodeURIComponent(location.hash.slice(1));if(!h)return;var c=document.querySelector('.chip[data-cat="'+h+'"]');if(c)setTimeout(function(){c.click()},300)});</script>
 </body>
 </html>
