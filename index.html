@@ -54,7 +54,7 @@ h3 a{font-size:.85rem;color:#b3121b;font-weight:700}
 .pc b{font-size:1.05rem;color:#5a0a0e}.pc small{font-size:.8rem;color:#8a4b4e}
 .pc .go{margin-top:auto;align-self:flex-start;background:linear-gradient(#d61f2a,#9e0f17);color:#fff;font-weight:800;font-size:.85rem;padding:7px 16px;border-radius:14px;margin-top:8px}
 .sh{color:#9e0f17}.sh .bg{font-size:.65rem;background:linear-gradient(#f7d46a,#d4a017);color:#5a0a0e;padding:3px 8px;border-radius:999px;margin-left:8px;letter-spacing:.08em;vertical-align:middle}
-</style></head><body>
+.tile{position:relative}#soon{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#9e0f17;color:#fff;padding:12px 18px;border-radius:14px;font-weight:700;font-size:.9rem;z-index:500;display:none;box-shadow:0 6px 18px rgba(0,0,0,.25)}</style></head><body>
 <!-- PIN de mesa (se pide una vez por celular) -->
 <style>
 #pinGate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:#fff4d6;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -118,14 +118,14 @@ h3 a{font-size:.85rem;color:#b3121b;font-weight:700}
 </div>
 <h3>Shop <a href="carta/">Ver carta ›</a></h3>
 <div class="grid">
- <a class="tile" href="carta/#chaufas"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18a9 9 0 0 1-18 0z"/><path d="M7 7c0-2 2-2 2-4M12 7c0-2 2-2 2-4"/></svg></i>Chaufas</a>
- <a class="tile" href="carta/#tallarines"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18a9 9 0 0 1-18 0z"/><path d="M8 12V4M12 12V3M16 12V5"/></svg></i>Tallarines</a>
- <a class="tile" href="carta/#aeropuerto"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16l20-8-8 12-2-6z"/><path d="M12 14l-4 4"/></svg></i>Aeropuerto</a>
- <a class="tile" href="carta/#platos-saltados"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="13" r="7"/><path d="M17 13h5"/></svg></i>Saltados</a>
- <a class="tile" href="carta/#sopas"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18a9 9 0 0 1-18 0z"/><path d="M9 8c1-1 1-3 0-4M14 8c1-1 1-3 0-4"/></svg></i>Sopas</a>
- <a class="tile" href="carta/#platos-dulces"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8l-1 3H9z"/><path d="M7 7h10v11a3 3 0 0 1-3 3h-4a3 3 0 0 1-3-3z"/></svg></i>Dulces</a>
- <a class="tile" href="carta/#combos"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M15 14.5c3 0 6 2 6 5.5"/></svg></i>Combos</a>
+ <a class="tile" href="carta/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg></i>Pedir</a>
+ <a class="tile" href="#" data-soon="1"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6v10H3z"/><path d="M9 20v-6h6v6"/></svg></i>Almacén</a>
+ <a class="tile" href="#" data-soon="1"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16l20-8-8 12-2-6z"/><path d="M12 14l-4 4"/></svg></i>Importar Perú China</a>
+ <a class="tile" href="carta/#platos-dulces"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8l8 8M5 11l3-3 8 8-3 3a4 4 0 0 1-8-8z"/><path d="M16 8l3-3M8 16l-3 3"/></svg></i>Dulces chinos</a>
+ <a class="tile" href="carta/#bocaditos-chinos"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="14" rx="8" ry="5"/><path d="M8 10c1-3 7-3 8 0"/></svg></i>Snacks</a>
  <a class="tile" href="carta/#bebidas"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1.5 14h-9z"/><path d="M12 7l2-5"/></svg></i>Bebidas</a>
+ <a class="tile" href="carta/#bebidas-chinas"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h11v5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z"/><path d="M16 10h2a2 2 0 0 1 0 4h-2"/><path d="M9 3c0 2 2 2 2 4"/></svg></i>Tés</a>
+ <a class="tile" href="#" data-soon="1"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10l-1 8a4 4 0 0 1-8 0z"/><path d="M12 15v5M8 21h8"/></svg></i>Tragos chinos</a>
 </div>
 <h3>Lo más vendido <a href="carta/">Ver todo ›</a></h3>
 <div class="hs">
@@ -152,4 +152,5 @@ $('hero').onclick=play;v.addEventListener('ended',home);v.addEventListener('erro
 if(location.hash==='#inicio')$('splash').style.display='none';
 const h=new Date().getHours();$('hi').firstChild.nodeValue=(h<12?'¡Buenos días!':h<19?'¡Buenas tardes!':'¡Buenas noches!');
 </script>
+<div id="soon">Próximamente</div><script>document.querySelectorAll('[data-soon]').forEach(a=>a.onclick=e=>{e.preventDefault();var t=document.getElementById('soon');t.textContent=a.textContent.trim()+': próximamente';t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',2200)})</script>
 </body></html>
