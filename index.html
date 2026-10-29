@@ -120,8 +120,8 @@ h3 a{font-size:.85rem;color:#b3121b;font-weight:700}
 <audio id="a1" src="hola.mp3" preload="auto" playsinline></audio>
 <script>
 const $=id=>document.getElementById(id),v=$('v'),a1=$('a1'),vb=$('vid');
-function home(){v.pause();vb.style.display='none';$('splash').style.display='none';a1.currentTime=0;a1.play().catch(()=>{})}
-function play(){vb.style.display='block';v.currentTime=0;v.play().catch(home)}
+function home(){if(typeof stopWd==='function')stopWd();v.pause();vb.style.display='none';$('splash').style.display='none';a1.currentTime=0;a1.play().catch(()=>{})}
+var wd=null,lt=-1;function stopWd(){clearInterval(wd);wd=null}function play(){vb.style.display='block';try{v.currentTime=0}catch(e){}v.muted=false;v.play().catch(()=>{v.muted=true;v.play().catch(home)});stopWd();lt=-1;var st=0;wd=setInterval(()=>{if(vb.style.display!=='block'){stopWd();return}if(v.currentTime===lt){st++;if(st>=6){stopWd();home()}}else{st=0;lt=v.currentTime}},1000)}
 $('go').onclick=()=>{a1.muted=true;a1.play().then(()=>{a1.pause();a1.muted=false}).catch(()=>{a1.muted=false});play()};
 $('hero').onclick=play;v.addEventListener('ended',home);v.addEventListener('error',home);$('skip').onclick=home;
 if(location.hash==='#inicio')$('splash').style.display='none';
