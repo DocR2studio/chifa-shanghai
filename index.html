@@ -54,7 +54,7 @@ h3 a{font-size:.85rem;color:#b3121b;font-weight:700}
 .pc b{font-size:1.05rem;color:#5a0a0e}.pc small{font-size:.8rem;color:#8a4b4e}
 .pc .go{margin-top:auto;align-self:flex-start;background:linear-gradient(#d61f2a,#9e0f17);color:#fff;font-weight:800;font-size:.85rem;padding:7px 16px;border-radius:14px;margin-top:8px}
 .sh{color:#9e0f17}.sh .bg{font-size:.65rem;background:linear-gradient(#f7d46a,#d4a017);color:#5a0a0e;padding:3px 8px;border-radius:999px;margin-left:8px;letter-spacing:.08em;vertical-align:middle}
-.tile{position:relative}#soon{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#9e0f17;color:#fff;padding:12px 18px;border-radius:14px;font-weight:700;font-size:.9rem;z-index:500;display:none;box-shadow:0 6px 18px rgba(0,0,0,.25)}</style></head><body>
+.tile{position:relative}#soon{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#9e0f17;color:#fff;padding:12px 18px;border-radius:14px;font-weight:700;font-size:.9rem;z-index:500;display:none;box-shadow:0 6px 18px rgba(0,0,0,.25)}.tile .sub{display:block;font-size:.58rem;font-weight:600;color:#9e5a20;margin-top:2px;line-height:1.15}</style></head><body>
 <!-- PIN de mesa (se pide una vez por celular) -->
 <style>
 #pinGate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:#fff4d6;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -120,7 +120,7 @@ h3 a{font-size:.85rem;color:#b3121b;font-weight:700}
 <div class="grid">
  <a class="tile" href="carta/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg></i>Pedir</a>
  <a class="tile" href="#" data-soon="1"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6v10H3z"/><path d="M9 20v-6h6v6"/></svg></i>Almacén</a>
- <a class="tile" href="#" data-soon="1"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16l20-8-8 12-2-6z"/><path d="M12 14l-4 4"/></svg></i>Importar Perú China</a>
+ <a class="tile" href="#" data-soon="1"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15h18l-2 4H5z"/><path d="M6 15V9h8l3 6"/><path d="M10 9V5"/></svg></i>Pedidos de China<small class="sub">Encarga y recoge en Perú</small></a>
  <a class="tile" href="carta/#platos-dulces"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8l8 8M5 11l3-3 8 8-3 3a4 4 0 0 1-8-8z"/><path d="M16 8l3-3M8 16l-3 3"/></svg></i>Dulces chinos</a>
  <a class="tile" href="carta/#bocaditos-chinos"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="14" rx="8" ry="5"/><path d="M8 10c1-3 7-3 8 0"/></svg></i>Snacks</a>
  <a class="tile" href="carta/#bebidas"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1.5 14h-9z"/><path d="M12 7l2-5"/></svg></i>Bebidas</a>
@@ -152,5 +152,5 @@ $('hero').onclick=play;v.addEventListener('ended',home);v.addEventListener('erro
 if(location.hash==='#inicio')$('splash').style.display='none';
 const h=new Date().getHours();$('hi').firstChild.nodeValue=(h<12?'¡Buenos días!':h<19?'¡Buenas tardes!':'¡Buenas noches!');
 </script>
-<div id="soon">Próximamente</div><script>document.querySelectorAll('[data-soon]').forEach(a=>a.onclick=e=>{e.preventDefault();var t=document.getElementById('soon');t.textContent=a.textContent.trim()+': próximamente';t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',2200)})</script>
+<div id="soon">Próximamente</div><script>document.querySelectorAll('[data-soon]').forEach(a=>a.onclick=e=>{e.preventDefault();var t=document.getElementById('soon');t.textContent=(a.firstChild&&a.childNodes[1]?a.childNodes[1].nodeValue:a.textContent).trim()+': próximamente';t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',2200)})</script>
 </body></html>
