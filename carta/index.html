@@ -685,7 +685,7 @@
   <label>Nota (opcional)<textarea id="csNota" rows="2" maxlength="200" placeholder="Sin ají, poca sal, etc."></textarea></label>
   <input class="hp" id="csWeb" tabindex="-1" autocomplete="off" aria-hidden="true">
   <div class="cs-msg" id="csMsg"></div>
-  <div class="cs-row" style="margin-top:14px"><button type="button" class="cs-chip" id="csSeguir" style="flex:1">Seguir viendo</button><button type="button" class="cs-btn" id="csEnviar" style="flex:2">Enviar pedido</button></div>
+  <div class="cs-row" style="margin-top:14px"><button type="button" class="cs-chip" id="csSeguir" style="flex:1">Seguir viendo</button><button type="button" class="cs-btn" id="csEnviar" style="flex:2">Mandar a cocina</button></div>
 </div></div>
 <script>
 (function(){
@@ -746,7 +746,7 @@
     const ad = !!ses;
     document.querySelector('.cs-row [data-mod]').parentElement.style.display = ad ? 'none' : '';
     $('csMesaBox').style.display = ad || mod !== 'mesa' ? 'none' : ''; $('csNomBox').style.display = !ad && mod === 'llevar' ? '' : 'none';
-    $('csEnviar').textContent = ad ? 'Enviar adicional' : 'Enviar pedido';
+    $('csEnviar').textContent = ad ? 'Mandar adicional a cocina' : 'Mandar a cocina';
     document.querySelector('#cartSheet h3').textContent = ad ? '➕ Adicional' : '🥢 Mi pedido';
   }
   function mmMsg(t) { const m = $('mmMsg'); m.textContent = t || ''; m.className = 'mm-msg' + (t ? ' on' : ''); }
@@ -850,7 +850,7 @@
       setTimeout(() => { abrirMesa(); mmMsg('✅ ¡Enviado! Espera que el mozo lo confirme.'); }, 900);
     } catch (e) {
       msg(e instanceof TypeError ? '😕 No pudimos conectar con el restaurante. Intenta de nuevo o pide al mozo.' : '😕 ' + e.message);
-    } finally { $('csEnviar').disabled = false; $('csEnviar').textContent = getSes() ? 'Enviar adicional' : 'Enviar pedido'; }
+    } finally { $('csEnviar').disabled = false; $('csEnviar').textContent = getSes() ? 'Mandar adicional a cocina' : 'Mandar a cocina'; }
   };
 })();
 </script>
