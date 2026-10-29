@@ -54,7 +54,15 @@ h3 a{font-size:.85rem;color:#b3121b;font-weight:700}
 .pc b{font-size:1.05rem;color:#5a0a0e}.pc small{font-size:.8rem;color:#8a4b4e}
 .pc .go{margin-top:auto;align-self:flex-start;background:linear-gradient(#d61f2a,#9e0f17);color:#fff;font-weight:800;font-size:.85rem;padding:7px 16px;border-radius:14px;margin-top:8px}
 .sh{color:#9e0f17}.sh .bg{font-size:.65rem;background:linear-gradient(#f7d46a,#d4a017);color:#5a0a0e;padding:3px 8px;border-radius:999px;margin-left:8px;letter-spacing:.08em;vertical-align:middle}
-.tile{position:relative}#soon{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#9e0f17;color:#fff;padding:12px 18px;border-radius:14px;font-weight:700;font-size:.9rem;z-index:500;display:none;box-shadow:0 6px 18px rgba(0,0,0,.25)}.tile .sub{display:block;font-size:.58rem;font-weight:600;color:#9e5a20;margin-top:2px;line-height:1.15}</style></head><body>
+.tile{position:relative}#soon{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#9e0f17;color:#fff;padding:12px 18px;border-radius:14px;font-weight:700;font-size:.9rem;z-index:500;display:none;box-shadow:0 6px 18px rgba(0,0,0,.25)}.tile .sub{display:block;font-size:.58rem;font-weight:600;color:#9e5a20;margin-top:2px;line-height:1.15}#ver{position:fixed;inset:0;z-index:150;background:#fff8e8;overflow-y:auto;display:none;-webkit-overflow-scrolling:touch}
+#ver .vh{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;background:linear-gradient(160deg,#d61f2a,#9e0f17);color:#fff;padding:calc(14px + env(safe-area-inset-top)) 14px 14px;border-radius:0 0 22px 22px;box-shadow:0 6px 16px rgba(158,15,23,.25)}
+#ver .vh button{width:42px;height:42px;border-radius:50%;border:2px solid #f2c94c;background:rgba(255,255,255,.15);color:#fff;display:grid;place-items:center;cursor:pointer}
+#ver .vh b{font-size:1.25rem;letter-spacing:.02em}
+#ver .vg{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px 14px 30px}
+#ver .pc{flex:none;width:auto}
+#ver .dish{flex:none;width:auto;flex-direction:column;align-items:flex-start;gap:8px}
+#ver .dish{padding-bottom:14px}#ver .dish .go{margin:0 12px;background:linear-gradient(#d61f2a,#9e0f17);color:#fff;font-weight:800;font-size:.85rem;padding:7px 16px;border-radius:14px}
+</style></head><body>
 <!-- PIN de mesa (se pide una vez por celular) -->
 <style>
 #pinGate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:#fff4d6;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -94,18 +102,19 @@ h3 a{font-size:.85rem;color:#b3121b;font-weight:700}
  <a class="act p" id="pedir" href="carta/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21L19 3M9 21L21 7"/></svg></i>Pedir ya<small>Arma tu pedido desde la mesa</small></a>
  <a class="act t" id="tuto" href="tutorial/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z"/></svg></i>Ver tutorial<small>Aprende a pedir</small></a>
 </div>
-<h3 class="sh"><span>Bebidas chinas<span class="bg">NUEVO</span></span><a href="carta/#bebidas-chinas">Ver ›</a></h3>
+<h3 class="sh"><span>Bebidas chinas<span class="bg">NUEVO</span></span><a href="#ver-bebidas-chinas" data-ver="bebidas-chinas" data-t="Bebidas chinas">Ver ›</a></h3>
 <div class="sc">
- <a class="pc" href="carta/#bebidas-chinas"><img src="carta/img/bubble-tea.jpg" alt="Té de boba de leche" loading="lazy"><span class="nv">Nuevo</span><span class="pr">S/ 12</span><div class="bd"><b>Té de boba de leche</b><small>Bebida china</small><span class="go">Pedir</span></div></a>
- <a class="pc" href="carta/#bebidas-chinas"><img src="carta/img/bubble-tea.jpg" alt="Té de boba de fresa" loading="lazy"><span class="nv">Nuevo</span><span class="pr">S/ 12</span><div class="bd"><b>Té de boba de fresa</b><small>Bebida china</small><span class="go">Pedir</span></div></a>
+ <a class="pc" href="carta/#bebidas-chinas"><img src="carta/img/boba-leche.jpg" alt="Té de boba de leche" loading="lazy"><span class="nv">Nuevo</span><span class="pr">S/ 12</span><div class="bd"><b>Té de boba de leche</b><small>Bebida china</small><span class="go">Pedir</span></div></a>
+ <a class="pc" href="carta/#bebidas-chinas"><img src="carta/img/boba-fresa.jpg" alt="Té de boba de fresa" loading="lazy"><span class="nv">Nuevo</span><span class="pr">S/ 12</span><div class="bd"><b>Té de boba de fresa</b><small>Bebida china</small><span class="go">Pedir</span></div></a>
+ <a class="pc" href="carta/#bebidas-chinas"><img src="carta/img/matcha.jpg" alt="Té matcha" loading="lazy"><span class="nv">Nuevo</span><span class="pr">S/ 12</span><div class="bd"><b>Té matcha</b><small>Bebida china</small><span class="go">Pedir</span></div></a>
 </div>
-<h3 class="sh"><span>Bocaditos chinos<span class="bg">NUEVO</span></span><a href="carta/#bocaditos-chinos">Ver ›</a></h3>
+<h3 class="sh"><span>Bocaditos chinos<span class="bg">NUEVO</span></span><a href="#ver-bocaditos-chinos" data-ver="bocaditos-chinos" data-t="Bocaditos chinos">Ver ›</a></h3>
 <div class="sc">
  <a class="pc" href="carta/#bocaditos-chinos"><img src="carta/img/enrollados.jpg" alt="Enrollado de primavera" loading="lazy"><span class="nv">Nuevo</span><span class="pr">S/ 6</span><div class="bd"><b>Enrollado de primavera</b><small>Precio por unidad</small><span class="go">Pedir</span></div></a>
  <a class="pc" href="carta/#bocaditos-chinos"><img src="carta/img/siu-mai.jpg" alt="Siu mai" loading="lazy"><span class="nv">Nuevo</span><span class="pr">S/ 11</span><div class="bd"><b>Siu mai</b><small>3 unidades</small><span class="go">Pedir</span></div></a>
  <a class="pc" href="carta/#bocaditos-chinos"><img src="carta/img/min-pao.jpg" alt="Min pao" loading="lazy"><span class="nv">Nuevo</span><span class="pr">S/ 6</span><div class="bd"><b>Min pao</b><small>Precio por unidad</small><span class="go">Pedir</span></div></a>
 </div>
-<h3 class="sh"><span>Sopas populares<span class="bg">NUEVO</span></span><a href="carta/#sopas">Ver ›</a></h3>
+<h3 class="sh"><span>Sopas populares<span class="bg">NUEVO</span></span><a href="#ver-sopas" data-ver="sopas" data-t="Sopas populares">Ver ›</a></h3>
 <div class="sc">
  <a class="pc" href="carta/#sopas"><img src="carta/img/sopa.jpg" alt="Ramen ling" loading="lazy"><span class="nv">Nuevo</span><span class="pr">S/ 20</span><div class="bd"><b>Ramen ling</b><small>Sopa popular</small><span class="go">Pedir</span></div></a>
  <a class="pc" href="carta/#sopas"><img src="carta/img/sopa.jpg" alt="Ramen ting" loading="lazy"><span class="nv">Nuevo</span><span class="pr">S/ 22</span><div class="bd"><b>Ramen ting</b><small>Sopa popular</small><span class="go">Pedir</span></div></a>
@@ -126,7 +135,7 @@ h3 a{font-size:.85rem;color:#b3121b;font-weight:700}
  <a class="tile" href="carta/#bebidas-chinas"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h11v5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z"/><path d="M16 10h2a2 2 0 0 1 0 4h-2"/><path d="M9 3c0 2 2 2 2 4"/></svg></i>Tés</a>
  <a class="tile" href="#" data-soon="1"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10l-1 8a4 4 0 0 1-8 0z"/><path d="M12 15v5M8 21h8"/></svg></i>Tragos chinos</a>
 </div>
-<h3>Lo más vendido <a href="carta/">Ver todo ›</a></h3>
+<h3>Lo más vendido <a href="#ver-mas-vendido" data-ver="mas-vendido" data-t="Lo más vendido">Ver todo ›</a></h3>
 <div class="hs">
  <a class="dish" href="carta/#chaufas"><div class="em"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18a9 9 0 0 1-18 0z"/><path d="M7 7c0-2 2-2 2-4M12 7c0-2 2-2 2-4"/></svg></div><div><b>Chaufa con pollo</b><span>S/ 13.00</span></div></a>
  <a class="dish" href="carta/#tallarines"><div class="em"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18a9 9 0 0 1-18 0z"/><path d="M8 12V4M12 12V3M16 12V5"/></svg></div><div><b>Tallarín saltado con pollo</b><span>S/ 15.00</span></div></a>
@@ -152,4 +161,16 @@ if(location.hash==='#inicio')$('splash').style.display='none';
 const h=new Date().getHours();$('hi').firstChild.nodeValue=(h<12?'¡Buenos días!':h<19?'¡Buenas tardes!':'¡Buenas noches!');
 </script>
 <div id="soon">Próximamente</div><script>document.querySelectorAll('[data-soon]').forEach(a=>a.onclick=e=>{e.preventDefault();var t=document.getElementById('soon');t.textContent=(a.firstChild&&a.childNodes[1]?a.childNodes[1].nodeValue:a.textContent).trim()+': próximamente';t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',2200)})</script>
+<div id="ver" aria-hidden="true"><div class="vh"><button type="button" id="verBack" aria-label="Volver"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button><b id="verT"></b></div><div class="vg" id="verG"></div></div>
+<script>(function(){var V=document.getElementById('ver'),G=document.getElementById('verG'),T=document.getElementById('verT'),L={};
+document.querySelectorAll('a[data-ver]').forEach(function(a){L[a.dataset.ver]=a;a.addEventListener('click',function(e){e.preventDefault();if(location.hash!=='#ver-'+a.dataset.ver)history.pushState({ver:a.dataset.ver},'','#ver-'+a.dataset.ver);show(a.dataset.ver)})});
+function show(k){var a=L[k];if(!a){V.style.display='none';return}var box=a.closest('h3').nextElementSibling;T.textContent=a.dataset.t;G.innerHTML='';
+box.querySelectorAll('a.pc,a.dish').forEach(function(c){var d=document.createElement('div');d.className=c.className;d.innerHTML=c.innerHTML;var href=c.getAttribute('href');
+var go=d.querySelector('.go');if(!go){go=document.createElement('span');go.className='go';go.textContent='Pedir';(d.querySelector('.bd')||d).appendChild(go)}
+var p=document.createElement('a');p.className='go';p.href=href;p.textContent='Pedir';go.replaceWith(p);G.appendChild(d)});
+var sp=document.getElementById('splash');if(sp)sp.style.display='none';V.style.display='block';V.scrollTop=0;document.body.style.overflow='hidden'}
+function hide(){V.style.display='none';document.body.style.overflow=''}
+document.getElementById('verBack').onclick=function(){if(history.state&&history.state.ver)history.back();else{history.replaceState(null,'','#inicio');hide()}};
+function sync(){var m=location.hash.match(/^#ver-(.+)$/);if(m&&L[m[1]])show(m[1]);else hide()}
+window.addEventListener('popstate',sync);sync()})();</script>
 </body></html>
