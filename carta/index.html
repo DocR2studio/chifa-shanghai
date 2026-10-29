@@ -677,9 +677,9 @@
 <div id="cartSheet"><div class="sh">
   <h3>🥢 Mi pedido</h3><div id="csLines"></div>
   <div class="cs-total"><span>Total</span><span id="csTotal">S/ 0.00</span></div>
-  <div class="cs-row"><button type="button" class="cs-chip on" data-mod="mesa">🍽 En mesa</button><button type="button" class="cs-chip" data-mod="llevar">🥡 Para llevar</button></div>
+  <div class="cs-row"><button type="button" class="cs-chip on" data-mod="mesa">🍽 En mesa</button><button type="button" class="cs-chip" data-mod="llevar">🛵 Delivery</button></div>
   <div id="csMesaBox"><div id="csMesaFija" style="font-weight:800;font-size:1.1rem;padding:10px 12px;border:2px solid var(--gold);border-radius:12px;margin:8px 0;text-align:center">🍽 Mesa 3</div><label id="csMesaSel" style="display:none">Número de mesa<select id="csMesa"><option value="">Elige tu mesa…</option></select></label></div>
-  <div id="csNomBox" style="display:none"><label>Tu nombre<input id="csNombre" maxlength="40" autocomplete="name" placeholder="Para llamarte"></label></div>
+  <div id="csNomBox" style="display:none"><label>Tu nombre<input id="csNombre" maxlength="28" autocomplete="name" placeholder="Nombre y apellido"></label><label>Celular<input id="csTel" type="tel" inputmode="tel" maxlength="15" autocomplete="tel" placeholder="9XX XXX XXX"></label><label>Dirección de entrega<input id="csDir" maxlength="90" autocomplete="street-address" placeholder="Calle, número, referencia"></label></div>
   <label>Nota (opcional)<textarea id="csNota" rows="2" maxlength="200" placeholder="Sin ají, poca sal, etc."></textarea></label>
   <input class="hp" id="csWeb" tabindex="-1" autocomplete="off" aria-hidden="true">
   <div class="cs-msg" id="csMsg"></div>
@@ -775,7 +775,7 @@
     finally { clearTimeout(to); cargando = false; }
     if ($('miMesa').style.display !== 'flex') return;
     { const t0 = $('mmMsg').textContent || ''; if (t0.startsWith('😕') || (t0.startsWith('✅') && !d.pedidos.some((p) => p.estado === 'pendiente'))) mmMsg(''); }
-    $('mmTitulo').innerHTML = (d.modalidad === 'llevar' ? '🥡 ' + esc(d.nombre || 'Para llevar') : '🏮 Mesa ' + esc(String(d.mesa).replace(/^0+(?=\d)/, ''))) + '<small>Chifa Shanghai · Mi mesa</small>';
+    $('mmTitulo').innerHTML = (d.modalidad === 'llevar' ? '🛵 ' + esc(d.nombre || 'Delivery') : '🏮 Mesa ' + esc(String(d.mesa).replace(/^0+(?=\d)/, ''))) + '<small>Chifa Shanghai · Mi mesa</small>';
     if (d.cerrada) return pintarFin('Cuenta cerrada, ¡gracias!', 'Gracias por visitarnos 🥢 ¡Vuelve pronto!');
     if (d.todoRechazado) return pintarFin('El mozo no confirmó tu pedido', 'Si crees que es un error, llama al mozo o pídele en persona.');
     const vis = d.pedidos.filter((p) => p.estado !== 'pagado' && p.estado !== 'anulado');
@@ -829,13 +829,15 @@
     const ses0 = getSes();
     if (!ses0 && mod === 'mesa' && !$('csMesa').value) return msg('Elige tu número de mesa');
     if (!ses0 && mod === 'llevar' && $('csNombre').value.trim().length < 2) return msg('Escribe tu nombre');
+    if (!ses0 && mod === 'llevar' && $('csTel').value.replace(/\D/g,'').length < 6) return msg('Escribe tu número de celular');
+    if (!ses0 && mod === 'llevar' && $('csDir').value.trim().length < 5) return msg('Escribe la dirección de entrega');
     const pin = await (window.chifaPinReady || Promise.resolve(localStorage.getItem('chifaMesaPin') || ''));
     $('csEnviar').disabled = true; $('csEnviar').textContent = 'Enviando…';
     try {
       const r = await fetch(API + '/api/chifa/cliente/pedidos', {
         method: 'POST',
         headers: Object.assign({ 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1', 'X-Mesa-Pin': pin }, ses0 ? { 'X-Cliente-Token': ses0.token } : {}),
-        body: JSON.stringify({ modalidad: mod, mesa: $('csMesa').value, nombre: $('csNombre').value, notas: $('csNota').value, website: $('csWeb').value,
+        body: JSON.stringify({ modalidad: mod, mesa: $('csMesa').value, nombre: mod === 'llevar' && !ses0 ? 'DELIVERY · ' + $('csNombre').value.trim() : $('csNombre').value, notas: mod === 'llevar' && !ses0 ? ('DELIVERY · Cel: ' + $('csTel').value.trim() + ' · Dir: ' + $('csDir').value.trim() + ($('csNota').value.trim() ? ' · ' + $('csNota').value.trim() : '')).slice(0, 200) : $('csNota').value, website: $('csWeb').value,
           items: [...cart].map(([code, qty]) => ({ code, qty })) }),
       });
       const d = await r.json().catch(() => ({}));
@@ -852,5 +854,21 @@
 </script>
 
 <script>/*deep-link categoria desde inicio*/window.addEventListener("load",function(){var h=decodeURIComponent(location.hash.slice(1));if(!h)return;var c=document.querySelector('.chip[data-cat="'+h+'"]');if(c)setTimeout(function(){c.click()},300)});</script>
+<style>#mesaQ{position:fixed;inset:0;z-index:99000;background:rgba(40,0,4,.72);display:none;align-items:center;justify-content:center;padding:20px}
+#mesaQ .c{width:min(92vw,360px);background:#fff8e7;border:3px solid #d4a017;border-radius:24px;padding:24px 18px;text-align:center;color:#5a0a0e;font-family:system-ui,-apple-system,sans-serif}
+#mesaQ h2{color:#b3121b;font-size:1.45rem;margin-bottom:4px}#mesaQ p{font-size:.9rem;margin-bottom:16px}
+#mesaQ button{display:block;width:100%;margin-top:10px;padding:16px;border-radius:18px;font-weight:800;font-size:1.15rem;border:3px solid #d4a017;background:linear-gradient(#d61f2a,#9e0f17);color:#fff}
+#mesaQ button.d{background:linear-gradient(#f7d46a,#d4a017);color:#5a0a0e;border-color:#9e0f17}</style>
+<div id="mesaQ" role="dialog" aria-label="¿En qué mesa estás?"><div class="c"><h2>¿En qué mesa estás?</h2><p>Elige tu mesa o pide delivery</p><div id="mqMesas"></div><button type="button" class="d" id="mqDel">Delivery</button></div></div>
+<script>(function(){var M=['03'],q=document.getElementById('mesaQ');
+function ses(){try{return JSON.parse(localStorage.getItem('chifaMesaSesion')||'null')}catch(e){return null}}
+function pick(m){q.style.display='none';try{sessionStorage.setItem('chifaModo',m)}catch(e){}
+ var b=document.querySelector('[data-mod="'+(m==='delivery'?'llevar':'mesa')+'"]');if(b)b.click();
+ if(m!=='delivery'){var s=document.getElementById('csMesa');if(s)s.value=m;}}
+document.getElementById('mqMesas').innerHTML=M.map(function(m){return '<button type="button" data-m="'+m+'">Mesa '+parseInt(m,10)+'</button>'}).join('');
+q.querySelectorAll('[data-m]').forEach(function(b){b.onclick=function(){pick(b.dataset.m)}});
+document.getElementById('mqDel').onclick=function(){pick('delivery')};
+Promise.resolve(window.chifaPinReady).then(function(){var s=ses();if(s&&s.token)return;var prev=null;try{prev=sessionStorage.getItem('chifaModo')}catch(e){}
+ if(prev)return setTimeout(function(){pick(prev)},50);q.style.display='flex'})})();</script>
 </body>
 </html>

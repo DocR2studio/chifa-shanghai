@@ -12,7 +12,7 @@ a{color:inherit;text-decoration:none}
 .brand{display:flex;align-items:center;gap:10px}
 .logo{width:46px;height:46px;border-radius:50%;background:#fff;border:3px solid #f2c94c;display:grid;place-items:center;font-size:24px}
 .brand b{font-size:1.3rem;letter-spacing:.03em;display:block}.brand small{color:#ffe9a6;font-size:.8rem}
-.mesaBtn{margin-left:auto;background:#f2c94c;color:#5a0a0e;font-weight:800;font-size:.85rem;padding:8px 12px;border-radius:14px;display:none}
+.x{margin-left:auto;background:#f2c94c;color:#5a0a0e;font-weight:800;font-size:.85rem;padding:8px 12px;border-radius:14px;display:none}
 .hi{margin-top:18px;font-size:1.55rem;font-weight:800}.hi span{display:block;font-size:.95rem;font-weight:500;color:#ffe9a6;margin-top:3px}
 .hero{margin:-52px 16px 0;position:relative;border-radius:24px;overflow:hidden;box-shadow:0 10px 28px rgba(158,15,23,.28);background:#fff;cursor:pointer;border:3px solid #f2c94c}
 .hero img{width:100%;height:170px;object-fit:cover;display:block}
@@ -38,6 +38,13 @@ h3 a{font-size:.85rem;color:#b3121b;font-weight:700}
 .tabs a.on{color:#b3121b}
 #vid{position:fixed;inset:0;background:#000;z-index:200;display:none}#vid video{width:100%;height:100%;object-fit:contain}
 #vid button{position:absolute;top:calc(14px + env(safe-area-inset-top));right:14px;background:rgba(255,255,255,.9);color:#9e0f17;border:2px solid #d4a017;border-radius:20px;padding:8px 16px;font-weight:800}
+.logo svg{width:26px;height:26px;color:#b3121b}.act i svg{width:32px;height:32px}.nov span svg{width:34px;height:34px}
+.tile i svg{width:30px;height:30px;color:#b3121b;margin:0 auto}.dish .em svg{width:46px;height:46px;color:#b3121b}.tabs a i svg{width:24px;height:24px;margin:0 auto}
+.hero .play{display:flex;align-items:center;gap:6px}.hero .play svg{width:18px;height:18px}
+#splash{position:fixed;inset:0;z-index:300;background:#fff;display:flex;align-items:center;justify-content:center}
+#splash img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:.25}
+#go{position:relative;border:3px solid #d4a017;background:linear-gradient(#d61f2a,#9e0f17);color:#fff;font-weight:800;border-radius:22px;font-size:1.5rem;padding:20px 34px;box-shadow:0 8px 22px rgba(158,15,23,.35)}
+#go small{display:block;font-size:.9rem;font-weight:500;color:#ffe9a6;margin-top:4px}
 </style></head><body>
 <!-- PIN de mesa (se pide una vez por celular) -->
 <style>
@@ -50,9 +57,9 @@ h3 a{font-size:.85rem;color:#b3121b;font-weight:700}
 #pinGate .pg-err{color:#c41e2a;font-weight:700;min-height:1.3em;margin-top:10px}
 </style>
 <div id="pinGate" style="display:none"><form class="pg-card" id="pgForm">
-<h2>🏮 Chifa Shanghai</h2><p>Ingresa el PIN de tu mesa<br><small>(lo encuentras en la mesa o pídelo al mozo)</small></p>
+<h2>Chifa Shanghai</h2><p>Ingresa el PIN de tu mesa<br><small>(lo encuentras en la mesa o pídelo al mozo)</small></p>
 <input id="pgPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" placeholder="••••">
-<button type="submit">Entrar 🥢</button><div class="pg-err" id="pgErr"></div></form></div>
+<button type="submit">Entrar</button><div class="pg-err" id="pgErr"></div></form></div>
 <script>
 (function(){
   var HASH='8f448ad26111793f0bdf05728c2d2ff71c378b3a8a573222a1cca7678bb3a7cd',SALT='chifa-shanghai-mesa:',KEY='chifaMesaPin';
@@ -70,52 +77,54 @@ h3 a{font-size:.85rem;color:#b3121b;font-weight:700}
 })();
 </script>
 <header class="top">
- <div class="brand"><div class="logo">🏮</div><div><b>Chifa Shanghai</b><small>Abancay · Carta digital</small></div><a class="mesaBtn" id="verMesa" href="carta/">🏮 Mi mesa</a></div>
- <div class="hi" id="hi">¡Hola! 👋<span>¿Qué se te antoja hoy?</span></div>
+ <div class="brand"><div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2M9 4h6M7 7c0-1.5 2-3 5-3s5 1.5 5 3v10c0 1.5-2 3-5 3s-5-1.5-5-3z"/><path d="M12 20v2M7 12h10"/></svg></div><div><b>Chifa Shanghai</b><small>Abancay · Carta digital</small></div></div>
+ <div class="hi" id="hi">¡Hola!<span>¿Qué se te antoja hoy?</span></div>
 </header>
-<div class="hero" id="hero"><img src="bienvenida.jpg" alt="Bienvenido a Chifa Shanghai"><div class="play">▶ Ver bienvenida</div></div>
+<div class="hero" id="hero"><img src="bienvenida.jpg" alt="Bienvenido a Chifa Shanghai"><div class="play"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z"/></svg> Ver bienvenida</div></div>
 <div class="acts">
- <a class="act p" id="pedir" href="carta/"><i>🥢</i>Pedir ya<small>Arma tu pedido desde la mesa</small></a>
- <a class="act t" id="tuto" href="tutorial/"><i>🎬</i>Ver tutorial<small>Aprende a pedir</small></a>
+ <a class="act p" id="pedir" href="carta/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21L19 3M9 21L21 7"/></svg></i>Pedir ya<small>Arma tu pedido desde la mesa</small></a>
+ <a class="act t" id="tuto" href="tutorial/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z"/></svg></i>Ver tutorial<small>Aprende a pedir</small></a>
 </div>
 <h3>Novedades</h3>
 <div class="hs">
- <a class="nov n1" href="carta/"><span>📱</span><div><b>Nueva carta digital</b><p>Pide desde tu celular, el mozo confirma tu pedido.</p></div></a>
- <a class="nov n2" href="carta/"><span>🔔</span><div><b>Llama al mozo desde tu mesa</b><p>Usa el botón 🔔 en “Mi mesa” cuando lo necesites.</p></div></a>
- <a class="nov n3" href="tutorial/"><span>🎬</span><div><b>¿Primera vez?</b><p>Mira el tutorial y pide en segundos.</p></div></a>
+ <a class="nov n1" href="carta/"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></span><div><b>Nueva carta digital</b><p>Pide desde tu celular, el mozo confirma tu pedido.</p></div></a>
+ <a class="nov n2" href="carta/"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></svg></span><div><b>Llama al mozo desde tu mesa</b><p>Después de pedir, usa el botón “Llamar mozo”.</p></div></a>
+ <a class="nov n3" href="tutorial/"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z"/></svg></span><div><b>¿Primera vez?</b><p>Mira el tutorial y pide en segundos.</p></div></a>
 </div>
 <h3>Shop <a href="carta/">Ver carta ›</a></h3>
 <div class="grid">
- <a class="tile" href="carta/#chaufas"><i>🍚</i>Chaufas</a>
- <a class="tile" href="carta/#tallarines"><i>🍜</i>Tallarines</a>
- <a class="tile" href="carta/#aeropuerto"><i>✈️</i>Aeropuerto</a>
- <a class="tile" href="carta/#platos-saltados"><i>🥘</i>Saltados</a>
- <a class="tile" href="carta/#sopas"><i>🍲</i>Sopas</a>
- <a class="tile" href="carta/#platos-dulces"><i>🍯</i>Dulces</a>
- <a class="tile" href="carta/#combos"><i>👨‍👩‍👧‍👦</i>Combos</a>
- <a class="tile" href="carta/#bebidas"><i>🥤</i>Bebidas</a>
+ <a class="tile" href="carta/#chaufas"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18a9 9 0 0 1-18 0z"/><path d="M7 7c0-2 2-2 2-4M12 7c0-2 2-2 2-4"/></svg></i>Chaufas</a>
+ <a class="tile" href="carta/#tallarines"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18a9 9 0 0 1-18 0z"/><path d="M8 12V4M12 12V3M16 12V5"/></svg></i>Tallarines</a>
+ <a class="tile" href="carta/#aeropuerto"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16l20-8-8 12-2-6z"/><path d="M12 14l-4 4"/></svg></i>Aeropuerto</a>
+ <a class="tile" href="carta/#platos-saltados"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="13" r="7"/><path d="M17 13h5"/></svg></i>Saltados</a>
+ <a class="tile" href="carta/#sopas"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18a9 9 0 0 1-18 0z"/><path d="M9 8c1-1 1-3 0-4M14 8c1-1 1-3 0-4"/></svg></i>Sopas</a>
+ <a class="tile" href="carta/#platos-dulces"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8l-1 3H9z"/><path d="M7 7h10v11a3 3 0 0 1-3 3h-4a3 3 0 0 1-3-3z"/></svg></i>Dulces</a>
+ <a class="tile" href="carta/#combos"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M15 14.5c3 0 6 2 6 5.5"/></svg></i>Combos</a>
+ <a class="tile" href="carta/#bebidas"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1.5 14h-9z"/><path d="M12 7l2-5"/></svg></i>Bebidas</a>
 </div>
 <h3>Lo más vendido <a href="carta/">Ver todo ›</a></h3>
 <div class="hs">
- <a class="dish" href="carta/#chaufas"><div class="em">🍚</div><div><b>Chaufa con pollo</b><span>S/ 13.00</span></div></a>
- <a class="dish" href="carta/#tallarines"><div class="em">🍜</div><div><b>Tallarín saltado con pollo</b><span>S/ 15.00</span></div></a>
- <a class="dish" href="carta/#aeropuerto"><div class="em">✈️</div><div><b>Aeropuerto de pollo</b><span>S/ 16.00</span></div></a>
- <a class="dish" href="carta/#platos-saltados"><div class="em">🥩</div><div><b>Lomo saltado de carne</b><span>S/ 19.00</span></div></a>
- <a class="dish" href="carta/#platos-dulces"><div class="em">🍯</div><div><b>Kamlu wantán</b><span>S/ 19.00</span></div></a>
- <a class="dish" href="carta/#combos"><div class="em">👨‍👩‍👧‍👦</div><div><b>Combo 04 personas</b><span>S/ 90.00</span></div></a>
+ <a class="dish" href="carta/#chaufas"><div class="em"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18a9 9 0 0 1-18 0z"/><path d="M7 7c0-2 2-2 2-4M12 7c0-2 2-2 2-4"/></svg></div><div><b>Chaufa con pollo</b><span>S/ 13.00</span></div></a>
+ <a class="dish" href="carta/#tallarines"><div class="em"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18a9 9 0 0 1-18 0z"/><path d="M8 12V4M12 12V3M16 12V5"/></svg></div><div><b>Tallarín saltado con pollo</b><span>S/ 15.00</span></div></a>
+ <a class="dish" href="carta/#aeropuerto"><div class="em"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16l20-8-8 12-2-6z"/><path d="M12 14l-4 4"/></svg></div><div><b>Aeropuerto de pollo</b><span>S/ 16.00</span></div></a>
+ <a class="dish" href="carta/#platos-saltados"><div class="em"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="13" r="7"/><path d="M17 13h5"/></svg></div><div><b>Lomo saltado de carne</b><span>S/ 19.00</span></div></a>
+ <a class="dish" href="carta/#platos-dulces"><div class="em"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8l-1 3H9z"/><path d="M7 7h10v11a3 3 0 0 1-3 3h-4a3 3 0 0 1-3-3z"/></svg></div><div><b>Kamlu wantán</b><span>S/ 19.00</span></div></a>
+ <a class="dish" href="carta/#combos"><div class="em"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M15 14.5c3 0 6 2 6 5.5"/></svg></div><div><b>Combo 04 personas</b><span>S/ 90.00</span></div></a>
 </div>
 <div style="height:20px"></div>
 <nav class="tabs">
- <a class="on" href="./"><i>🏠</i>Inicio</a><a href="carta/"><i>📖</i>Carta</a><a href="tutorial/"><i>🎬</i>Tutorial</a><a href="carta/" id="tabMesa"><i>🏮</i>Mi mesa</a>
+ <a class="on" href="./#inicio"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></i>Inicio</a><a href="carta/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H4zM20 4h-6a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h6z"/></svg></i>Carta</a><a href="tutorial/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z"/></svg></i>Tutorial</a>
 </nav>
-<div id="vid"><video id="v" src="video.mp4" poster="poster.jpg" playsinline webkit-playsinline preload="none"></video><button id="skip">Cerrar ✕</button></div>
+<div id="splash"><img src="bienvenida.jpg" alt=""><button id="go" type="button">Toca para entrar<small>Chifa Shanghai · Abancay</small></button></div>
+<div id="vid"><video id="v" src="video.mp4" poster="poster.jpg" playsinline webkit-playsinline preload="auto"></video><button id="skip">Saltar</button></div>
 <audio id="a1" src="hola.mp3" preload="auto" playsinline></audio>
 <script>
 const $=id=>document.getElementById(id),v=$('v'),a1=$('a1'),vb=$('vid');
-function close(){v.pause();vb.style.display='none';a1.currentTime=0;a1.play().catch(()=>{})}
-$('hero').onclick=()=>{vb.style.display='block';v.currentTime=0;v.play().catch(close)};
-v.addEventListener('ended',close);$('skip').onclick=()=>{v.pause();vb.style.display='none'};
-const h=new Date().getHours();$('hi').firstChild.nodeValue=(h<12?'¡Buenos días! ☀️':h<19?'¡Buenas tardes! 👋':'¡Buenas noches! 🌙');
-(function(){function f(){var s=null;try{s=JSON.parse(localStorage.getItem('chifaMesaSesion')||'null')}catch(e){}var a=$('verMesa');if(s&&s.token){a.style.display='block';if(s.mesa&&s.modalidad!=='llevar')a.textContent='🏮 Mi mesa '+String(s.mesa).replace(/^0+(?=\d)/,'')}else a.style.display='none'}f();window.addEventListener('pageshow',f);document.addEventListener('visibilitychange',f)})();
+function home(){v.pause();vb.style.display='none';$('splash').style.display='none';a1.currentTime=0;a1.play().catch(()=>{})}
+function play(){vb.style.display='block';v.currentTime=0;v.play().catch(home)}
+$('go').onclick=()=>{a1.muted=true;a1.play().then(()=>{a1.pause();a1.muted=false}).catch(()=>{a1.muted=false});play()};
+$('hero').onclick=play;v.addEventListener('ended',home);v.addEventListener('error',home);$('skip').onclick=home;
+if(location.hash==='#inicio')$('splash').style.display='none';
+const h=new Date().getHours();$('hi').firstChild.nodeValue=(h<12?'¡Buenos días!':h<19?'¡Buenas tardes!':'¡Buenas noches!');
 </script>
 </body></html>
