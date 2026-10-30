@@ -407,6 +407,79 @@
 .arma-res-t{color:#e8303a;font-weight:800;text-transform:uppercase;font-size:.8rem;letter-spacing:.08em}.arma-res-c{color:#d4a017;font-size:.85rem}
 .arma-res b{display:block;color:#f2c94c;font-size:1.4rem}.arma-res small{opacity:.8}
 </style>
+<style id="nb-theme">
+:root{--bg:#fff;--bg-card:#fff;--bg-elevated:#fff8e7;--red:#d7141f;--red-deep:#b3121b;--gold:#f5b82e;--gold-bright:#f5b82e;--text:#141414;--text-muted:#5a5a5a;--border:#e6e0d4;--ink:#141414;--cream:#f6efdf}
+body{background:#fff!important;color:#141414!important;font-size:17px}body::before{display:none!important}
+.page{max-width:720px;padding:0 16px 130px}
+.nb-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0 10px}
+.nb-logo{width:min(62vw,300px);height:auto;display:block;border-radius:8px}
+.nb-pill{background:var(--gold);color:#141414;font-weight:800;font-size:1.1rem;padding:10px 18px;border-radius:14px;white-space:nowrap}
+.search-wrap{position:static!important;background:none!important;padding:6px 0 14px!important;margin:0!important}
+.search{display:flex!important;align-items:center;gap:10px;background:#fff!important;border:2px solid #d9d3c7!important;border-radius:14px!important;padding:0 14px!important;min-height:56px;box-shadow:none!important}
+.search svg{width:24px;height:24px;color:#333;flex:none}
+.search input{flex:1;border:0!important;outline:0;background:none!important;color:#141414!important;font-size:1.1rem!important;padding:14px 0!important}
+.search-clear{background:#eee!important;color:#333!important;border:0;border-radius:50%;width:32px;height:32px;font-size:1.2rem}
+.nb-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.nb-tile{border:0;border-radius:18px;min-height:150px;padding:18px 10px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-family:inherit;cursor:pointer;transition:transform .12s}
+.nb-tile:active{transform:scale(.97)}.nb-tile.wide{grid-column:1/-1;min-height:120px}
+.nb-tile svg{width:64px;height:64px;margin-bottom:4px}
+.nb-tile b{font-size:1.6rem;font-weight:900;line-height:1.1;text-align:center}.nb-tile span{font-size:1rem;font-weight:600;opacity:.92}
+.nb-tile.red{background:#d7141f;color:#fff}.nb-tile.yel{background:#f5b82e;color:#141414}.nb-tile.blk{background:#141414;color:#fff}.nb-tile.cre{background:#f6efdf;color:#141414}
+.nb-h2{font-size:1.35rem;font-weight:900;margin:24px 0 10px;color:#141414}
+.menu-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:12px}
+#menu .item,.nb-top .item{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-areas:"code name add" "code price add";align-items:center;column-gap:12px;row-gap:2px;background:#fff!important;border:2px solid #e6e0d4!important;border-radius:16px!important;padding:14px 14px!important;box-shadow:0 2px 8px rgba(0,0,0,.05)!important;margin:0!important}
+.item-code{grid-area:code;background:#141414!important;color:#f5b82e!important;font-weight:800;font-size:.9rem;border-radius:10px;padding:6px 8px;min-width:46px;text-align:center;border:0!important;font-family:inherit!important}
+.nb-topi .item-code{display:none}.nb-top .item{grid-template-columns:1fr auto!important;grid-template-areas:"name add" "price add"!important}
+.item-name{grid-area:name;font-size:1.12rem!important;font-weight:800!important;color:#141414!important;text-transform:none!important;letter-spacing:0!important;line-height:1.25}
+.item-name small{display:block;font-weight:500;font-size:.85rem;color:#666;margin-top:2px}
+.item-price{grid-area:price;color:#d7141f!important;font-weight:900!important;font-size:1.1rem!important;font-family:inherit!important}
+.add-ctrl{grid-area:add!important;grid-column:auto!important;margin:0!important;gap:8px!important}
+.add-ctrl button{width:52px!important;height:52px!important;border:0!important;background:#f5b82e!important;color:#141414!important;font-size:1.9rem!important;font-weight:700!important;display:grid;place-items:center;padding:0}
+.add-ctrl .minus{background:#f6efdf!important;width:44px!important;height:44px!important}
+.add-ctrl .q{color:#141414!important;font-size:1.2rem;min-width:1.4em}
+.nb-sec{display:none!important}.nb-sec.on{display:block!important}
+body.nb-open #home{display:none}
+body.nb-search #home{display:none}body.nb-search .nb-sec{display:block!important}body.nb-search .nb-sec.hidden{display:none!important}body.nb-search .nb-back{display:none}
+.nb-sub.hidden{display:none}
+.nb-sec-head{display:flex;align-items:center;gap:12px;margin:6px 0 14px;position:sticky;top:0;background:#fff;z-index:5;padding:8px 0}
+.nb-back{border:0;background:#141414;color:#fff;font-weight:800;font-size:1.05rem;padding:12px 16px;border-radius:14px;font-family:inherit}
+.nb-sec .section-title{font-size:1.7rem!important;font-weight:900!important;color:#d7141f!important;margin:0!important;letter-spacing:0!important;text-transform:none!important;font-family:inherit!important}
+body.nb-search .nb-sec .section-title{font-size:1.3rem!important}
+.nb-subt{font-size:1.15rem;font-weight:900;color:#141414;margin:18px 0 10px;padding-left:10px;border-left:5px solid #f5b82e}
+.cat-note{margin:4px 0 10px;color:#b3121b;font-weight:700}
+.section{margin:0 0 10px!important;padding:0!important;border:0!important;background:none!important}
+.empty{color:#333!important}.empty strong{color:#d7141f!important}
+footer.note{color:#777!important;border-color:#eee!important}footer.note .gold{color:#d7141f!important}
+#cartBar{background:transparent!important;border:0!important;padding:10px 12px calc(12px + env(safe-area-inset-bottom))!important}
+#cartBar .in{background:#d7141f;border-radius:16px;padding:10px 10px 10px 16px;box-shadow:0 8px 24px rgba(215,20,31,.35);cursor:pointer}
+#cartBar .t{color:#fff;font-weight:700;font-size:1rem}#cartBar .t b{display:inline!important;color:#fff!important;font-weight:900}
+#cartBar button{background:#f5b82e!important;color:#141414!important;border:0!important;font-size:1.05rem!important;padding:14px 16px!important;border-radius:12px!important;white-space:nowrap}
+#cartSheet .sh{background:#fff!important;color:#141414;border-top:5px solid #d7141f!important}
+#cartSheet h3{color:#d7141f!important;font-size:1.4rem}.cs-line{border-color:#eee!important;font-size:1.05rem!important}
+.cs-total{color:#d7141f!important}
+.cs-chip{background:#fff!important;color:#141414!important;border-color:#e6e0d4!important}.cs-chip.on{background:#f5b82e!important;border-color:#f5b82e!important}
+#cartSheet select,#cartSheet input,#cartSheet textarea{background:#fff!important;color:#141414!important;border-color:#d9d3c7!important}
+#cartSheet label{color:#444!important}
+.cs-btn{background:#d7141f!important;border:0!important;color:#fff!important;font-size:1.1rem!important}
+#csMesaFija{border-color:#f5b82e!important;background:#fff8e7}
+.cs-msg.ok{background:#e8f7ee!important;color:#14632f!important}.cs-msg.err{background:#fdeaea!important;color:#9e0f17!important}
+#miMesa{background:#fff!important;color:#141414!important}
+#miMesa .mm-top{background:#d7141f!important;border:0!important}#miMesa .mm-top h2{color:#fff!important}#miMesa .mm-top h2 small{color:#fff!important}
+#mmLlamar{background:#f5b82e!important;color:#141414!important;border:0!important}
+.mm-ped{background:#fff!important;border:2px solid #e6e0d4!important}.mm-ped.pend{border-color:#f5b82e!important;background:#fff8e7!important}
+.mm-st.ok{color:#14632f!important}.mm-st.pe{color:#8a5a00!important}.mm-st.no{color:#b3121b!important}
+.mm-cuenta{color:#d7141f!important;border-color:#f5b82e!important}
+.mm-actions{background:#fff!important;border-color:#eee!important}#mmAnadir{background:#f5b82e!important;border:0!important;color:#141414!important}
+.mm-msg.on{background:#fff8e7!important;border-color:#f5b82e!important}.mm-fin h3{color:#d7141f!important}
+#adicBar{background:#f5b82e!important;color:#141414!important}#adicBar button{background:#141414!important;color:#fff!important}
+#mesaQ{background:rgba(20,20,20,.6)!important}#mesaQ .c{background:#fff!important;border:0!important;border-radius:22px!important;color:#141414!important}
+#mesaQ .c::before{content:"";display:block;height:90px;margin:-4px auto 12px;background:url(img/logo-shanghai.jpg) center/contain no-repeat}
+#mesaQ h2{color:#d7141f!important}#mesaQ button{background:#d7141f!important;border:0!important;font-size:1.25rem!important;padding:18px!important}
+#mesaQ button.d{background:#f5b82e!important;color:#141414!important}
+#pinGate{background:#fff!important}#pinGate::before{display:none}#pinGate .pg-card{border:0!important;box-shadow:0 10px 30px rgba(0,0,0,.12)!important}
+#pinGate .pg-card::before{content:"";display:block;height:90px;margin-bottom:10px;background:url(img/logo-shanghai.jpg) center/contain no-repeat}
+#pinGate h2{color:#d7141f!important}#pinGate input{border-color:#f5b82e!important;color:#141414!important}#pinGate button{background:#d7141f!important;border:0!important}
+</style>
 </head>
 <body>
 <!-- PIN de mesa (se pide una vez por celular) -->
@@ -420,9 +493,9 @@
 #pinGate .pg-err{color:#c41e2a;font-weight:700;min-height:1.3em;margin-top:10px}
 </style>
 <div id="pinGate" style="display:none"><form class="pg-card" id="pgForm">
-<h2>🏮 Chifa Shanghai</h2><p>Ingresa el PIN de tu mesa<br><small>(lo encuentras en la mesa o pídelo al mozo)</small></p>
+<h2>Chifa Shanghai</h2><p>Ingresa el PIN de tu mesa<br><small>(lo encuentras en la mesa o pídelo al mozo)</small></p>
 <input id="pgPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" placeholder="••••">
-<button type="submit">Entrar 🥢</button><div class="pg-err" id="pgErr"></div></form></div>
+<button type="submit">Entrar </button><div class="pg-err" id="pgErr"></div></form></div>
 <script>
 (function(){
   var HASH='8f448ad26111793f0bdf05728c2d2ff71c378b3a8a573222a1cca7678bb3a7cd',SALT='chifa-shanghai-mesa:',KEY='chifaMesaPin';
@@ -441,56 +514,9 @@
 </script>
 
   <div class="page">
-    <header class="brand">
-      <div class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="32" cy="32" r="30" stroke="#d4af37" stroke-width="1.5" fill="#121216"/>
-          <path d="M18 38c4-10 10-14 14-14s10 4 14 14" stroke="#c41e2a" stroke-width="2" fill="none" stroke-linecap="round"/>
-          <ellipse cx="32" cy="28" rx="10" ry="6" fill="#d4af37" opacity="0.9"/>
-          <path d="M24 28c2-6 6-9 8-9s6 3 8 9" stroke="#8b1520" stroke-width="1.2" fill="none"/>
-          <circle cx="32" cy="18" r="3" fill="#c41e2a"/>
-          <path d="M22 44h20M26 48h12" stroke="#d4af37" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-      </div>
-      <div class="brand-cn">香满园菜馆</div>
-      <div class="brand-chifa">Chifa</div>
-      <div class="brand-shanghai">Shanghai</div>
-      <div class="brand-loc">Abancay</div>
-      <p class="brand-note">Carta digital · Incluye especialidad Aeropuerto</p>
-    </header>
-
-    <div class="search-wrap">
-      <label class="search" for="q">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="11" cy="11" r="7"/>
-          <path d="M20 20l-3.5-3.5"/>
-        </svg>
-        <input id="q" type="search" placeholder="Buscar por nombre o código…" autocomplete="off" enterkeyhint="search" />
-        <button type="button" class="search-clear" id="clear" aria-label="Limpiar búsqueda">×</button>
-      </label>
-    </div>
-
-    <nav class="chips" id="chips" aria-label="Categorías">
-      <a class="chip active" href="#chaufas" data-cat="chaufas">Chaufas</a>
-      <a class="chip" href="#tallarines" data-cat="tallarines">Tallarines</a>
-      <a class="chip" href="#combinado" data-cat="combinado">Combinado</a>
-      <a class="chip" href="#aeropuerto" data-cat="aeropuerto">Aeropuerto</a>
-      <a class="chip" href="#tallarines-chinos" data-cat="tallarines-chinos">Tallarines chinos</a>
-      <a class="chip" href="#tortilla" data-cat="tortilla">Tortilla</a>
-      <a class="chip" href="#platos-dulces" data-cat="platos-dulces">Platos dulces</a>
-      <a class="chip" href="#platos-saltados" data-cat="platos-saltados">Platos saltados</a>
-      <a class="chip" href="#carta-trozos" data-cat="carta-trozos">Platos en trozos</a>
-      <a class="chip" href="#carta-carnes" data-cat="carta-carnes">Carnes</a>
-      <a class="chip" href="#carta-langostino-pescado" data-cat="carta-langostino-pescado">Langostino y pescado</a>
-      <a class="chip" href="#carta-dulces" data-cat="carta-dulces">Especiales dulces</a>
-      <a class="chip" href="#carta-plancha" data-cat="carta-plancha">Plancha</a>
-      <a class="chip" href="#carta-chancho" data-cat="carta-chancho">Chancho</a>
-      <a class="chip" href="#sopas" data-cat="sopas">Sopas</a>
-      <a class="chip" href="#bebidas" data-cat="bebidas">Bebidas</a>
-      <a class="chip" href="#bebidas-chinas" data-cat="bebidas-chinas">Bebidas chinas</a>
-      <a class="chip" href="#bocaditos-chinos" data-cat="bocaditos-chinos">Bocaditos chinos</a>
-      <a class="chip" href="#combos" data-cat="combos">Combos familiares</a>
-    </nav>
+    <header class="nb-head"><img class="nb-logo" src="img/logo-shanghai.jpg" alt="Chifa Shanghai - Chinese Food Internacional" width="900" height="600"><span class="nb-pill" id="mesaPill">Mesa 3</span></header>
+    <div class="search-wrap"><label class="search" for="q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" placeholder="Buscar plato o código..." autocomplete="off" enterkeyhint="search" /><button type="button" class="search-clear" id="clear" aria-label="Limpiar búsqueda">×</button></label></div>
+    <div id="home"><div class="nb-grid" id="grid"></div><h2 class="nb-h2">Lo más pedido</h2><ul class="menu-list nb-top" id="topList"></ul></div>
 
     <main id="menu">
       <!-- Sections injected by JS for maintainability, or static below -->
@@ -512,32 +538,67 @@
 
     const money = (n) => "S/ " + n.toFixed(2);
 
+    const ICON = {
+      arroz:'<path d="M8 30h48a24 22 0 0 1-48 0z"/><path d="M20 52h24"/><path d="M14 30c2-6 8-9 12-7 3-5 10-6 14-2 4-2 9 1 10 9"/><path d="M38 20 52 4M44 22 58 8"/>',
+      fideos:'<path d="M8 34h48a24 20 0 0 1-48 0z"/><path d="M22 54h20"/><path d="M24 34c0-8 2-14 0-22M30 34c0-8 2-14 0-22M36 34c0-8 2-14 0-22"/><path d="M14 10 58 6M14 16 58 14"/>',
+      wok:'<path d="M6 34h40a20 14 0 0 1-40 0z"/><path d="M46 36 60 30"/><path d="M20 54h12"/><path d="M26 26c-6-4-2-10 0-14 2 4 8 6 4 12M20 26c-3-3-2-6-1-8M33 26c3-3 2-6 1-8"/>',
+      sopa:'<path d="M8 32h48a24 20 0 0 1-48 0z"/><path d="M22 54h20"/><path d="M24 24c-4-4 4-6 0-12M32 24c-4-4 4-6 0-12M40 24c-4-4 4-6 0-12"/><circle cx="26" cy="38" r="2"/><circle cx="36" cy="40" r="2"/>',
+      dumpling:'<path d="M6 44c0-12 8-20 16-20s16 8 16 20z"/><path d="M14 30c2 3 4 4 8 4s6-1 8-4M22 24v6"/><path d="M26 50c0-12 8-20 16-20s16 8 16 20z"/><path d="M34 36c2 3 4 4 8 4s6-1 8-4M42 30v6"/>',
+      galleta:'<path d="M8 38c0-14 12-24 26-22 12 2 22 12 22 24-6-4-14-6-22-2-8-6-18-6-26 0z"/><path d="M34 18c-2 8-2 14 0 22"/><path d="M40 40 56 50"/>',
+      combinado:'<circle cx="32" cy="34" r="24"/><path d="M32 10v48"/><path d="M16 28h8M14 36h10M18 44h6"/><path d="M38 26c4 4 8 4 12 0M38 34c4 4 8 4 12 0M38 42c4 4 8 4 12 0"/>',
+      bebida:'<path d="M18 18h28l-4 40H22z"/><path d="M16 18h32"/><path d="M34 18 40 4"/><circle cx="28" cy="48" r="2.5"/><circle cx="36" cy="44" r="2.5"/><circle cx="31" cy="38" r="2.5"/>',
+      combo:'<path d="M4 34h28a14 12 0 0 1-28 0z"/><path d="M32 34h28a14 12 0 0 1-28 0z"/><path d="M18 26c-3-3 3-5 0-9M46 26c-3-3 3-5 0-9"/><path d="M10 56h44"/>'
+    };
+    const GROUPS = [
+      { id:'g-chaufas', title:'Chaufas', icon:'arroz', cats:['chaufas','aeropuerto'] },
+      { id:'g-tallarines', title:'Tallarines', icon:'fideos', cats:['tallarines','tallarines-chinos'] },
+      { id:'g-saltados', title:'Saltados', icon:'wok', cats:['platos-saltados','carta-carnes','carta-chancho','carta-plancha'] },
+      { id:'g-sopas', title:'Sopas', icon:'sopa', cats:['sopas'] },
+      { id:'g-salados', title:'Salados', icon:'dumpling', cats:['carta-trozos','carta-langostino-pescado','tortilla','bocaditos-chinos'] },
+      { id:'g-dulces', title:'Dulces', icon:'galleta', cats:['platos-dulces','carta-dulces'] },
+      { id:'g-combinados', title:'Combinados', icon:'combinado', cats:['combinado'] },
+      { id:'g-bebidas', title:'Bebidas', icon:'bebida', cats:['bebidas','bebidas-chinas'] },
+      { id:'g-combos', title:'Combos familiares', icon:'combo', cats:['combos'] }
+    ];
+    { const used = new Set(GROUPS.flatMap((g) => g.cats)); const rest = MENU.filter((c) => !used.has(c.id)).map((c) => c.id); if (rest.length) GROUPS.push({ id:'g-otros', title:'Más platos', icon:'combinado', cats:rest }); }
+    const TOP = ['007','009','061','127'];
+    const catById = new Map(MENU.map((c) => [c.id, c]));
+    const cleanT = (t) => t.replace(/^★\s*A la carta\s*·\s*/, 'A la carta · ');
+    const itemHTML = (it, catTitle) => `
+              <li class="item" data-code="${it.code}" data-name="${it.name.toLowerCase()}" data-search="${it.code} ${it.name.toLowerCase()} ${(it.desc||"").toLowerCase()} ${catTitle.toLowerCase()}">
+                <span class="item-code">${it.code}</span>
+                <span class="item-name">${it.name}${it.desc?`<small>${it.desc}</small>`:""}</span>
+                <span class="item-price">${money(it.price)}</span>
+              </li>`;
     function render() {
       const root = document.getElementById("menu");
-      root.innerHTML = MENU.map((cat) => `
-        <section class="section" id="${cat.id}" data-section="${cat.id}">
-          <div class="section-head">
-            <h2 class="section-title">${cat.title}</h2>
-            <div class="section-ornament" aria-hidden="true"></div>
-            <span class="section-count">${cat.items.length} platos</span>
-          </div>
-          ${cat.note?`<p class="cat-note" style="margin:4px 0 8px;color:#f2c94c;font-weight:700;font-size:.95rem">${cat.note}</p>`:""}
-          <ul class="menu-list">
-            ${cat.items.map((it) => `
-              <li class="item"
-                  data-code="${it.code}"
-                  data-name="${it.name.toLowerCase()}"
-                  data-search="${it.code} ${it.name.toLowerCase()} ${(it.desc||"").toLowerCase()} ${cat.title.toLowerCase()}">
-                <span class="item-code">${it.code}</span>
-                <span class="item-name">${it.name}${it.desc?`<small style="display:block;flex-basis:100%;text-transform:none;opacity:.75;font-size:.8em;font-weight:400;margin-top:2px">${it.desc}</small>`:""}</span>
-                <span class="item-price">${money(it.price)}</span>
-              </li>
-            `).join("")}
-          </ul>
-        </section>
-      `).join("");
+      root.innerHTML = GROUPS.map((g) => `
+        <section class="section nb-sec" id="${g.id}" data-section="${g.id}">
+          <div class="nb-sec-head"><button type="button" class="nb-back" aria-label="Volver">‹ Volver</button><h2 class="section-title">${g.title}</h2></div>
+          ${g.cats.map((cid) => catById.get(cid)).filter(Boolean).map((cat) => `
+            <div class="nb-sub" data-sub="${cat.id}">
+              ${g.cats.length > 1 ? `<h3 class="nb-subt">${cleanT(cat.title)}</h3>` : ""}
+              ${cat.note?`<p class="cat-note">${cat.note}</p>`:""}
+              <ul class="menu-list">${cat.items.map((it) => itemHTML(it, cat.title + " " + g.title)).join("")}</ul>
+            </div>`).join("")}
+        </section>`).join("");
+      const pal = ['red','yel','blk','cre'];
+      document.getElementById("grid").innerHTML = GROUPS.map((g, i) => {
+        const n = g.cats.reduce((a, cid) => a + ((catById.get(cid) || { items: [] }).items.length), 0);
+        return `<button type="button" class="nb-tile ${pal[i % 4]}${i === GROUPS.length - 1 && GROUPS.length % 2 ? ' wide' : ''}" data-g="${g.id}"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[g.icon]}</svg><b>${g.title}</b><span>${n} ${n === 1 ? 'plato' : 'platos'}</span></button>`;
+      }).join("");
+      const byC = new Map(); MENU.forEach((c) => c.items.forEach((it) => byC.set(it.code, it)));
+      document.getElementById("topList").innerHTML = TOP.map((c) => byC.get(c)).filter(Boolean).map((it) => itemHTML(it, "")).join("").replace(/class="item"/g, 'class="item nb-topi"');
     }
-
+    let openG = null;
+    function showHome() { openG = null; document.body.classList.remove('nb-open', 'nb-search'); document.querySelectorAll('.nb-sec').forEach((s) => s.classList.remove('on')); }
+    function openGroup(id) {
+      const sec = document.getElementById(id); if (!sec) return;
+      openG = id; document.body.classList.add('nb-open');
+      document.querySelectorAll('.nb-sec').forEach((s) => s.classList.toggle('on', s === sec));
+      window.scrollTo(0, 0);
+    }
+    window.chifaOpenGroup = openGroup;
     function normalize(s) {
       return s
         .toLowerCase()
@@ -548,7 +609,9 @@
 
     function filterMenu(query) {
       const q = normalize(query);
-      const items = document.querySelectorAll(".item");
+      document.body.classList.toggle('nb-search', !!q);
+      if (!q) { document.querySelectorAll('.item.hidden,.section.hidden,.nb-sub.hidden').forEach((e) => e.classList.remove('hidden')); document.getElementById("empty").classList.remove("visible"); if (openG) openGroup(openG); else showHome(); return; }
+      const items = document.querySelectorAll("#menu .item");
       const sections = document.querySelectorAll(".section");
       let visible = 0;
 
@@ -563,6 +626,7 @@
         const any = sec.querySelector(".item:not(.hidden)");
         sec.classList.toggle("hidden", !any);
       });
+      document.querySelectorAll('.nb-sub').forEach((sb) => sb.classList.toggle('hidden', !sb.querySelector('.item:not(.hidden)')));
 
       document.getElementById("empty").classList.toggle("visible", visible === 0);
     }
@@ -616,7 +680,8 @@
       input.focus();
     });
 
-    setupChipHighlight();
+    document.getElementById("grid").addEventListener("click", (e) => { const t = e.target.closest(".nb-tile"); if (t) openGroup(t.dataset.g); });
+    document.getElementById("menu").addEventListener("click", (e) => { if (e.target.closest(".nb-back")) { input.value = ""; clearBtn.classList.remove("visible"); filterMenu(""); showHome(); window.scrollTo(0, 0); } });
   </script>
 
 <!-- Pedido desde la carta → llega al mozo como "Por verificar" -->
@@ -670,17 +735,17 @@
 #adicBar button{margin-left:8px;border:0;border-radius:10px;padding:6px 10px;font-weight:800;background:#3a0a0d;color:#f2c94c}
 </style>
 <div id="miMesa" role="dialog" aria-label="Mi mesa">
-  <div class="mm-top"><h2 id="mmTitulo">🏮 Mi mesa<small>Chifa Shanghai</small></h2><button type="button" id="mmLlamar">🔔 Llamar mozo</button></div>
+  <div class="mm-top"><h2 id="mmTitulo">Mi mesa<small>Chifa Shanghai</small></h2><button type="button" id="mmLlamar">Llamar mozo</button></div>
   <div class="mm-body"><div class="mm-msg" id="mmMsg"></div><div id="mmLista"></div></div>
-  <div class="mm-actions" id="mmActions"><button type="button" id="mmAnadir">➕ Añadir</button></div>
+  <div class="mm-actions" id="mmActions"><button type="button" id="mmAnadir">Añadir</button></div>
 </div>
 <div id="adicBar"></div>
-<div id="cartBar"><div class="in"><div class="t"><span id="cbCount">0 platos</span><b id="cbTotal">S/ 0.00</b></div><button type="button" id="cbVer">Ver mi pedido</button></div></div>
+<div id="cartBar"><div class="in" id="cbIn"><div class="t">Ver pedido · <span id="cbCount">0 platos</span> · <b id="cbTotal">S/ 0.00</b></div><button type="button" id="cbVer">Mandar a cocina</button></div></div>
 <div id="cartSheet"><div class="sh">
-  <h3>🥢 Mi pedido</h3><div id="csLines"></div>
+  <h3>Mi pedido</h3><div id="csLines"></div>
   <div class="cs-total"><span>Total</span><span id="csTotal">S/ 0.00</span></div>
-  <div class="cs-row"><button type="button" class="cs-chip on" data-mod="mesa">🍽 En mesa</button><button type="button" class="cs-chip" data-mod="llevar">🛵 Delivery</button></div>
-  <div id="csMesaBox"><div id="csMesaFija" style="font-weight:800;font-size:1.1rem;padding:10px 12px;border:2px solid var(--gold);border-radius:12px;margin:8px 0;text-align:center">🍽 Mesa 3</div><label id="csMesaSel" style="display:none">Número de mesa<select id="csMesa"><option value="">Elige tu mesa…</option></select></label></div>
+  <div class="cs-row"><button type="button" class="cs-chip on" data-mod="mesa">En mesa</button><button type="button" class="cs-chip" data-mod="llevar">Delivery</button></div>
+  <div id="csMesaBox"><div id="csMesaFija" style="font-weight:800;font-size:1.1rem;padding:10px 12px;border:2px solid var(--gold);border-radius:12px;margin:8px 0;text-align:center">Mesa 3</div><label id="csMesaSel" style="display:none">Número de mesa<select id="csMesa"><option value="">Elige tu mesa…</option></select></label></div>
   <div id="csNomBox" style="display:none"><label>Tu nombre<input id="csNombre" maxlength="28" autocomplete="name" placeholder="Nombre y apellido"></label><label>Celular<input id="csTel" type="tel" inputmode="tel" maxlength="15" autocomplete="tel" placeholder="9XX XXX XXX"></label><label>Dirección de entrega<input id="csDir" maxlength="90" autocomplete="street-address" placeholder="Calle, número, referencia"></label></div>
   <label>Nota (opcional)<textarea id="csNota" rows="2" maxlength="200" placeholder="Sin ají, poca sal, etc."></textarea></label>
   <input class="hp" id="csWeb" tabindex="-1" autocomplete="off" aria-hidden="true">
@@ -689,16 +754,16 @@
 </div></div>
 <script>
 (function(){
-  // ⚙️ Config: servidor de pedidos (cambiar aquí si cambia el link)
+  // ⚙Config: servidor de pedidos (cambiar aquí si cambia el link)
   const CHIFA_API_BASE = 'https://gala-blurt-dweller.ngrok-free.dev';
   const API = /ngrok-free\.dev$|^localhost$|^127\./.test(location.hostname) ? '' : CHIFA_API_BASE;
-  const MAX_Q = 10, MESAS = ['03']; // ⚙️ Mesas para clientes (por ahora solo Mesa 3)
+  const MAX_Q = 10, MESAS = ['03']; // ⚙Mesas para clientes (por ahora solo Mesa 3)
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => 'S/ ' + Number(n).toFixed(2);
   const byCode = new Map(); MENU.forEach((c) => c.items.forEach((it) => byCode.set(it.code, it)));
   const cart = new Map(); let mod = 'mesa';
   $('csMesa').innerHTML += MESAS.map((m) => `<option value="${m}">Mesa ${m}</option>`).join('');
-  if (MESAS.length === 1) { $('csMesa').value = MESAS[0]; $('csMesaFija').textContent = '🍽 Mesa ' + parseInt(MESAS[0], 10); } else { $('csMesaFija').style.display = 'none'; $('csMesaSel').style.display = ''; }
+  if (MESAS.length === 1) { $('csMesa').value = MESAS[0]; $('csMesaFija').textContent = 'Mesa ' + parseInt(MESAS[0], 10); } else { $('csMesaFija').style.display = 'none'; $('csMesaSel').style.display = ''; }
   document.querySelectorAll('.item').forEach((li) => {
     const code = li.dataset.code;
     li.insertAdjacentHTML('beforeend', `<div class="add-ctrl" data-c="${code}"><button type="button" class="minus" aria-label="Quitar">−</button><span class="q">0</span><button type="button" class="plus" aria-label="Agregar">+</button></div>`);
@@ -706,8 +771,7 @@
   function setQ(code, q) {
     q = Math.max(0, Math.min(MAX_Q, q));
     if (q) cart.set(code, q); else cart.delete(code);
-    const c = document.querySelector(`.add-ctrl[data-c="${code}"]`);
-    if (c) { c.classList.toggle('on', q > 0); c.querySelector('.q').textContent = q; }
+    document.querySelectorAll(`.add-ctrl[data-c="${code}"]`).forEach((c) => { c.classList.toggle('on', q > 0); c.querySelector('.q').textContent = q; });
     refresh();
   }
   function totals() { let n = 0, t = 0; cart.forEach((q, c) => { n += q; t += q * byCode.get(c).price; }); return { n, t }; }
@@ -717,8 +781,9 @@
     $('cbCount').textContent = n + (n === 1 ? ' plato' : ' platos'); $('cbTotal').textContent = fmt(t);
     $('csLines').innerHTML = [...cart].map(([c, q]) => `<div class="cs-line"><span>${q}× ${byCode.get(c).name}</span><span>${fmt(q * byCode.get(c).price)}</span></div>`).join('') || '<p style="opacity:.7">Aún no agregaste platos.</p>';
     $('csTotal').textContent = fmt(t);
+    $('cbVer').textContent = getSes() ? 'Mandar adicional a cocina' : 'Mandar a cocina';
   }
-  document.getElementById('menu').addEventListener('click', (e) => {
+  document.querySelector('.page').addEventListener('click', (e) => {
     const b = e.target.closest('.add-ctrl button'); if (!b) return;
     const code = b.parentElement.dataset.c, q = cart.get(code) || 0;
     if (b.classList.contains('plus') && q >= MAX_Q) return;
@@ -740,21 +805,21 @@
     const ses = getSes(), b = $('adicBar');
     if (ses && $('miMesa').style.display !== 'flex') {
       b.style.display = 'block';
-      b.innerHTML = `➕ Añadiendo a ${ses.mesa && ses.modalidad !== 'llevar' ? 'Mesa ' + esc(ses.mesa) : 'tu pedido'}<button type="button" id="abVer">Ver mi mesa</button>`;
+      b.innerHTML = `Añadiendo a ${ses.mesa && ses.modalidad !== 'llevar' ? 'Mesa ' + esc(ses.mesa) : 'tu pedido'}<button type="button" id="abVer">Ver mi mesa</button>`;
       $('abVer').onclick = abrirMesa;
     } else b.style.display = 'none';
     const ad = !!ses;
     document.querySelector('.cs-row [data-mod]').parentElement.style.display = ad ? 'none' : '';
     $('csMesaBox').style.display = ad || mod !== 'mesa' ? 'none' : ''; $('csNomBox').style.display = !ad && mod === 'llevar' ? '' : 'none';
     $('csEnviar').textContent = ad ? 'Mandar adicional a cocina' : 'Mandar a cocina';
-    document.querySelector('#cartSheet h3').textContent = ad ? '➕ Adicional' : '🥢 Mi pedido';
+    document.querySelector('#cartSheet h3').textContent = ad ? 'Adicional' : 'Mi pedido';
   }
   function mmMsg(t) { const m = $('mmMsg'); m.textContent = t || ''; m.className = 'mm-msg' + (t ? ' on' : ''); }
   function pintarFin(titulo, texto) {
     clearInterval(pollT); pollT = null; setSes(null);
     $('mmActions').innerHTML = '<button type="button" id="mmNuevo" style="border:2px solid var(--gold);background:linear-gradient(#d61f2a,#9e0f17);color:#fff">Volver a la carta</button>';
     $('mmLlamar').style.display = 'none';
-    $('mmLista').innerHTML = `<div class="mm-fin">${/cerrada/i.test(titulo) ? '<img src="gato-gracias.png" alt="" style="width:180px;max-width:60%;height:auto;display:block;margin:0 auto">' : '<div style="font-size:3rem">🏮</div>'}<h3>${titulo}</h3><p>${texto}</p></div>`;
+    $('mmLista').innerHTML = `<div class="mm-fin">${/cerrada/i.test(titulo) ? '<img src="gato-gracias.png" alt="" style="width:180px;max-width:60%;height:auto;display:block;margin:0 auto">' : ''}<h3>${titulo}</h3><p>${texto}</p></div>`;
     $('mmNuevo').onclick = () => { location.reload(); };
   }
   async function cargarMesa() {
@@ -768,25 +833,25 @@
       if (r.status === 404) {
         // Solo borrar la mesa si el servidor dice "sin pedidos" varias veces seguidas
         if (++fallos404 >= 3) { setSes(null); return cerrarMesaVista(); }
-        return mmMsg('😕 Buscando tu pedido…');
+        return mmMsg('Buscando tu pedido…');
       }
       if (!r.ok) throw new Error('http ' + r.status);
       d = await r.json();
       fallos404 = 0;
-    } catch { return mmMsg('😕 Sin conexión con el restaurante, reintentando…'); }
+    } catch { return mmMsg('Sin conexión con el restaurante, reintentando…'); }
     finally { clearTimeout(to); cargando = false; }
     if ($('miMesa').style.display !== 'flex') return;
-    { const t0 = $('mmMsg').textContent || ''; if (t0.startsWith('😕') || (t0.startsWith('✅') && !d.pedidos.some((p) => p.estado === 'pendiente'))) mmMsg(''); }
-    $('mmTitulo').innerHTML = (d.modalidad === 'llevar' ? '🛵 ' + esc(d.nombre || 'Delivery') : '🏮 Mesa ' + esc(String(d.mesa).replace(/^0+(?=\d)/, ''))) + '<small>Chifa Shanghai · Mi mesa</small>';
-    if (d.cerrada) return pintarFin('Cuenta cerrada, ¡gracias!', 'Gracias por visitarnos 🥢 ¡Vuelve pronto!');
+    { const t0 = $('mmMsg').textContent || ''; if (/^(Sin conexión|Buscando)/.test(t0) || (/^¡(Enviado|Tu pedido)/.test(t0) && !d.pedidos.some((p) => p.estado === 'pendiente'))) mmMsg(''); }
+    $('mmTitulo').innerHTML = (d.modalidad === 'llevar' ? '' + esc(d.nombre || 'Delivery') : 'Mesa ' + esc(String(d.mesa).replace(/^0+(?=\d)/, ''))) + '<small>Chifa Shanghai · Mi mesa</small>';
+    if (d.cerrada) return pintarFin('Cuenta cerrada, ¡gracias!', 'Gracias por visitarnos. ¡Vuelve pronto!');
     if (d.todoRechazado) return pintarFin('El mozo no confirmó tu pedido', 'Si crees que es un error, llama al mozo o pídele en persona.');
     const vis = d.pedidos.filter((p) => p.estado !== 'pagado' && p.estado !== 'anulado');
     const hayRech = vis.some((p) => p.estado === 'rechazado');
     $('mmLista').innerHTML = vis.map((p, i) => {
       const cls = p.estado === 'pendiente' ? 'pend' : p.estado === 'rechazado' ? 'rech' : '';
-      const st = p.estado === 'pendiente' ? '<span class="mm-st pe">⏳ Esperando confirmación del mozo</span>' : p.estado === 'rechazado' ? '<span class="mm-st no">✖ El mozo no confirmó tu pedido</span>' : '<span class="mm-st ok">✔ Confirmado · en cocina</span>';
+      const st = p.estado === 'pendiente' ? '<span class="mm-st pe">Esperando confirmación del mozo</span>' : p.estado === 'rechazado' ? '<span class="mm-st no">El mozo no confirmó tu pedido</span>' : '<span class="mm-st ok">Confirmado · en cocina</span>';
       return `<div class="mm-ped ${cls}"><div class="mm-h"><span>${i ? 'Adicional' : 'Pedido'} #${p.id}</span>${st}</div>${p.items.map((it) => `<div class="mm-l"><span>${it.qty}× ${esc(it.name)}</span><span>${fmt(it.qty * it.price)}</span></div>`).join('')}</div>`;
-    }).join('') + `<div class="mm-cuenta"><span>Cuenta</span><span>${fmt(d.cuenta)}</span></div><p class="mm-note">${vis.some((p) => p.estado === 'pendiente') ? 'La cuenta suma solo lo confirmado por el mozo.' : 'Cuando gustes cancelar, acércate a caja, por favor. ¡Muchas gracias por tu visita y buen provecho! 🥢'}${hayRech ? ' Los pedidos tachados no se cobran.' : ''}</p>`;
+    }).join('') + `<div class="mm-cuenta"><span>Cuenta</span><span>${fmt(d.cuenta)}</span></div><p class="mm-note">${vis.some((p) => p.estado === 'pendiente') ? 'La cuenta suma solo lo confirmado por el mozo.' : 'Cuando gustes cancelar, acércate a caja, por favor. ¡Muchas gracias por tu visita y buen provecho!'}${hayRech ? ' Los pedidos tachados no se cobran.' : ''}</p>`;
     lastEstado = d;
   }
   $('mmAnadir').onclick = () => { cerrarMesaVista(); window.scrollTo(0, 0); };
@@ -794,8 +859,8 @@
   function esperaLlamar(seg) {
     const b = $('mmLlamar'); clearInterval(llamarT); b.disabled = true;
     const tick = () => {
-      if (seg <= 0) { clearInterval(llamarT); b.disabled = false; b.textContent = llamado ? '🔔 Volver a llamar' : '🔔 Llamar mozo'; return; }
-      b.textContent = '🔔 Volver a llamar (' + seg + ')'; seg--;
+      if (seg <= 0) { clearInterval(llamarT); b.disabled = false; b.textContent = llamado ? 'Volver a llamar' : 'Llamar mozo'; return; }
+      b.textContent = 'Volver a llamar (' + seg + ')'; seg--;
     };
     tick(); llamarT = setInterval(tick, 1000);
   }
@@ -805,10 +870,10 @@
     try {
       const r = await fetch(API + '/api/chifa/cliente/llamar', { method: 'POST', headers: hdr({ 'X-Cliente-Token': ses.token }) });
       const d = await r.json().catch(() => ({}));
-      if (r.ok) { llamado = true; mmMsg('🔔 ¡Listo! Avisamos al mozo, ya viene.'); esperaLlamar(15); }
-      else if (r.status === 429) { llamado = true; mmMsg('🔔 Ya avisamos al mozo. Puedes volver a llamar en unos segundos.'); esperaLlamar(d.espera || 15); }
-      else { mmMsg('🙏 ' + (d.error || 'No se pudo avisar')); b.disabled = false; }
-    } catch { mmMsg('😕 Sin conexión, llama al mozo con la mano 🔔'); b.disabled = false; }
+      if (r.ok) { llamado = true; mmMsg('¡Listo! Avisamos al mozo, ya viene.'); esperaLlamar(15); }
+      else if (r.status === 429) { llamado = true; mmMsg('Ya avisamos al mozo. Puedes volver a llamar en unos segundos.'); esperaLlamar(d.espera || 15); }
+      else { mmMsg('' + (d.error || 'No se pudo avisar')); b.disabled = false; }
+    } catch { mmMsg('Sin conexión, llama al mozo con la mano '); b.disabled = false; }
   };
   // Al volver a la pestaña / app: refrescar al instante y reanudar el sondeo
   const alVolver = () => { if (!getSes()) return adicBar(); if ($('miMesa').style.display === 'flex') { cargando = false; cargarMesa(); arrancarPoll(); } else adicBar(); };
@@ -819,7 +884,7 @@
   window.addEventListener('storage', (e) => { if (e.key === SKEY) { if (getSes()) abrirMesa(); else cerrarMesaVista(); } });
   if (getSes()) abrirMesa();
 
-  $('cbVer').onclick = () => { $('csMsg').className = 'cs-msg'; $('cartSheet').style.display = 'flex'; };
+  $('cbIn').onclick = $('cbVer').onclick = () => { $('csMsg').className = 'cs-msg'; $('cartSheet').style.display = 'flex'; };
   $('csSeguir').onclick = () => { $('cartSheet').style.display = 'none'; };
   $('cartSheet').onclick = (e) => { if (e.target.id === 'cartSheet') $('cartSheet').style.display = 'none'; };
   document.querySelectorAll('[data-mod]').forEach((b) => b.onclick = () => {
@@ -827,7 +892,7 @@
     $('csMesaBox').style.display = mod === 'mesa' ? '' : 'none'; $('csNomBox').style.display = mod === 'llevar' ? '' : 'none';
   });
   $('csEnviar').onclick = async () => {
-    if (!cart.size) return msg('Agrega al menos un plato 🥢');
+    if (!cart.size) return msg('Agrega al menos un plato ');
     const ses0 = getSes();
     if (!ses0 && mod === 'mesa' && !$('csMesa').value) return msg('Elige tu número de mesa');
     if (!ses0 && mod === 'llevar' && $('csNombre').value.trim().length < 2) return msg('Escribe tu nombre');
@@ -846,16 +911,16 @@
       if (!r.ok) { if (d.pin) localStorage.removeItem('chifaMesaPin'); throw new Error(d.error || 'No se pudo enviar'); }
       [...cart.keys()].forEach((c) => setQ(c, 0)); $('csNota').value = '';
       if (d.token) setSes({ token: d.token, mesa: d.mesa, modalidad: d.adicional && ses0 ? ses0.modalidad : mod });
-      msg('✅ ¡Tu pedido fue enviado! El mozo lo confirmará en un momento.', true);
-      setTimeout(() => { abrirMesa(); mmMsg('✅ ¡Enviado! Espera que el mozo lo confirme.'); }, 900);
+      msg('¡Tu pedido fue enviado! El mozo lo confirmará en un momento.', true);
+      setTimeout(() => { abrirMesa(); mmMsg('¡Enviado! Espera que el mozo lo confirme.'); }, 900);
     } catch (e) {
-      msg(e instanceof TypeError ? '😕 No pudimos conectar con el restaurante. Intenta de nuevo o pide al mozo.' : '😕 ' + e.message);
+      msg(e instanceof TypeError ? 'No pudimos conectar con el restaurante. Intenta de nuevo o pide al mozo.' : '' + e.message);
     } finally { $('csEnviar').disabled = false; $('csEnviar').textContent = getSes() ? 'Mandar adicional a cocina' : 'Mandar a cocina'; }
   };
 })();
 </script>
 
-<script>/*deep-link categoria desde inicio*/window.addEventListener("load",function(){var h=decodeURIComponent(location.hash.slice(1));if(!h)return;if(h==="sopas-populares")h="sopas";var c=document.querySelector('.chip[data-cat="'+h+'"]');if(c)setTimeout(function(){c.click()},300)});</script>
+<script>/*deep-link categoria desde inicio*/window.addEventListener("load",function(){var h=decodeURIComponent(location.hash.slice(1));if(!h)return;if(h==="sopas-populares")h="sopas";var g=document.querySelector('.nb-sub[data-sub="'+h+'"]');g=g?g.closest('.nb-sec'):document.getElementById(h);if(g&&window.chifaOpenGroup)setTimeout(function(){window.chifaOpenGroup(g.id);var sb=document.querySelector('.nb-sub[data-sub="'+h+'"]');if(sb&&sb.previousElementSibling&&sb.previousElementSibling.classList.contains('nb-sub'))sb.scrollIntoView()},300)});</script>
 <style>#mesaQ{position:fixed;inset:0;z-index:99000;background:rgba(40,0,4,.72);display:none;align-items:center;justify-content:center;padding:20px}
 #mesaQ .c{width:min(92vw,360px);background:#fff8e7;border:3px solid #d4a017;border-radius:24px;padding:24px 18px;text-align:center;color:#5a0a0e;font-family:system-ui,-apple-system,sans-serif}
 #mesaQ h2{color:#b3121b;font-size:1.45rem;margin-bottom:4px}#mesaQ p{font-size:.9rem;margin-bottom:16px}
@@ -864,13 +929,13 @@
 <div id="mesaQ" role="dialog" aria-label="¿En qué mesa estás?"><div class="c"><h2>¿En qué mesa estás?</h2><p>Elige tu mesa o pide delivery</p><div id="mqMesas"></div><button type="button" class="d" id="mqDel">Delivery</button></div></div>
 <script>(function(){var M=['03'],q=document.getElementById('mesaQ');
 function ses(){try{return JSON.parse(localStorage.getItem('chifaMesaSesion')||'null')}catch(e){return null}}
-function pick(m){q.style.display='none';try{sessionStorage.setItem('chifaModo',m)}catch(e){}
+function pick(m){q.style.display='none';var pl=document.getElementById('mesaPill');if(pl)pl.textContent=m==='delivery'?'Delivery':'Mesa '+parseInt(m,10);try{sessionStorage.setItem('chifaModo',m)}catch(e){}
  var b=document.querySelector('[data-mod="'+(m==='delivery'?'llevar':'mesa')+'"]');if(b)b.click();
  if(m!=='delivery'){var s=document.getElementById('csMesa');if(s)s.value=m;}}
 document.getElementById('mqMesas').innerHTML=M.map(function(m){return '<button type="button" data-m="'+m+'">Mesa '+parseInt(m,10)+'</button>'}).join('');
 q.querySelectorAll('[data-m]').forEach(function(b){b.onclick=function(){pick(b.dataset.m)}});
 document.getElementById('mqDel').onclick=function(){pick('delivery')};
-Promise.resolve(window.chifaPinReady).then(function(){var s=ses();if(s&&s.token)return;var prev=null;try{prev=sessionStorage.getItem('chifaModo')}catch(e){}
+Promise.resolve(window.chifaPinReady).then(function(){var s=ses();if(s&&s.token){var pl=document.getElementById('mesaPill');if(pl)pl.textContent=s.modalidad==='llevar'?'Delivery':'Mesa '+parseInt(s.mesa||3,10);return;}var prev=null;try{prev=sessionStorage.getItem('chifaModo')}catch(e){}
  if(prev)return setTimeout(function(){pick(prev)},50);q.style.display='flex'})})();</script>
 </body>
 </html>
