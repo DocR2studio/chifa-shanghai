@@ -62,14 +62,9 @@ h3 a{font-size:.85rem;color:#b3121b;font-weight:700}
 #ver .pc{flex:none;width:auto}
 #ver .dish{flex:none;width:auto;flex-direction:column;align-items:flex-start;gap:8px}
 #ver .dish{padding-bottom:14px}#ver .dish .go{margin:0 12px;background:linear-gradient(#d61f2a,#9e0f17);color:#fff;font-weight:800;font-size:.85rem;padding:7px 16px;border-radius:14px}
-.bkg{display:grid;grid-template-columns:1fr;gap:14px;padding:0 16px}
-.bkg .pc{flex:none}.bkg .pc img{aspect-ratio:4/3}.bkg .pc .pr{font-size:.9rem;max-width:calc(100% - 20px)}
-.bkl{margin:14px 16px 0;background:#fff;border-radius:18px;border:2px solid #f2c94c;box-shadow:0 4px 12px rgba(158,15,23,.12);overflow:hidden}
-.bkr{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px dashed #f0dcb0}.bkr:last-child{border-bottom:0}
-.bkr b{color:#5a0a0e;font-size:.98rem}.bkr span{background:linear-gradient(#d61f2a,#9e0f17);color:#fff;font-weight:800;font-size:.82rem;padding:5px 10px;border-radius:999px;white-space:nowrap}
-.bkf{margin:12px 16px 0;text-align:center;font-weight:700;color:#9e0f17;background:linear-gradient(#fff1c9,#ffe2a0);border-radius:14px;padding:12px;font-size:.92rem}.bkf a{text-decoration:underline}
-@media(min-width:600px){.bkg{grid-template-columns:1fr 1fr}}
-#ver .pc img{aspect-ratio:4/3}#ver .pc .pr{font-size:.7rem;padding:4px 8px;top:6px;right:6px;left:6px;text-align:center}
+.pc .pr{max-width:calc(100% - 78px);text-align:center;line-height:1.15;font-size:.82rem;white-space:normal}
+.bkf{margin:4px 16px 0;font-size:.8rem;font-weight:700;color:#9e0f17;text-align:center}.bkf a{text-decoration:underline}
+#ver .pc .nv{font-size:.6rem;padding:3px 7px}#ver .pc .pr{font-size:.7rem;padding:4px 8px;max-width:calc(100% - 64px)}
 </style></head><body>
 <!-- PIN de mesa (se pide una vez por celular) -->
 <style>
@@ -118,24 +113,16 @@ h3 a{font-size:.85rem;color:#b3121b;font-weight:700}
 </div>
 <h3 class="sh"><span>Bocaditos chinos<span class="bg">NUEVO</span></span><a href="#ver-bocaditos-chinos" data-ver="bocaditos-chinos" data-t="Bocaditos chinos">Ver ›</a></h3>
 <div class="sc">
- <a class="pc" href="carta/#bocaditos-chinos"><img src="carta/img/enrollados.jpg" alt="Enrollado de primavera" loading="lazy"><span class="nv">Nuevo</span><span class="pr">S/ 6</span><div class="bd"><b>Enrollado de primavera</b><small>Precio por unidad</small><span class="go">Pedir</span></div></a>
- <a class="pc" href="carta/#bocaditos-chinos"><img src="carta/img/siu-mai.jpg" alt="Siu mai" loading="lazy"><span class="nv">Nuevo</span><span class="pr">S/ 11</span><div class="bd"><b>Siu mai</b><small>3 unidades</small><span class="go">Pedir</span></div></a>
- <a class="pc" href="carta/#bocaditos-chinos"><img src="carta/img/min-pao.jpg" alt="Min pao" loading="lazy"><span class="nv">Nuevo</span><span class="pr">S/ 6</span><div class="bd"><b>Min pao</b><small>Precio por unidad</small><span class="go">Pedir</span></div></a>
-</div>
-<h3 class="sh"><span>Bocaditos<span class="bg">NUEVO</span></span><a href="#ver-bocaditos" data-ver="bocaditos" data-t="Bocaditos">Ver más ›</a></h3>
-<div class="bkg">
- <a class="pc" href="carta/#bocaditos-chinos"><img src="img/bocaditos/wantan-frito.jpg" alt="Wantán frito especial" loading="lazy" decoding="async"><span class="pr">6 x S/ 12.00 · 12 x S/ 22.00</span><div class="bd"><b>Wantán frito especial</b><small>Relleno de chancho y pollo</small><span class="go">Pedir</span></div></a>
- <a class="pc" href="carta/#bocaditos-chinos"><img src="img/bocaditos/alitas.jpg" alt="Alitas empanizadas" loading="lazy" decoding="async"><span class="pr">S/ 5.00 c/u</span><div class="bd"><b>Alitas empanizadas</b><small>Crocantes, al panko</small><span class="go">Pedir</span></div></a>
- <a class="pc" href="carta/#bocaditos-chinos"><img src="img/bocaditos/langostinos-queso.jpg" alt="Langostinos empanizados con queso crema" loading="lazy" decoding="async"><span class="pr">3 x S/ 14.00</span><div class="bd"><b>Langostinos empanizados con queso crema</b><small>Rellenos de queso crema</small><span class="go">Pedir</span></div></a>
- <a class="pc" href="carta/#bocaditos-chinos"><img src="img/bocaditos/tequenos-queso.jpg" alt="Tequeños rellenos de queso" loading="lazy" decoding="async"><span class="pr">4 x S/ 9.00</span><div class="bd"><b>Tequeños rellenos de queso</b><small>Queso derretido</small><span class="go">Pedir</span></div></a>
- <a class="pc" href="carta/#bocaditos-chinos"><img src="img/bocaditos/tequenos-chocolate.jpg" alt="Tequeños rellenos de chocolate" loading="lazy" decoding="async"><span class="pr">4 x S/ 11.00</span><div class="bd"><b>Tequeños rellenos de chocolate</b><small>Dulce y crocante</small><span class="go">Pedir</span></div></a>
- <a class="pc" href="carta/#bocaditos-chinos"><img src="img/bocaditos/sui-kao.jpg" alt="Sui kao" loading="lazy" decoding="async"><span class="pr">3 x S/ 10.00</span><div class="bd"><b>Sui kao</b><small>Al vapor</small><span class="go">Pedir</span></div></a>
- <a class="pc" href="carta/#bocaditos-chinos"><img src="img/bocaditos/langostinos.jpg" alt="Langostinos empanizados" loading="lazy" decoding="async"><span class="pr">S/ 4.00 c/u</span><div class="bd"><b>Langostinos empanizados</b><small>Crocantes y dorados</small><span class="go">Pedir</span></div></a>
-</div>
-<div class="bkl">
- <div class="bkr"><b>Sui mai</b><span>3 x S/ 11.00</span></div>
- <div class="bkr"><b>Enrollado primavera</b><span>S/ 5 c/u · 3 x S/ 14.00</span></div>
- <div class="bkr"><b>Min pao dulce o salado</b><span>S/ 5 c/u · 3 x S/ 14.00</span></div>
+ <a class="pc" href="carta/#bocaditos-chinos"><img src="img/bocaditos/wantan-frito.jpg" alt="Wantán frito especial" loading="lazy" decoding="async"><span class="nv">Nuevo</span><span class="pr">6 x S/ 12 ó 12 x S/ 22</span><div class="bd"><b>Wantán frito especial</b><small>Relleno de chancho y pollo</small><span class="go">Pedir</span></div></a>
+ <a class="pc" href="carta/#bocaditos-chinos"><img src="img/bocaditos/alitas.jpg" alt="Alitas empanizadas" loading="lazy" decoding="async"><span class="nv">Nuevo</span><span class="pr">S/ 5 c/u</span><div class="bd"><b>Alitas empanizadas</b><small>Precio por unidad</small><span class="go">Pedir</span></div></a>
+ <a class="pc" href="carta/#bocaditos-chinos"><img src="img/bocaditos/langostinos.jpg" alt="Langostinos empanizados" loading="lazy" decoding="async"><span class="nv">Nuevo</span><span class="pr">S/ 4 c/u</span><div class="bd"><b>Langostinos empanizados</b><small>Precio por unidad</small><span class="go">Pedir</span></div></a>
+ <a class="pc" href="carta/#bocaditos-chinos"><img src="img/bocaditos/langostinos-queso.jpg" alt="Langostinos con queso crema" loading="lazy" decoding="async"><span class="nv">Nuevo</span><span class="pr">3 x S/ 14</span><div class="bd"><b>Langostinos con queso crema</b><small>Empanizados, 3 unidades</small><span class="go">Pedir</span></div></a>
+ <a class="pc" href="carta/#bocaditos-chinos"><img src="img/bocaditos/tequenos-queso.jpg" alt="Tequeños de queso" loading="lazy" decoding="async"><span class="nv">Nuevo</span><span class="pr">4 x S/ 9</span><div class="bd"><b>Tequeños de queso</b><small>4 unidades</small><span class="go">Pedir</span></div></a>
+ <a class="pc" href="carta/#bocaditos-chinos"><img src="img/bocaditos/tequenos-chocolate.jpg" alt="Tequeños de chocolate" loading="lazy" decoding="async"><span class="nv">Nuevo</span><span class="pr">4 x S/ 11</span><div class="bd"><b>Tequeños de chocolate</b><small>4 unidades</small><span class="go">Pedir</span></div></a>
+ <a class="pc" href="carta/#bocaditos-chinos"><img src="img/bocaditos/sui-kao.jpg" alt="Sui kao" loading="lazy" decoding="async"><span class="nv">Nuevo</span><span class="pr">3 x S/ 10</span><div class="bd"><b>Sui kao</b><small>3 unidades</small><span class="go">Pedir</span></div></a>
+ <a class="pc" href="carta/#bocaditos-chinos"><img src="carta/img/enrollados.jpg" alt="Enrollado de primavera" loading="lazy" decoding="async"><span class="nv">Nuevo</span><span class="pr">S/ 5 c/u ó 3 x S/ 14</span><div class="bd"><b>Enrollado de primavera</b><small>Por unidad o 3 unidades</small><span class="go">Pedir</span></div></a>
+ <a class="pc" href="carta/#bocaditos-chinos"><img src="carta/img/siu-mai.jpg" alt="Siu mai" loading="lazy" decoding="async"><span class="nv">Nuevo</span><span class="pr">3 x S/ 11</span><div class="bd"><b>Siu mai</b><small>3 unidades</small><span class="go">Pedir</span></div></a>
+ <a class="pc" href="carta/#bocaditos-chinos"><img src="carta/img/min-pao.jpg" alt="Min pao dulce o salado" loading="lazy" decoding="async"><span class="nv">Nuevo</span><span class="pr">S/ 5 c/u ó 3 x S/ 14</span><div class="bd"><b>Min pao dulce o salado</b><small>Por unidad o 3 unidades</small><span class="go">Pedir</span></div></a>
 </div>
 <p class="bkf">Contratos de bocaditos por cientos al <a href="tel:959688688">959688688</a></p>
 <h3 class="sh"><span>Sopas populares<span class="bg">NUEVO</span></span><a href="#ver-sopas" data-ver="sopas" data-t="Sopas populares">Ver ›</a></h3>
