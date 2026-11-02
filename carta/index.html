@@ -425,6 +425,11 @@ body{background:#fff!important;color:#141414!important;font-size:17px}body::befo
 .nb-tile svg{width:64px;height:64px;margin-bottom:4px}
 .nb-tile b{font-size:1.6rem;font-weight:900;line-height:1.1;text-align:center}.nb-tile span{font-size:1rem;font-weight:600;opacity:.92}
 .nb-tile.red{background:#d7141f;color:#fff}.nb-tile.yel{background:#f5b82e;color:#141414}.nb-tile.blk{background:#141414;color:#fff}.nb-tile.cre{background:#f6efdf;color:#141414}
+.nb-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#141414;border-radius:999px;padding:6px;margin:4px 0 14px}
+.nb-tab{border:0;border-radius:999px;background:transparent;color:#f6efdf;font-family:inherit;font-size:1.15rem;font-weight:900;padding:14px 8px;cursor:pointer;transition:background .15s,color .15s}
+.nb-tab.on{background:#d7141f;color:#fff;box-shadow:inset 0 0 0 2px #f5b82e}
+.nb-tabnote{display:none;margin:-6px 0 14px;text-align:center;font-size:.95rem;font-weight:700;color:#9e0f17}
+body.nb-tab-carta .nb-tabnote{display:block}body.nb-tab-carta .nb-topwrap{display:none}
 .nb-h2{font-size:1.35rem;font-weight:900;margin:24px 0 10px;color:#141414}
 .menu-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:12px}
 #menu .item,.nb-top .item{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-areas:"code name add" "code price add";align-items:center;column-gap:12px;row-gap:2px;background:#fff!important;border:2px solid #e6e0d4!important;border-radius:16px!important;padding:14px 14px!important;box-shadow:0 2px 8px rgba(0,0,0,.05)!important;margin:0!important}
@@ -516,7 +521,7 @@ footer.note{color:#777!important;border-color:#eee!important}footer.note .gold{c
   <div class="page">
     <header class="nb-head"><img class="nb-logo" src="img/logo-shanghai.jpg" alt="Chifa Shanghai - Chinese Food Internacional" width="900" height="600"><span class="nb-pill" id="mesaPill">Mesa 3</span></header>
     <div class="search-wrap"><label class="search" for="q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" placeholder="Buscar plato o código..." autocomplete="off" enterkeyhint="search" /><button type="button" class="search-clear" id="clear" aria-label="Limpiar búsqueda">×</button></label></div>
-    <div id="home"><div class="nb-grid" id="grid"></div><h2 class="nb-h2">Lo más pedido</h2><ul class="menu-list nb-top" id="topList"></ul></div>
+    <div id="home"><div class="nb-tabs" id="tabs" role="tablist"><button type="button" role="tab" class="nb-tab on" data-tab="menu">Menú</button><button type="button" role="tab" class="nb-tab" data-tab="carta">A la carta</button></div><p class="nb-tabnote">Los platos a la carta no incluyen entrada</p><div class="nb-grid" id="grid"></div><div class="nb-topwrap"><h2 class="nb-h2">Lo más pedido</h2><ul class="menu-list nb-top" id="topList"></ul></div></div>
 
     <main id="menu">
       <!-- Sections injected by JS for maintainability, or static below -->
@@ -547,20 +552,30 @@ footer.note{color:#777!important;border-color:#eee!important}footer.note .gold{c
       galleta:'<path d="M8 38c0-14 12-24 26-22 12 2 22 12 22 24-6-4-14-6-22-2-8-6-18-6-26 0z"/><path d="M34 18c-2 8-2 14 0 22"/><path d="M40 40 56 50"/>',
       combinado:'<circle cx="32" cy="34" r="24"/><path d="M32 10v48"/><path d="M16 28h8M14 36h10M18 44h6"/><path d="M38 26c4 4 8 4 12 0M38 34c4 4 8 4 12 0M38 42c4 4 8 4 12 0"/>',
       bebida:'<path d="M18 18h28l-4 40H22z"/><path d="M16 18h32"/><path d="M34 18 40 4"/><circle cx="28" cy="48" r="2.5"/><circle cx="36" cy="44" r="2.5"/><circle cx="31" cy="38" r="2.5"/>',
+      trozos:'<path d="M6 40h52a26 14 0 0 1-52 0z"/><path d="M16 38c0-6 4-10 9-9 3-4 9-4 11 0 5-2 10 2 10 9"/><path d="M24 32l4-4M34 31l3-3"/>',
+      carne:'<path d="M14 22c8-10 26-12 36-2 8 8 6 22-6 28-12 6-30 4-34-8-2-6 0-12 4-18z"/><path d="M24 30c4-4 12-4 16 0 3 3 2 8-2 10-5 2-11 1-14-2"/><circle cx="31" cy="34" r="2"/>',
+      pescado:'<path d="M8 32c8-12 24-16 36-8l12-8v32l-12-8c-12 8-28 4-36-8z"/><circle cx="20" cy="30" r="2"/><path d="M30 26c2 4 2 8 0 12"/>',
+      plancha:'<rect x="6" y="28" width="52" height="16" rx="4"/><path d="M14 52v-8M50 52v-8"/><path d="M20 22c-3-3 3-6 0-10M32 22c-3-3 3-6 0-10M44 22c-3-3 3-6 0-10"/>',
       combo:'<path d="M4 34h28a14 12 0 0 1-28 0z"/><path d="M32 34h28a14 12 0 0 1-28 0z"/><path d="M18 26c-3-3 3-5 0-9M46 26c-3-3 3-5 0-9"/><path d="M10 56h44"/>'
     };
     const GROUPS = [
-      { id:'g-chaufas', title:'Chaufas', icon:'arroz', cats:['chaufas','aeropuerto'] },
-      { id:'g-tallarines', title:'Tallarines', icon:'fideos', cats:['tallarines','tallarines-chinos'] },
-      { id:'g-saltados', title:'Saltados', icon:'wok', cats:['platos-saltados','carta-carnes','carta-chancho','carta-plancha'] },
-      { id:'g-sopas', title:'Sopas', icon:'sopa', cats:['sopas'] },
-      { id:'g-salados', title:'Salados', icon:'dumpling', cats:['carta-trozos','carta-langostino-pescado','tortilla','bocaditos-chinos'] },
-      { id:'g-dulces', title:'Dulces', icon:'galleta', cats:['platos-dulces','carta-dulces'] },
-      { id:'g-combinados', title:'Combinados', icon:'combinado', cats:['combinado'] },
-      { id:'g-bebidas', title:'Bebidas', icon:'bebida', cats:['bebidas','bebidas-chinas'] },
-      { id:'g-combos', title:'Combos familiares', icon:'combo', cats:['combos'] }
+      { id:'g-chaufas', tab:'menu', title:'Chaufas', icon:'arroz', cats:['chaufas','aeropuerto'] },
+      { id:'g-tallarines', tab:'menu', title:'Tallarines', icon:'fideos', cats:['tallarines','tallarines-chinos'] },
+      { id:'g-saltados', tab:'menu', title:'Saltados', icon:'wok', cats:['platos-saltados'] },
+      { id:'g-sopas', tab:'menu', title:'Sopas', icon:'sopa', cats:['sopas'] },
+      { id:'g-salados', tab:'menu', title:'Salados', icon:'dumpling', cats:['tortilla','bocaditos-chinos'] },
+      { id:'g-dulces', tab:'menu', title:'Dulces', icon:'galleta', cats:['platos-dulces'] },
+      { id:'g-combinados', tab:'menu', title:'Combinados', icon:'combinado', cats:['combinado'] },
+      { id:'g-bebidas', tab:'menu', title:'Bebidas', icon:'bebida', cats:['bebidas','bebidas-chinas'] },
+      { id:'g-combos', tab:'menu', title:'Combos familiares', icon:'combo', cats:['combos'] },
+      { id:'g-c-trozos', tab:'carta', title:'Platos en trozos', icon:'trozos', cats:['carta-trozos'] },
+      { id:'g-c-carnes', tab:'carta', title:'Carnes', icon:'carne', cats:['carta-carnes'] },
+      { id:'g-c-mar', tab:'carta', title:'Langostino y pescado', icon:'pescado', cats:['carta-langostino-pescado'] },
+      { id:'g-c-dulces', tab:'carta', title:'Especiales dulces', icon:'galleta', cats:['carta-dulces'] },
+      { id:'g-c-plancha', tab:'carta', title:'Plancha', icon:'plancha', cats:['carta-plancha'] },
+      { id:'g-c-chancho', tab:'carta', title:'Chancho', icon:'wok', cats:['carta-chancho'] }
     ];
-    { const used = new Set(GROUPS.flatMap((g) => g.cats)); const rest = MENU.filter((c) => !used.has(c.id)).map((c) => c.id); if (rest.length) GROUPS.push({ id:'g-otros', title:'Más platos', icon:'combinado', cats:rest }); }
+    { const used = new Set(GROUPS.flatMap((g) => g.cats)); const rest = MENU.filter((c) => !used.has(c.id)).map((c) => c.id); if (rest.length) GROUPS.push({ id:'g-otros', tab:'menu', title:'Más platos', icon:'combinado', cats:rest }); }
     const TOP = ['007','009','061','127'];
     const catById = new Map(MENU.map((c) => [c.id, c]));
     const cleanT = (t) => t.replace(/^★\s*A la carta\s*·\s*/, 'A la carta · ');
@@ -570,6 +585,8 @@ footer.note{color:#777!important;border-color:#eee!important}footer.note .gold{c
                 <span class="item-name">${it.name}${it.desc?`<small>${it.desc}</small>`:""}</span>
                 <span class="item-price">${money(it.price)}</span>
               </li>`;
+    let curTab = 'menu'; try { if (sessionStorage.getItem('chifaCartaTab') === 'carta') curTab = 'carta'; } catch (e) {}
+    function setTab(t) { curTab = t; try { sessionStorage.setItem('chifaCartaTab', t); } catch (e) {} renderGrid(); }
     function render() {
       const root = document.getElementById("menu");
       root.innerHTML = GROUPS.map((g) => `
@@ -582,11 +599,20 @@ footer.note{color:#777!important;border-color:#eee!important}footer.note .gold{c
               <ul class="menu-list">${cat.items.map((it) => itemHTML(it, cat.title + " " + g.title)).join("")}</ul>
             </div>`).join("")}
         </section>`).join("");
+      renderGrid();
+      renderTop();
+    }
+    function renderGrid() {
       const pal = ['red','yel','blk','cre'];
-      document.getElementById("grid").innerHTML = GROUPS.map((g, i) => {
+      const VG = GROUPS.filter((g) => g.tab === curTab);
+      document.getElementById("grid").innerHTML = VG.map((g, i) => {
         const n = g.cats.reduce((a, cid) => a + ((catById.get(cid) || { items: [] }).items.length), 0);
-        return `<button type="button" class="nb-tile ${pal[i % 4]}${i === GROUPS.length - 1 && GROUPS.length % 2 ? ' wide' : ''}" data-g="${g.id}"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[g.icon]}</svg><b>${g.title}</b><span>${n} ${n === 1 ? 'plato' : 'platos'}</span></button>`;
+        return `<button type="button" class="nb-tile ${pal[i % 4]}${i === VG.length - 1 && VG.length % 2 ? ' wide' : ''}" data-g="${g.id}"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[g.icon]}</svg><b>${g.title}</b><span>${n} ${n === 1 ? 'plato' : 'platos'}</span></button>`;
       }).join("");
+      document.querySelectorAll('.nb-tab').forEach((b) => { const on = b.dataset.tab === curTab; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
+      document.body.classList.toggle('nb-tab-carta', curTab === 'carta');
+    }
+    function renderTop() {
       const byC = new Map(); MENU.forEach((c) => c.items.forEach((it) => byC.set(it.code, it)));
       document.getElementById("topList").innerHTML = TOP.map((c) => byC.get(c)).filter(Boolean).map((it) => itemHTML(it, "")).join("").replace(/class="item"/g, 'class="item nb-topi"');
     }
@@ -594,6 +620,7 @@ footer.note{color:#777!important;border-color:#eee!important}footer.note .gold{c
     function showHome() { openG = null; document.body.classList.remove('nb-open', 'nb-search'); document.querySelectorAll('.nb-sec').forEach((s) => s.classList.remove('on')); }
     function openGroup(id) {
       const sec = document.getElementById(id); if (!sec) return;
+      const gg = GROUPS.find((g) => g.id === id); if (gg && gg.tab !== curTab) setTab(gg.tab);
       openG = id; document.body.classList.add('nb-open');
       document.querySelectorAll('.nb-sec').forEach((s) => s.classList.toggle('on', s === sec));
       window.scrollTo(0, 0);
@@ -680,6 +707,7 @@ footer.note{color:#777!important;border-color:#eee!important}footer.note .gold{c
       input.focus();
     });
 
+    document.getElementById("tabs").addEventListener("click", (e) => { const b = e.target.closest(".nb-tab"); if (b && b.dataset.tab !== curTab) setTab(b.dataset.tab); });
     document.getElementById("grid").addEventListener("click", (e) => { const t = e.target.closest(".nb-tile"); if (t) openGroup(t.dataset.g); });
     document.getElementById("menu").addEventListener("click", (e) => { if (e.target.closest(".nb-back")) { input.value = ""; clearBtn.classList.remove("visible"); filterMenu(""); showHome(); window.scrollTo(0, 0); } });
   </script>
