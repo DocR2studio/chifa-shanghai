@@ -6,7 +6,7 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{background:#fff8e7;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#3a0a0d;padding-bottom:calc(78px + env(safe-area-inset-bottom))}
 a{color:inherit;text-decoration:none}
-.top{background:linear-gradient(160deg,#d61f2a,#9e0f17);color:#fff;padding:calc(18px + env(safe-area-inset-top)) 18px 70px;border-radius:0 0 30px 30px;position:relative;overflow:hidden}
+.top{background:linear-gradient(160deg,#d61f2a,#9e0f17);color:#fff;padding:calc(18px + env(safe-area-inset-top)) 18px 26px;border-radius:0 0 30px 30px;position:relative;overflow:hidden}
 .top::before{content:"";position:absolute;inset:0;background:url(gatos-fondo.jpg) 0 0/130px 130px repeat;opacity:.1}
 .top>*{position:relative}
 .brand{display:flex;align-items:center;gap:10px}
@@ -101,7 +101,6 @@ h3 a{font-size:.85rem;color:#b3121b;font-weight:700}
  <div class="brand"><div class="logo"><img src="img/logo-shanghai-circulo.jpg?v=2" alt="Shanghai" style="width:100%;height:100%;object-fit:cover;display:block"></div><div><b>Chifa Shanghai</b><small>Abancay · Carta digital</small></div></div>
  <div class="hi" id="hi">¡Hola!<span>¿Qué se te antoja hoy?</span></div>
 </header>
-<div class="hero" id="hero"><img src="bienvenida.jpg" alt="Bienvenido a Chifa Shanghai"><div class="play"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z"/></svg> Ver bienvenida</div></div>
 <div class="acts">
  <a class="act p" id="pedir" href="carta/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21L19 3M9 21L21 7"/></svg></i>Pedir ya<small>Arma tu pedido desde la mesa</small></a>
  <a class="act t" id="tuto" href="tutorial/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z"/></svg></i>Ver tutorial<small>Aprende a pedir</small></a>
@@ -175,7 +174,7 @@ const $=id=>document.getElementById(id),v=$('v'),a1=$('a1'),vb=$('vid');
 function home(){if(typeof stopWd==='function')stopWd();v.pause();vb.style.display='none';$('splash').style.display='none';a1.currentTime=0;a1.play().catch(()=>{})}
 var wd=null,lt=-1;function stopWd(){clearInterval(wd);wd=null}function play(){vb.style.display='block';try{v.currentTime=0}catch(e){}v.muted=false;v.play().catch(()=>{v.muted=true;v.play().catch(home)});stopWd();lt=-1;var st=0;wd=setInterval(()=>{if(vb.style.display!=='block'){stopWd();return}if(v.currentTime===lt){st++;if(st>=6){stopWd();home()}}else{st=0;lt=v.currentTime}},1000)}
 $('go').onclick=()=>{play();try{a1.muted=true;var q=a1.play();if(q)q.then(()=>{a1.pause();a1.currentTime=0;a1.muted=false}).catch(()=>{a1.muted=false})}catch(e){}};v.addEventListener('click',()=>{if(v.paused)v.play().catch(()=>{})});
-$('hero').onclick=play;v.addEventListener('ended',home);v.addEventListener('error',home);$('skip').onclick=home;
+if($('hero'))$('hero').onclick=play;v.addEventListener('ended',home);v.addEventListener('error',home);$('skip').onclick=home;
 if(location.hash==='#inicio')$('splash').style.display='none';
 const h=new Date().getHours();$('hi').firstChild.nodeValue=(h<12?'¡Buenos días!':h<19?'¡Buenas tardes!':'¡Buenas noches!');
 </script>
