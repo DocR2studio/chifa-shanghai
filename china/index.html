@@ -107,7 +107,7 @@ h2{margin:18px 16px 10px;font-size:1.15rem;color:#9e0f17}
 
 <header class="top"><div class="bar">
 <button class="bk" id="back" type="button" aria-label="Volver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
-<div class="tt"><b id="ttl">Pedidos de China</b><small id="sub">Encarga y recoge en Perú</small></div>
+<div class="tt"><b id="ttl">Pedidos de China</b><small id="sub">Encarga y recibe en Perú</small></div>
 <span class="beta">Versión beta</span></div></header>
 
 <!-- CATALOGO -->
@@ -249,7 +249,7 @@ function runTrack(){resetTrack();
     sh.setAttribute('opacity',0);$('cP').textContent='';$('tHd').textContent='¡Tu pedido llegó!';$('tHs').textContent='Ya puedes recogerlo en el Chifa Shanghai';center('Completado','EN LOCAL',true);stepState(5);$('fin').className='fin on'})})},3000))}
 $('again').onclick=runTrack;$('toCat').onclick=$('toCat2').onclick=function(){go('catalogo')};
 // navegacion
-var T={catalogo:['Pedidos de China','Encarga y recoge en Perú'],detalle:['Detalles','Pedidos de China'],carrito:['Carrito','Pedidos de China'],comprar:['Comprar','Elige una opción'],virtual:['Compra virtual','Ingresa tus datos'],seguimiento:['Seguimiento','Simulación de envío'],cita:['Cita en local','Pedidos de China']};
+var T={catalogo:['Pedidos de China','Encarga y recibe en Perú'],detalle:['Detalles','Pedidos de China'],carrito:['Carrito','Pedidos de China'],comprar:['Comprar','Elige una opción'],virtual:['Compra virtual','Ingresa tus datos'],seguimiento:['Seguimiento','Simulación de envío'],cita:['Cita en local','Pedidos de China']};
 function bar(){var n=count();$('cbN').textContent=n;$('cbT').textContent=soles(total());var s=(location.hash.slice(1).split('/')[0])||'catalogo';$('cbar').className='cb'+(n&&(s==='catalogo'||s==='detalle')?' on':'')}
 $('cbar').onclick=function(){go('carrito')};
 function show(){$('toast').style.display='none';var h=location.hash.slice(1).split('/'),s=h[0]||'catalogo';if(!T[s])s='catalogo';
