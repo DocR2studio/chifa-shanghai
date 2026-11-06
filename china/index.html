@@ -1,0 +1,266 @@
+<!doctype html><html lang="es"><head>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pedidos de China · Chifa Shanghai</title><meta name="theme-color" content="#b3121b">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#fff8e7;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#3a0a0d;padding-bottom:calc(150px + env(safe-area-inset-bottom))}
+a{color:inherit;text-decoration:none}button{font:inherit;cursor:pointer}
+.top{position:sticky;top:0;z-index:40;background:linear-gradient(160deg,#d61f2a,#9e0f17);color:#fff;padding:calc(12px + env(safe-area-inset-top)) 14px 14px;border-radius:0 0 24px 24px;box-shadow:0 6px 16px rgba(158,15,23,.25);overflow:hidden}
+.top::before{content:"";position:absolute;inset:0;background:url(../gatos-fondo.jpg?v=1) 0 0/130px 130px repeat;opacity:.1}
+.top>*{position:relative}
+.bar{display:flex;align-items:center;gap:12px}
+.bk{width:42px;height:42px;flex:none;border-radius:50%;border:2px solid #f2c94c;background:rgba(255,255,255,.15);color:#fff;display:grid;place-items:center}
+.bk svg{width:22px;height:22px}
+.tt{flex:1;min-width:0}.tt b{display:block;font-size:1.22rem;letter-spacing:.02em}.tt small{color:#ffe9a6;font-size:.78rem}
+.beta{flex:none;background:linear-gradient(#f7d46a,#d4a017);color:#5a0a0e;font-weight:900;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.note{margin:14px 14px 0;background:#fff;border:2px dashed #d4a017;border-radius:16px;padding:10px 12px;font-size:.8rem;font-weight:600;color:#7a1a1e;line-height:1.35}
+.note b{color:#9e0f17}
+.scr{display:none;animation:fi .25s ease}.scr.on{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+h2{margin:18px 16px 10px;font-size:1.15rem;color:#9e0f17}
+/* catalogo */
+.list{display:grid;gap:14px;padding:0 14px}
+.card{background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 6px 18px rgba(158,15,23,.16);border:3px solid #f2c94c;display:grid;grid-template-columns:128px 1fr}
+.card .ph{position:relative;background:#f1efec}.card .ph img{width:100%;height:100%;object-fit:cover;display:block;aspect-ratio:1/1}
+.card .ph .ref{position:absolute;left:6px;bottom:6px;background:rgba(58,10,13,.78);color:#ffe9a6;font-size:.56rem;font-weight:800;letter-spacing:.06em;padding:3px 6px;border-radius:999px;text-transform:uppercase}
+.card .bd{padding:10px 12px 12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.card b{font-size:1rem;color:#5a0a0e;line-height:1.2}.card .ds{font-size:.76rem;color:#8a4b4e}
+.pr{color:#b3121b;font-weight:900;font-size:1.15rem}.pr small{display:block;color:#9e5a20;font-size:.62rem;font-weight:700;letter-spacing:.03em}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+.det{background:#fff;border:2px solid #d4a017;color:#9e0f17;font-weight:800;font-size:.78rem;padding:6px 12px;border-radius:12px}
+.qty{display:inline-flex;align-items:center;background:#fff4d6;border:2px solid #f2c94c;border-radius:14px;overflow:hidden}
+.qty button{width:34px;height:34px;border:0;background:transparent;color:#9e0f17;font-size:1.3rem;font-weight:900;line-height:1}
+.qty span{min-width:26px;text-align:center;font-weight:900;color:#5a0a0e}
+.qty .lb{font-size:.68rem;font-weight:800;color:#9e5a20;padding-left:8px;min-width:0}
+.add{flex:1;min-width:120px;border:0;background:linear-gradient(#d61f2a,#9e0f17);color:#fff;font-weight:800;font-size:.85rem;padding:10px 12px;border-radius:14px;box-shadow:0 4px 10px rgba(158,15,23,.25)}
+.btn{display:block;width:100%;border:3px solid #d4a017;background:linear-gradient(#d61f2a,#9e0f17);color:#fff;font-weight:900;font-size:1.15rem;padding:15px;border-radius:18px;box-shadow:0 8px 20px rgba(158,15,23,.3);text-align:center}
+.btn.g{background:linear-gradient(#f7d46a,#d4a017);color:#5a0a0e;border-color:#d4a017}
+.btn.w{background:#fff;color:#9e0f17;border-color:#f2c94c;box-shadow:0 4px 12px rgba(158,15,23,.12)}
+.btn:disabled{opacity:.45}
+/* barra carrito */
+.cb{position:fixed;left:12px;right:12px;bottom:calc(68px + env(safe-area-inset-bottom));z-index:45;display:none;align-items:center;gap:10px;background:linear-gradient(#d61f2a,#9e0f17);color:#fff;border:3px solid #f2c94c;border-radius:18px;padding:10px 14px;box-shadow:0 10px 24px rgba(158,15,23,.35);font-weight:800}
+.cb.on{display:flex}.cb svg{width:26px;height:26px;flex:none}.cb .n{background:#f2c94c;color:#5a0a0e;border-radius:999px;font-size:.75rem;padding:2px 8px}.cb .tot{margin-left:auto;font-size:1.05rem}
+/* detalle */
+.dimg{margin:14px;border-radius:24px;overflow:hidden;border:3px solid #f2c94c;box-shadow:0 8px 20px rgba(158,15,23,.2);background:#f1efec}.dimg img{width:100%;display:block;aspect-ratio:1/1;object-fit:cover}
+.dbox{margin:0 14px;background:#fff;border-radius:22px;padding:16px;box-shadow:0 4px 14px rgba(158,15,23,.12)}
+.dbox h1{font-size:1.3rem;color:#5a0a0e}.dbox .pr{font-size:1.5rem;margin:6px 0 10px}
+.specs{list-style:none;display:grid;gap:6px;margin:8px 0 14px}.specs li{display:flex;gap:8px;font-size:.88rem;line-height:1.3;padding:8px 10px;background:#fff8e7;border-radius:12px}
+.specs li span{color:#9e5a20;font-weight:800;min-width:96px}
+.dact{display:flex;gap:10px;align-items:center}
+/* carrito */
+.ci{display:grid;grid-template-columns:64px 1fr auto;gap:10px;align-items:center;background:#fff;border-radius:18px;padding:10px;margin:0 14px 10px;box-shadow:0 3px 10px rgba(158,15,23,.12)}
+.ci img{width:64px;height:64px;border-radius:12px;object-fit:cover}.ci b{font-size:.9rem;color:#5a0a0e;display:block}.ci small{color:#8a4b4e;font-size:.75rem;display:block}
+.ci .st{font-weight:900;color:#b3121b;text-align:right;font-size:.95rem}.ci .rm{display:block;margin-top:6px;border:0;background:none;color:#8a6a5a;font-size:.72rem;font-weight:700;text-decoration:underline}
+.sum{margin:6px 14px 14px;background:#fff;border-radius:20px;padding:14px 16px;border:3px solid #f2c94c}
+.sum div{display:flex;justify-content:space-between;font-size:.9rem;padding:4px 0;color:#7a1a1e}.sum .t{font-size:1.25rem;font-weight:900;color:#9e0f17;border-top:2px dashed #f0dcb0;margin-top:6px;padding-top:10px}
+.empty{margin:30px 20px;text-align:center;color:#8a4b4e;font-weight:600}
+.pad{padding:0 14px}
+/* comprar */
+.opt{display:flex;gap:14px;align-items:center;background:#fff;border-radius:22px;padding:18px 16px;margin:0 14px 14px;border:3px solid #f2c94c;box-shadow:0 6px 16px rgba(158,15,23,.15);width:calc(100% - 28px);text-align:left}
+.opt .ic{width:56px;height:56px;flex:none;border-radius:18px;display:grid;place-items:center;background:linear-gradient(#d61f2a,#9e0f17);color:#fff}.opt .ic svg{width:30px;height:30px}
+.opt.l .ic{background:linear-gradient(#f7d46a,#d4a017);color:#5a0a0e}
+.opt b{display:block;font-size:1.15rem;color:#5a0a0e}.opt small{color:#8a4b4e;font-size:.8rem}
+/* form */
+.frm{margin:0 14px;background:#fff;border-radius:22px;padding:16px;box-shadow:0 4px 14px rgba(158,15,23,.12)}
+.frm label{display:block;font-size:.8rem;font-weight:800;color:#9e5a20;margin:10px 0 5px}.frm label:first-child{margin-top:0}
+.frm input,.frm select{width:100%;font:inherit;font-size:1rem;padding:12px 14px;border-radius:14px;border:2px solid #f0dcb0;background:#fffdf7;color:#3a0a0d;outline:none}
+.frm input:focus,.frm select:focus{border-color:#d4a017}
+.frm .err{color:#c41e2a;font-weight:700;font-size:.82rem;min-height:1.2em;margin-top:10px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.two .btn{font-size:1rem;padding:13px 8px}
+.mini{font-size:.72rem;color:#8a6a5a;text-align:center;margin-top:10px;line-height:1.3}
+/* cita */
+.cita{margin:30px 18px;background:#fff;border-radius:26px;border:3px solid #d4a017;padding:30px 20px;text-align:center;box-shadow:0 10px 26px rgba(158,15,23,.2)}
+.cita .ic{width:88px;height:88px;margin:0 auto 14px;border-radius:50%;background:linear-gradient(#d61f2a,#9e0f17);display:grid;place-items:center;color:#fff;border:4px solid #f2c94c}.cita .ic svg{width:44px;height:44px}
+.cita h1{font-size:1.45rem;color:#9e0f17;line-height:1.25}.cita p{margin-top:10px;color:#7a1a1e;font-weight:600;font-size:.92rem}
+/* seguimiento */
+.trk{margin:14px;background:#fff;border-radius:26px;padding:16px 10px 18px;border:3px solid #f2c94c;box-shadow:0 10px 26px rgba(158,15,23,.18);text-align:center}
+.trk .hd{font-size:1.3rem;font-weight:900;color:#9e0f17}.trk .hs{font-size:.82rem;color:#8a4b4e;font-weight:600;margin-top:2px}
+.ring{position:relative;width:min(84vw,320px);margin:10px auto 0}
+.ring svg.r{width:100%;height:auto;display:block;overflow:visible}
+.ctr{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:58%;text-align:center}
+.ctr .s{font-size:.66rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#9e5a20}
+.ctr .m{font-size:1.05rem;font-weight:900;color:#5a0a0e;line-height:1.2;margin-top:4px}
+.ctr .m.big{font-size:1.9rem;color:#9e0f17;letter-spacing:.04em}
+.ctr .pc{font-size:.8rem;font-weight:800;color:#b3121b;margin-top:6px}
+.spin{transform-origin:150px 150px;animation:sp 1.2s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+.pop{animation:pp .6s cubic-bezier(.2,1.6,.4,1)}@keyframes pp{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
+.steps{list-style:none;margin:16px 6px 0;display:grid;gap:6px;text-align:left}
+.steps li{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:14px;background:#fff8e7;font-size:.85rem;font-weight:700;color:#b9a08f;transition:all .3s}
+.steps li i{width:24px;height:24px;flex:none;border-radius:50%;border:2px solid #e6d3b5;display:grid;place-items:center;font-style:normal}
+.steps li i svg{width:14px;height:14px;opacity:0}
+.steps li.act{color:#9e0f17;background:#fff1c9}.steps li.act i{border-color:#d4a017;border-top-color:transparent;animation:sp2 1s linear infinite}
+@keyframes sp2{to{transform:rotate(360deg)}}
+.steps li.ok{color:#5a0a0e}.steps li.ok i{background:#1f8a3b;border-color:#1f8a3b;color:#fff}.steps li.ok i svg{opacity:1}
+.steps li .fl{margin-left:auto;width:26px;height:18px;border-radius:3px;overflow:hidden;box-shadow:0 0 0 1px rgba(0,0,0,.1)}
+.fin{display:none;margin-top:14px}.fin.on{display:block}
+.tabs{position:fixed;left:0;right:0;bottom:0;background:#fff;display:flex;border-top:1px solid #f0dcb0;padding:6px 0 calc(6px + env(safe-area-inset-bottom));box-shadow:0 -4px 16px rgba(0,0,0,.08);z-index:50}
+.tabs a{flex:1;text-align:center;font-size:.72rem;font-weight:700;color:#8a6a5a}.tabs a i{font-style:normal;display:block}.tabs a i svg{width:24px;height:24px;margin:0 auto;display:block}.tabs a.on{color:#b3121b}
+#toast{position:fixed;left:50%;bottom:calc(140px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#3a0a0d;color:#fff;padding:11px 18px;border-radius:14px;font-weight:700;font-size:.88rem;z-index:500;display:none;box-shadow:0 6px 18px rgba(0,0,0,.25);white-space:nowrap}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="flag-cn" viewBox="0 0 30 20"><rect width="30" height="20" fill="#de2910"/><g fill="#ffde00"><polygon points="5,2 5.9,4.6 8.6,4.6 6.4,6.2 7.2,8.8 5,7.2 2.8,8.8 3.6,6.2 1.4,4.6 4.1,4.6"/><circle cx="10" cy="2" r=".9"/><circle cx="12" cy="4" r=".9"/><circle cx="12" cy="7" r=".9"/><circle cx="10" cy="9" r=".9"/></g></symbol>
+<symbol id="flag-pe" viewBox="0 0 30 20"><rect width="30" height="20" fill="#fff"/><rect width="10" height="20" fill="#d91023"/><rect x="20" width="10" height="20" fill="#d91023"/></symbol>
+<symbol id="ic-check" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</defs></svg>
+
+<header class="top"><div class="bar">
+<button class="bk" id="back" type="button" aria-label="Volver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+<div class="tt"><b id="ttl">Pedidos de China</b><small id="sub">Encarga y recoge en Perú</small></div>
+<span class="beta">Versión beta</span></div></header>
+
+<!-- CATALOGO -->
+<section class="scr on" id="s-catalogo">
+<div class="note"><b>Catálogo de muestra (beta).</b> Los precios son referenciales de ejemplo. Es una simulación: no se realiza ningún cobro ni se envían datos.</div>
+<h2>El catálogo</h2>
+<div class="list" id="list"></div>
+</section>
+
+<!-- DETALLE -->
+<section class="scr" id="s-detalle"><div class="dimg"><img id="dImg" alt=""></div>
+<div class="dbox"><h1 id="dName"></h1><div class="pr" id="dPr"></div><ul class="specs" id="dSpecs"></ul>
+<div class="dact"><div class="qty"><span class="lb">Pedir</span><button type="button" id="dMinus" aria-label="Menos">−</button><span id="dQ">1</span><button type="button" id="dPlus" aria-label="Más">+</button></div>
+<button class="add" type="button" id="dAdd">Añadir al carrito</button></div></div></section>
+
+<!-- CARRITO -->
+<section class="scr" id="s-carrito"><h2>Tu carrito</h2><div id="cItems"></div>
+<div class="sum" id="cSum"></div><div class="pad"><button class="btn" type="button" id="buy">Comprar</button></div></section>
+
+<!-- COMPRAR -->
+<section class="scr" id="s-comprar"><h2>¿Cómo quieres comprar?</h2>
+<button class="opt" type="button" id="oVirtual"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg></span><span><b>Virtual</b><small>Ingresa tus datos y sigue tu pedido desde el celular</small></span></button>
+<button class="opt l" type="button" id="oCita"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6v10H3z"/><path d="M9 20v-6h6v6"/></svg></span><span><b>Cita en local</b><small>Coordina tu pedido directamente en el Chifa</small></span></button>
+<div class="sum" id="bSum"></div></section>
+
+<!-- VIRTUAL -->
+<section class="scr" id="s-virtual"><h2>Tus datos</h2>
+<form class="frm" id="vForm" autocomplete="off" novalidate>
+<label for="fProv">Provincia</label><select id="fProv"><option value="">Selecciona tu provincia</option><option>Abancay</option><option>Andahuaylas</option><option>Antabamba</option><option>Aymaraes</option><option>Cotabambas</option><option>Chincheros</option><option>Grau</option><option>Cusco</option><option>Lima</option><option>Otra</option></select>
+<label for="fDni">DNI</label><input id="fDni" inputmode="numeric" maxlength="8" placeholder="8 dígitos">
+<label for="fCel">N° de celular</label><input id="fCel" inputmode="tel" maxlength="9" placeholder="9 dígitos">
+<label for="fDir">Dirección</label><input id="fDir" placeholder="Calle, número, referencia">
+<div class="err" id="fErr"></div>
+<div class="two"><button class="btn w" type="button" id="skip">Omitir</button><button class="btn" type="submit">Validar</button></div>
+<p class="mini">Simulación beta: tus datos no se guardan ni se envían.</p></form></section>
+
+<!-- SEGUIMIENTO -->
+<section class="scr" id="s-seguimiento"><div class="trk">
+<div class="hd" id="tHd">Listo, en verificación</div><div class="hs" id="tHs">Estamos revisando tu pedido</div>
+<div class="ring"><svg class="r" viewBox="0 0 300 300" aria-hidden="true">
+<circle cx="150" cy="150" r="115" fill="none" stroke="#f3e6cc" stroke-width="14"/>
+<circle id="arc1" cx="150" cy="150" r="115" fill="none" stroke="#d61f2a" stroke-width="14" stroke-linecap="round" transform="rotate(-90 150 150)"/>
+<circle id="arc2" cx="150" cy="150" r="115" fill="none" stroke="#1f5fa8" stroke-width="14" stroke-linecap="round" transform="rotate(90 150 150)"/>
+<circle class="spin" id="vSpin" cx="150" cy="150" r="115" fill="none" stroke="#d4a017" stroke-width="14" stroke-linecap="round" stroke-dasharray="90 633"/>
+<g id="mkPe"><circle cx="150" cy="35" r="22" fill="#fff" stroke="#f2c94c" stroke-width="3"/><use href="#flag-pe" x="135" y="25" width="30" height="20"/></g>
+<g id="mkCn"><circle cx="150" cy="265" r="22" fill="#fff" stroke="#f2c94c" stroke-width="3"/><use href="#flag-cn" x="135" y="255" width="30" height="20"/></g>
+<g id="plane" opacity="0"><g transform="translate(-16 -14)"><path d="M2 14 L30 3 L22 27 L15 18 Z" fill="#fff" stroke="#9e0f17" stroke-width="2" stroke-linejoin="round"/><path d="M15 18 L30 3 M15 18 L14 25 L18 20" fill="none" stroke="#9e0f17" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></g></g>
+<g id="ship" opacity="0"><g transform="translate(-20 -18)"><path d="M14 4 h6 v8 h-6z" fill="#d61f2a"/><path d="M8 12 h24 v8 H8z" fill="#f2c94c" stroke="#5a0a0e" stroke-width="1.5"/><rect x="11" y="14" width="4" height="4" fill="#fff"/><rect x="18" y="14" width="4" height="4" fill="#fff"/><rect x="25" y="14" width="4" height="4" fill="#fff"/><path d="M2 20 h36 l-6 10 H8z" fill="#1f3a6e" stroke="#0f1f3d" stroke-width="1.5" stroke-linejoin="round"/><path d="M0 33 q5 -3 10 0 t10 0 t10 0 t10 0" fill="none" stroke="#4aa3df" stroke-width="2" stroke-linecap="round"/></g></g>
+</svg>
+<div class="ctr" id="ctr"><div class="s" id="cS">Paso 1 de 3</div><div class="m" id="cM">En verificación</div><div class="pc" id="cP"></div></div></div>
+<ul class="steps">
+<li id="st1"><i><svg><use href="#ic-check"/></svg></i>Pedido verificado</li>
+<li id="st2"><i><svg><use href="#ic-check"/></svg></i>Pedido enviado a China<svg class="fl"><use href="#flag-cn"/></svg></li>
+<li id="st3"><i><svg><use href="#ic-check"/></svg></i>En barco rumbo a Perú<svg class="fl"><use href="#flag-pe"/></svg></li>
+<li id="st4"><i><svg><use href="#ic-check"/></svg></i>En local, listo para recoger</li></ul>
+<div class="fin" id="fin"><button class="btn g" type="button" id="again">Ver simulación otra vez</button><div style="height:10px"></div><button class="btn w" type="button" id="toCat">Volver al catálogo</button></div>
+</div></section>
+
+<!-- CITA -->
+<section class="scr" id="s-cita"><div class="cita"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6v10H3z"/><path d="M9 20v-6h6v6"/></svg></div>
+<h1>Acérquese al local, gracias</h1><p>Chifa Shanghai · Abancay<br>Te ayudamos a completar tu pedido de China en persona.</p></div>
+<div class="pad"><button class="btn w" type="button" id="toCat2">Volver al catálogo</button></div></section>
+
+<div class="cb" id="cbar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.6 12.4a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.5L22 7H6"/></svg><span>Ver carrito</span><span class="n" id="cbN">0</span><span class="tot" id="cbT"></span></div>
+<div id="toast"></div>
+<nav class="tabs">
+ <a href="../#inicio"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></i>Inicio</a><a href="../carta/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H4zM20 4h-6a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h6z"/></svg></i>Carta</a><a href="../tutorial/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z"/></svg></i>Tutorial</a>
+</nav>
+<script>
+(function(){
+var V='?v=1';
+var P=[
+ {id:'parlante',n:'Parlante Bluetooth mediano',d:'Sonido potente, batería recargable',p:189,img:'img/parlante.jpg'+V,
+  sp:[['Potencia','30 W'],['Conexión','Bluetooth 5.3, AUX, USB'],['Batería','Hasta 12 horas'],['Extra','Resistente a salpicaduras, luz LED'],['Tamaño','Mediano, con correa']]},
+ {id:'lavadora',n:'Lavadora automática 16 kg',d:'Carga superior, tapa de vidrio',p:1299,img:'img/lavadora.jpg'+V,
+  sp:[['Capacidad','16 kilos'],['Tipo','Automática, carga superior'],['Programas','8 programas de lavado'],['Extra','Tapa de vidrio templado, centrifugado'],['Voltaje','220 V']]},
+ {id:'celular',n:'Celular smartphone 256 GB',d:'Pantalla grande, triple cámara',p:899,img:'img/celular.jpg'+V,
+  sp:[['Pantalla','6.7 pulgadas'],['Memoria','8 GB RAM / 256 GB'],['Cámara','Triple cámara 50 MP'],['Batería','5000 mAh, carga rápida'],['Red','4G / 5G, doble SIM']]}
+];
+var byId={};P.forEach(function(x){byId[x.id]=x});
+var KEY='chifaChinaCart';
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}}
+var cart=load();function save(){try{localStorage.setItem(KEY,JSON.stringify(cart))}catch(e){}bar()}
+function soles(n){var s=n.toFixed(2).split('.');return 'S/ '+s[0].replace(/\B(?=(\d{3})+(?!\d))/g,',')+'.'+s[1]}
+function $(i){return document.getElementById(i)}
+function count(){var c=0;for(var k in cart)c+=cart[k];return c}
+function total(){var t=0;for(var k in cart)if(byId[k])t+=byId[k].p*cart[k];return t}
+var toastH;function toast(m){var t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(toastH);toastH=setTimeout(function(){t.style.display='none'},1800)}
+function add(id,q){cart[id]=(cart[id]||0)+q;save();toast('Añadido al carrito: '+q+' × '+byId[id].n.split(' ')[0])}
+// catalogo
+var qs={};
+$('list').innerHTML=P.map(function(x){qs[x.id]=1;return '<div class="card"><div class="ph"><img src="'+x.img+'" alt="'+x.n+'" loading="lazy"><span class="ref">Ejemplo</span></div><div class="bd"><b>'+x.n+'</b><span class="ds">'+x.d+'</span><span class="pr">'+soles(x.p)+'<small>Precio referencial (beta)</small></span><div class="row"><button class="det" type="button" data-det="'+x.id+'">Detalles</button><div class="qty"><span class="lb">Pedir</span><button type="button" data-m="'+x.id+'" aria-label="Menos">−</button><span id="q-'+x.id+'">1</span><button type="button" data-p="'+x.id+'" aria-label="Más">+</button></div></div><button class="add" type="button" data-add="'+x.id+'">Añadir al carrito</button></div></div>'}).join('');
+$('list').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var d=b.dataset;
+ if(d.det)go('detalle',d.det);
+ else if(d.m){qs[d.m]=Math.max(1,qs[d.m]-1);$('q-'+d.m).textContent=qs[d.m]}
+ else if(d.p){qs[d.p]=Math.min(20,qs[d.p]+1);$('q-'+d.p).textContent=qs[d.p]}
+ else if(d.add){add(d.add,qs[d.add]);qs[d.add]=1;$('q-'+d.add).textContent=1}});
+// detalle
+var cur=null,dq=1;
+function detail(id){var x=byId[id];if(!x)return false;cur=id;dq=1;$('dQ').textContent=1;$('dImg').src=x.img;$('dImg').alt=x.n;$('dName').textContent=x.n;$('dPr').innerHTML=soles(x.p)+'<small>Precio referencial de ejemplo (beta)</small>';
+ $('dSpecs').innerHTML=x.sp.map(function(s){return '<li><span>'+s[0]+'</span>'+s[1]+'</li>'}).join('');return true}
+$('dMinus').onclick=function(){dq=Math.max(1,dq-1);$('dQ').textContent=dq};$('dPlus').onclick=function(){dq=Math.min(20,dq+1);$('dQ').textContent=dq};
+$('dAdd').onclick=function(){add(cur,dq);dq=1;$('dQ').textContent=1};
+// carrito
+function sumHtml(){var h='';for(var k in cart)if(byId[k])h+='<div><span>'+cart[k]+' × '+byId[k].n+'</span><span>'+soles(byId[k].p*cart[k])+'</span></div>';return h+'<div class="t"><span>Total</span><span>'+soles(total())+'</span></div>'}
+function renderCart(){var keys=Object.keys(cart).filter(function(k){return byId[k]&&cart[k]>0});
+ if(!keys.length){$('cItems').innerHTML='<p class="empty">Tu carrito está vacío.<br>Agrega productos desde el catálogo.</p>';$('cSum').style.display='none';$('buy').disabled=true;return}
+ $('cSum').style.display='';$('buy').disabled=false;
+ $('cItems').innerHTML=keys.map(function(k){var x=byId[k];return '<div class="ci"><img src="'+x.img+'" alt=""><div><b>'+x.n+'</b><small>'+soles(x.p)+' c/u</small><div class="qty" style="margin-top:6px"><button type="button" data-cm="'+k+'">−</button><span>'+cart[k]+'</span><button type="button" data-cp="'+k+'">+</button></div></div><div class="st">'+soles(x.p*cart[k])+'<button class="rm" type="button" data-rm="'+k+'">Quitar</button></div></div>'}).join('');
+ $('cSum').innerHTML=sumHtml()}
+$('cItems').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var d=b.dataset;
+ if(d.cm){cart[d.cm]--;if(cart[d.cm]<=0)delete cart[d.cm]}else if(d.cp){cart[d.cp]=Math.min(20,cart[d.cp]+1)}else if(d.rm){delete cart[d.rm]}else return;save();renderCart()});
+$('buy').onclick=function(){if(count())go('comprar')};
+$('oVirtual').onclick=function(){go('virtual')};$('oCita').onclick=function(){go('cita')};
+// virtual
+$('vForm').onsubmit=function(e){e.preventDefault();var pr=$('fProv').value,dn=$('fDni').value.trim(),ce=$('fCel').value.trim(),di=$('fDir').value.trim(),er='';
+ if(!pr)er='Selecciona tu provincia';else if(!/^\d{8}$/.test(dn))er='El DNI debe tener 8 dígitos';else if(!/^9\d{8}$/.test(ce))er='El celular debe tener 9 dígitos y empezar con 9';else if(di.length<4)er='Escribe tu dirección';
+ $('fErr').textContent=er;if(!er)confirmOrder()};
+$('skip').onclick=function(){$('fErr').textContent='';confirmOrder()};
+function confirmOrder(){$('vForm').reset();cart={};save();go('seguimiento')}
+['fDni','fCel'].forEach(function(i){$(i).addEventListener('input',function(){this.value=this.value.replace(/\D/g,'')})});
+// seguimiento
+var C=2*Math.PI*115,HALF=C/2,raf=null,timers=[];
+function setArc(el,f){el.setAttribute('stroke-dasharray',(HALF*f)+' '+C)}
+function pos(deg){var a=deg*Math.PI/180;return[150+115*Math.sin(a),150-115*Math.cos(a)]}
+function stepState(n){for(var i=1;i<=4;i++){var li=$('st'+i);li.className=i<n?'ok':(i===n?'act':'')}}
+function center(s,m,big){$('cS').textContent=s;var e=$('cM');e.textContent=m;e.className='m'+(big?' big pop':'');}
+function anim(dur,fn,done){var t0=null;function f(t){if(!t0)t0=t;var k=Math.min(1,(t-t0)/dur);var e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;fn(e,k);if(k<1)raf=requestAnimationFrame(f);else done&&done()}raf=requestAnimationFrame(f)}
+function resetTrack(){cancelAnimationFrame(raf);timers.forEach(clearTimeout);timers=[];setArc($('arc1'),0);setArc($('arc2'),0);$('plane').setAttribute('opacity',0);$('ship').setAttribute('opacity',0);$('vSpin').style.display='';$('fin').className='fin';$('cP').textContent='';$('ctr').style.color=''}
+function runTrack(){resetTrack();
+ $('tHd').textContent='Listo, en verificación';$('tHs').textContent='Estamos revisando tu pedido';center('Paso 1 de 3','En verificación');stepState(1);
+ timers.push(setTimeout(function(){ // avion a China
+  $('vSpin').style.display='none';$('tHd').textContent='Pedido verificado';$('tHs').textContent='Tu pedido vuela a China';center('Paso 2 de 3','Enviando a China');stepState(2);
+  var pl=$('plane');pl.setAttribute('opacity',1);
+  anim(4000,function(e){var d=e*180,p=pos(d);setArc($('arc1'),e);pl.setAttribute('transform','translate('+p[0].toFixed(1)+' '+p[1].toFixed(1)+') rotate('+(d+38).toFixed(1)+') scale(1.5)');$('cP').textContent=Math.round(e*50)+'%'},function(){
+   pl.setAttribute('opacity',0);$('tHd').textContent='Recibido en China';$('tHs').textContent='Tu producto viaja en barco a Perú';center('Paso 3 de 3','Rumbo a Perú');stepState(3);
+   var sh=$('ship');sh.setAttribute('opacity',1);
+   anim(4000,function(e){var d=180+e*180,p=pos(d);setArc($('arc2'),e);var bob=Math.sin(e*Math.PI*8)*2;sh.setAttribute('transform','translate('+p[0].toFixed(1)+' '+(p[1]+bob).toFixed(1)+') scale(-1.45 1.45)');$('cP').textContent=(50+Math.round(e*50))+'%'},function(){
+    sh.setAttribute('opacity',0);$('cP').textContent='';$('tHd').textContent='¡Tu pedido llegó!';$('tHs').textContent='Ya puedes recogerlo en el Chifa Shanghai';center('Completado','EN LOCAL',true);stepState(5);$('fin').className='fin on'})})},3000))}
+$('again').onclick=runTrack;$('toCat').onclick=$('toCat2').onclick=function(){go('catalogo')};
+// navegacion
+var T={catalogo:['Pedidos de China','Encarga y recoge en Perú'],detalle:['Detalles','Pedidos de China'],carrito:['Carrito','Pedidos de China'],comprar:['Comprar','Elige una opción'],virtual:['Compra virtual','Ingresa tus datos'],seguimiento:['Seguimiento','Simulación de envío'],cita:['Cita en local','Pedidos de China']};
+function bar(){var n=count();$('cbN').textContent=n;$('cbT').textContent=soles(total());var s=(location.hash.slice(1).split('/')[0])||'catalogo';$('cbar').className='cb'+(n&&(s==='catalogo'||s==='detalle')?' on':'')}
+$('cbar').onclick=function(){go('carrito')};
+function show(){$('toast').style.display='none';var h=location.hash.slice(1).split('/'),s=h[0]||'catalogo';if(!T[s])s='catalogo';
+ if(s==='detalle'&&!detail(h[1]))s='catalogo';if(s==='carrito')renderCart();if(s==='comprar'){if(!count()){s='carrito';renderCart()}else $('bSum').innerHTML=sumHtml()}
+ if(s!=='seguimiento')resetTrack();
+ document.querySelectorAll('.scr').forEach(function(x){x.classList.toggle('on',x.id==='s-'+s)});$('ttl').textContent=T[s][0];$('sub').textContent=T[s][1];window.scrollTo(0,0);bar();if(s==='seguimiento')runTrack()}
+function go(s,id){var h='#'+s+(id?'/'+id:'');if(location.hash!==h)history.pushState(null,'',h);show()}
+window.addEventListener('popstate',show);
+$('back').onclick=function(){var s=location.hash.slice(1).split('/')[0];if(!s||s==='catalogo'){location.href='../#inicio';return}if(s==='seguimiento'||s==='cita'){go('catalogo');return}history.length>1?history.back():go('catalogo')};
+if(location.hash.slice(1).split('/')[0]==='seguimiento')history.replaceState(null,'','#catalogo');
+show();
+})();
+</script>
+</body></html>
