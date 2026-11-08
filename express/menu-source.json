@@ -1,0 +1,20 @@
+{
+  "source": "Carta digital Chifa Shanghai, copia local del 7 noviembre 2026",
+  "items": [
+    {
+      "code": "001",
+      "name": "Chaufa con pollo",
+      "price": 13
+    },
+    {
+      "code": "009",
+      "name": "Tallarín saltado con pollo",
+      "price": 15
+    },
+    {
+      "code": "066",
+      "name": "Pollo chijaukay",
+      "price": 18
+    }
+  ]
+}
