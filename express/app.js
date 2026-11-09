@@ -88,5 +88,5 @@ icons.phone='<path d="m7 3 3 5-3 3q2 4 6 6l3-3 5 3-2 4C9 23 1 15 3 5Z"/>';
 icons.send='<path d="m3 3 19 9-19 9 4-9Z"/><path d="M7 12h15"/>';
 icons.star='<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9Z"/>';
 icons.check='<path d="m5 12 4 4L20 5"/>';
-const restored=readLocal(SESSION_KEY,null);session=sessionValid(restored)?restored:null;loadOwnOrders();page=session?'home':'login';render();
+const restored=readLocal(SESSION_KEY,null);if(sessionValid(restored)&&restored.kind==='phone')pendingPhone=restored.phone||'';session=null;loadOwnOrders();page='login';render();
 window.addEventListener('storage',e=>{if(e.key===SESSION_KEY||e.key===null){const fresh=readLocal(SESSION_KEY,null);if(!sessionValid(fresh)||fresh.id!==session?.id){session=null;order=null;orders=[];cart={};address='';$('#addressText').textContent='Elige tu dirección';go('login')}}else if(session&&e.key===ordersKey()){const selectedId=order?.id;loadOwnOrders();order=orders.find(o=>o.id===selectedId)||orders[0]||null;if(['tracking','chat','call'].includes(page))render()}});
