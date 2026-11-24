@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#050508">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Título del juego</title>
+  <link rel="icon" href="assets/logo-eva.jpg">
+  <link rel="apple-touch-icon" href="assets/logo-eva.jpg">
+  <link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+  <div id="app">
+
+    <section id="screen-black" class="screen is-on" aria-hidden="true"></section>
+
+    <section id="screen-warning" class="screen" aria-label="Aviso de contenido">
+      <div class="screen-inner warning-inner">
+        <div class="badge-18">Clasificación +18</div>
+        <p class="warning-text">Este juego contiene violencia, temas de homicidio y escenas que pueden resultar perturbadoras. Solo para mayores de 18 años. ¿Estás seguro de que quieres iniciar?</p>
+      </div>
+      <div class="bottom-actions">
+        <button type="button" id="btn-yes" class="btn btn-primary">Sí, continuar</button>
+        <button type="button" id="btn-no" class="btn btn-ghost">No, cerrar</button>
+      </div>
+    </section>
+
+    <section id="screen-powered" class="screen" aria-label="Potenciado por">
+      <div class="screen-inner powered-inner">
+        <p class="kicker">Potenciado por</p>
+        <div class="brand-card">
+          <img src="assets/logo-eva.jpg?v=1" alt="Eva_D2studio" class="brand-logo" width="900" height="900">
+          <img src="assets/verificado.png?v=1" alt="Verificado" class="brand-check">
+        </div>
+        <p class="brand-name">Eva_D2studio</p>
+        <p class="brand-verified">Verificado</p>
+      </div>
+    </section>
+
+    <section id="screen-legal" class="screen" aria-label="Aviso legal">
+      <div class="screen-inner legal-inner">
+        <p class="legal-mark">©</p>
+        <p class="legal-text">© 2026 Eva_D2studio. Todos los derechos reservados. Este juego está protegido por derechos de autor. Queda prohibida su copia, distribución, modificación o difusión sin autorización. El incumplimiento podrá dar lugar a acciones legales.</p>
+        <p class="tap-hint">Toca para continuar</p>
+      </div>
+    </section>
+
+    <section id="screen-closed" class="screen" aria-label="Juego cerrado">
+      <div class="screen-inner closed-inner">
+        <p class="closed-text">Juego cerrado</p>
+      </div>
+    </section>
+
+    <section id="screen-title" class="screen" aria-label="Pantalla de inicio">
+      <div class="title-bg" aria-hidden="true">
+        <img id="portada-img" src="assets/portada.jpg?v=1" alt="">
+        <div class="title-shade"></div>
+      </div>
+      <div class="title-content">
+        <p class="title-kicker">Una novela visual</p>
+        <h1 id="game-title">Título del juego</h1>
+        <div class="title-actions">
+          <button type="button" id="btn-jugar" class="btn btn-primary">Jugar</button>
+          <button type="button" id="btn-continuar" class="btn btn-ghost" disabled>Continuar</button>
+        </div>
+      </div>
+      <span class="version" id="version-label">v0.1</span>
+    </section>
+
+    <section id="screen-game" class="screen" aria-label="Juego">
+      <div id="bg-layer" class="bg-layer bg-rain" aria-hidden="true">
+        <div id="bg-fallback" class="bg-fallback"></div>
+        <img id="bg-img" alt="">
+        <video id="bg-video" playsinline muted loop preload="none"></video>
+        <div class="game-shade"></div>
+      </div>
+      <button type="button" id="btn-menu" class="menu-btn" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+      <div id="choices" class="choices" hidden></div>
+      <div id="end-card" class="end-card" hidden>
+        <p class="end-kicker">Demostración</p>
+        <h2>Fin</h2>
+        <p class="end-note">Esta es una prueba del motor. La historia y las imágenes se reemplazarán por las tuyas.</p>
+        <button type="button" id="btn-end-home" class="btn btn-primary">Volver al inicio</button>
+      </div>
+      <div id="dialogue" class="dialogue">
+        <div id="speaker" class="speaker" hidden></div>
+        <p id="line" class="line"></p>
+        <span id="click-hint" class="click-hint" hidden></span>
+      </div>
+    </section>
+
+    <div id="modal-menu" class="modal" hidden>
+      <div class="modal-panel">
+        <p class="modal-title">Menú</p>
+        <button type="button" id="btn-guardar" class="btn btn-ghost">Guardar</button>
+        <button type="button" id="btn-cargar" class="btn btn-ghost">Cargar</button>
+        <button type="button" id="btn-inicio" class="btn btn-ghost">Inicio</button>
+        <button type="button" id="btn-cerrar-menu" class="btn btn-text">Cerrar</button>
+      </div>
+    </div>
+
+    <div id="modal-saves" class="modal" hidden>
+      <div class="modal-panel saves-panel">
+        <p class="modal-title" id="saves-title">Partidas</p>
+        <div id="saves-list" class="saves-list"></div>
+        <button type="button" id="btn-cerrar-saves" class="btn btn-text">Cerrar</button>
+      </div>
+    </div>
+
+    <div id="modal-confirm" class="modal" hidden>
+      <div class="modal-panel">
+        <p class="modal-title" id="confirm-text">¿Confirmar?</p>
+        <button type="button" id="btn-confirm-ok" class="btn btn-primary">Sí</button>
+        <button type="button" id="btn-confirm-cancel" class="btn btn-ghost">Cancelar</button>
+      </div>
+    </div>
+
+  </div>
+  <script src="story.js?v=1"></script>
+  <script src="engine.js?v=1"></script>
+</body>
+</html>
