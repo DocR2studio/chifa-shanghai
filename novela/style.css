@@ -179,8 +179,8 @@ body { min-height: 100dvh; }
   color: var(--paper);
 }
 
-/* Powered by */
-.kicker, .title-kicker, .end-kicker, .brand-verified {
+/* Powered by — small splash credit */
+.kicker, .title-kicker, .end-kicker {
   font-family: var(--font-ui);
   letter-spacing: 0.28em;
   text-transform: uppercase;
@@ -188,41 +188,48 @@ body { min-height: 100dvh; }
   color: var(--muted);
   margin: 0 0 1.4rem;
 }
+.powered-inner .kicker {
+  font-size: 0.58rem;
+  letter-spacing: 0.22em;
+  color: rgba(183, 176, 163, 0.72);
+  margin: 0 0 0.65rem;
+}
+.brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
 .brand-card {
   position: relative;
-  width: min(58vw, 240px);
-  aspect-ratio: 1;
+  width: 100px;
+  height: 100px;
+  flex: 0 0 100px;
   background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(196, 163, 106, 0.25);
-  margin-bottom: 1.15rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 .brand-logo {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 18px;
+  border-radius: 12px;
   display: block;
 }
 .brand-check {
-  position: absolute;
-  width: 52px;
-  height: 52px;
-  right: -10px;
-  bottom: -10px;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  display: block;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
 }
 .brand-name {
   font-family: var(--font-display);
-  font-size: 1.7rem;
-  font-weight: 600;
-  margin: 0.15rem 0 0.35rem;
-  letter-spacing: 0.04em;
-}
-.brand-verified {
-  margin: 0;
-  color: var(--gold-hi);
-  letter-spacing: 0.22em;
+  font-size: 0.92rem;
+  font-weight: 500;
+  margin: 0.55rem 0 0;
+  letter-spacing: 0.03em;
+  color: rgba(243, 239, 230, 0.82);
 }
 
 /* Legal */
