@@ -136,28 +136,99 @@ const INTRO = {
   image: "assets/locs/cuarto.jpg",
   lines: [
     { speaker: "", text: "La casa de Eva te recibe en silencio, {nombre}. La luz de la tarde entra por los ventanales." },
-    { speaker: "Eva", text: "El cuarto del fondo es tuyo. Descansa, recorre la casa cuando quieras. Si me necesitas, suele encontrarme en la cocina o en la sala." },
+    { who: "Eva", speaker: "Eva", expr: "feliz", text: "El cuarto del fondo es tuyo. Descansa, recorre la casa cuando quieras. Si me necesitas, suele encontrarme en la cocina o en la sala." },
     { speaker: "", text: "Dejas la maleta junto a la cama. Hoy puedes estudiar, entrenar o simplemente mirar alrededor." }
   ]
 };
 
+const EXPRESSIONS = ["neutral", "enojada", "feliz", "triste", "enamorada"];
+const EXPR_LABELS = {
+  neutral: "Neutral",
+  enojada: "Enojada",
+  feliz: "Feliz",
+  triste: "Triste",
+  enamorada: "Enamorada"
+};
+
+const CHARACTERS = {
+  eva: {
+    id: "eva",
+    name: "Eva",
+    expressions: {
+      neutral: "assets/eva/neutral.png",
+      enojada: "assets/eva/enojada.png",
+      feliz: "assets/eva/feliz.png",
+      triste: "assets/eva/triste.png",
+      enamorada: "assets/eva/enamorada.png"
+    }
+  }
+};
+
+function exprAsset(charId, expr) {
+  const ch = CHARACTERS[charId];
+  if (!ch) return "";
+  return ch.expressions[expr] || ch.expressions.neutral || "";
+}
+
+function mediaKey(charId, expr) {
+  return charId + "-" + (expr || "neutral");
+}
+
 const EVA = {
   id: "eva",
   name: "Eva",
-  image: "assets/eva.png",
+  image: "assets/eva/neutral.png",
   talk: {
-    cocina: [
-      { speaker: "Eva", text: "Hola, {nombre}. Si tienes hambre, sirve lo que quieras. La casa también es tuya mientras estés aquí." },
-      { speaker: "Eva", text: "Yo suelo quedarme por aquí a esta hora. No molestes si me ves pensando en voz baja, ¿sí?" }
-    ],
-    sala: [
-      { speaker: "Eva", text: "Me gusta esta hora, cuando el sol se apoya en el jardín." },
-      { speaker: "Eva", text: "¿Cómo te sientes en la casa, {nombre}? Todavía puedes tomarte el día con calma." }
-    ],
-    cuarto_eva: [
-      { speaker: "Eva", text: "Ah, {nombre}. Pasa, no te quedes en la puerta." },
-      { speaker: "Eva", text: "No hay mucho que ver, lo sé. A veces trabajo aquí cuando no quiero que me interrumpan… excepto tú, claro." }
-    ]
+    cocina: {
+      start: "saludo",
+      nodes: {
+        saludo: {
+          lines: [
+            { who: "Eva", expr: "neutral", text: "Hola, {nombre}. Te estaba esperando un poco." },
+            { who: "Eva", expr: "feliz", text: "Me alegra verte. Con alguien más, la casa se siente menos quieta." },
+            { who: "Eva", expr: "triste", text: "Aunque, cuando se hace de noche, a veces se nota demasiado el silencio." }
+          ],
+          choices: [
+            { text: "No es para tanto. Deja de dramatizar.", next: "enojo" },
+            { text: "Si quieres, puedo quedarme un rato.", next: "cariño" }
+          ]
+        },
+        enojo: {
+          lines: [
+            { who: "Eva", expr: "enojada", text: "¿Dramatizar? No te pedí que me consolaras, {nombre}. Solo estaba hablando." },
+            { who: "Eva", expr: "enojada", text: "Bueno. Ya estás aquí. Mejor no insistas en eso." }
+          ]
+        },
+        cariño: {
+          lines: [
+            { who: "Eva", expr: "enamorada", text: "Ah… no tenías que decirlo así. Se me suben un poco los colores." },
+            { who: "Eva", expr: "feliz", text: "Gracias. Si te parece, después nos sentamos un rato en la sala." }
+          ]
+        }
+      }
+    },
+    sala: {
+      start: "luz",
+      nodes: {
+        luz: {
+          lines: [
+            { who: "Eva", expr: "feliz", text: "Me gusta esta hora, cuando el sol se apoya en el jardín." },
+            { who: "Eva", expr: "neutral", text: "¿Cómo te sientes en la casa, {nombre}? Todavía puedes tomarte el día con calma." }
+          ]
+        }
+      }
+    },
+    cuarto_eva: {
+      start: "pasa",
+      nodes: {
+        pasa: {
+          lines: [
+            { who: "Eva", expr: "neutral", text: "Ah, {nombre}. Pasa, no te quedes en la puerta." },
+            { who: "Eva", expr: "feliz", text: "No hay mucho que ver, lo sé. A veces trabajo aquí cuando quiero pensar en silencio." }
+          ]
+        }
+      }
+    }
   }
 };
 
@@ -171,7 +242,14 @@ function fillName(text, name) {
 
 const EDITOR_ITEMS = [
   { id: "intro", name: "Introducción", kind: "intro", defaultImage: INTRO.image },
-  { id: "eva", name: "Eva (personaje)", kind: "sprite", defaultImage: EVA.image },
+  ...EXPRESSIONS.map((expr) => ({
+    id: mediaKey("eva", expr),
+    name: "Eva · " + EXPR_LABELS[expr],
+    kind: "expression",
+    character: "eva",
+    expr,
+    defaultImage: exprAsset("eva", expr)
+  })),
   ...HOUSE.locations.map((l) => ({
     id: l.id,
     name: l.name,

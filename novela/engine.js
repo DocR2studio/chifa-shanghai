@@ -14,6 +14,8 @@
     lineIndex: 0,
     talking: null,
     talkLines: [],
+    conv: null,
+    nodeId: null,
     typing: false,
     typedFull: "",
     typeTimer: null,
@@ -188,19 +190,93 @@
     }
     setImg(custom.imageURL || fallbackImage || "");
   }
-  async function showEvaSprite(on) {
-    const el = $("sprite-eva");
-    if (!on) {
-      el.hidden = true;
-      el.removeAttribute("src");
+  let spriteOn = "a";
+  let currentExpr = null;
+  let spriteVisible = false;
+  let exprTicket = 0;
+
+  function lineWho(line) {
+    return (line && (line.who || line.speaker)) || "";
+  }
+  function lineExpr(line) {
+    return (line && line.expr) || "neutral";
+  }
+  function charIdFromName(name) {
+    const n = String(name || "").trim().toLowerCase();
+    if (CHARACTERS[n]) return n;
+    const found = Object.keys(CHARACTERS).find((k) => CHARACTERS[k].name.toLowerCase() === n);
+    return found || (n === "eva" ? "eva" : "");
+  }
+  async function resolveExprUrl(charId, expr) {
+    expr = expr || "neutral";
+    const custom = await MediaStore.mediaFor(mediaKey(charId, expr));
+    if (custom.imageURL) return custom.imageURL;
+    if (expr === "neutral") {
+      const legacy = await MediaStore.mediaFor(charId);
+      if (legacy.imageURL) return legacy.imageURL;
+    }
+    return exprAsset(charId, expr) || EVA.image;
+  }
+  async function setExpression(charId, expr, opts) {
+    expr = expr || "neutral";
+    const ticket = ++exprTicket;
+    const layer = $("sprite-layer");
+    const url = await resolveExprUrl(charId, expr);
+    if (ticket !== exprTicket) return;
+    const a = $("sprite-eva-a");
+    const b = $("sprite-eva-b");
+    const instant = !spriteVisible || (opts && opts.instant) || currentExpr === expr;
+    const visible = spriteOn === "a" ? a : b;
+    if (spriteVisible && currentExpr === expr && visible.getAttribute("src") === url) {
+      layer.hidden = false;
       return;
     }
-    const custom = await MediaStore.mediaFor("eva");
-    el.src = custom.imageURL || EVA.image;
-    el.onerror = () => {
-      if (el.src.indexOf(EVA.image) === -1) el.src = EVA.image;
-    };
-    el.hidden = false;
+    const incoming = spriteOn === "a" ? b : a;
+    const outgoing = spriteOn === "a" ? a : b;
+    incoming.alt = (CHARACTERS[charId] && CHARACTERS[charId].name) || "Eva";
+    incoming.removeAttribute("src");
+    incoming.src = url;
+    incoming.hidden = false;
+    const ready = new Promise((res) => {
+      if (incoming.complete && incoming.naturalWidth && incoming.getAttribute("src") === url) res();
+      else {
+        incoming.onload = () => res();
+        incoming.onerror = () => res();
+      }
+    });
+    await ready;
+    if (ticket !== exprTicket) return;
+    incoming.classList.add("is-on");
+    outgoing.classList.remove("is-on");
+    if (instant) outgoing.hidden = true;
+    else setTimeout(() => { if (!outgoing.classList.contains("is-on")) outgoing.hidden = true; }, 300);
+    spriteOn = incoming === a ? "a" : "b";
+    currentExpr = expr;
+    spriteVisible = true;
+    layer.hidden = false;
+  }
+  async function showEvaSprite(on, expr) {
+    const layer = $("sprite-layer");
+    if (!on) {
+      exprTicket += 1;
+      layer.hidden = true;
+      $("sprite-eva-a").classList.remove("is-on");
+      $("sprite-eva-b").classList.remove("is-on");
+      spriteVisible = false;
+      currentExpr = null;
+      return;
+    }
+    await setExpression("eva", expr || currentExpr || "neutral", { instant: !spriteVisible });
+  }
+
+  function currentNode() {
+    if (!state.conv || !state.nodeId) return null;
+    return (state.conv.nodes && state.conv.nodes[state.nodeId]) || null;
+  }
+  function normalizeTalk(talk) {
+    if (!talk) return null;
+    if (Array.isArray(talk)) return { start: "main", nodes: { main: { lines: talk } } };
+    return talk;
   }
 
   /* ---------- Typewriter ---------- */
@@ -218,8 +294,11 @@
     stopTyping();
     $("line").textContent = state.typedFull;
     const last = state.lineIndex >= state.talkLines.length - 1;
-    $("click-hint").hidden = last && state.phase === "house";
+    const node = currentNode();
+    const hasChoices = last && node && node.choices && node.choices.length;
+    $("click-hint").hidden = last;
     if (state.phase === "intro") $("click-hint").hidden = last;
+    if (hasChoices) showNodeChoices(node.choices);
   }
   function typeLine(text) {
     stopTyping();
@@ -244,14 +323,17 @@
   function playLine() {
     const line = state.talkLines[state.lineIndex];
     if (!line) return;
+    const who = lineWho(line);
     const speaker = $("speaker");
-    if (line.speaker) {
+    if (who) {
       speaker.hidden = false;
-      speaker.textContent = line.speaker;
+      speaker.textContent = who;
     } else {
       speaker.hidden = true;
       speaker.textContent = "";
     }
+    const cid = charIdFromName(who);
+    if (cid) showEvaSprite(true, lineExpr(line));
     showDialogue(true);
     typeLine(fillName(line.text, state.name));
     if (state.phase === "intro") autosave();
@@ -276,14 +358,8 @@
     MediaStore.mediaFor("intro").then((m) => {
       if (m.videoURL || m.imageURL) applyLocationVisual("intro", INTRO.image);
     });
-    showEvaSprite(false).then(() => {
-      const first = INTRO.lines[0];
-      if (first && first.speaker === "Eva") showEvaSprite(true);
-    });
+    showEvaSprite(false);
     playLine();
-    if (INTRO.lines[state.lineIndex] && INTRO.lines[state.lineIndex].speaker === "Eva") {
-      showEvaSprite(true);
-    }
   }
   function enterHouse(locId, opts) {
     const loc = locById(locId) || locById(HOUSE.start);
@@ -311,7 +387,8 @@
     renderHUD();
     applyLocationVisual(loc.id, loc.image);
     const evaHere = HOUSE.evaIn.indexOf(loc.id) !== -1;
-    showEvaSprite(evaHere);
+    if (evaHere) showEvaSprite(true, "neutral");
+    else showEvaSprite(false);
     renderActions(loc, evaHere);
     autosave();
   }
@@ -364,22 +441,54 @@
     autosave();
     startTalk([{ speaker: "", text: act.text }]);
   }
-  function startTalk(lines) {
-    if (!lines || !lines.length) return;
+  function showNodeChoices(choices) {
+    const box = $("choices");
+    box.innerHTML = "";
+    choices.forEach((c) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "choice-btn";
+      btn.textContent = fillName(c.text, state.name);
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        startNode(c.next);
+      });
+      box.appendChild(btn);
+    });
+    box.hidden = false;
+    $("click-hint").hidden = true;
+  }
+  function startNode(id) {
+    const node = state.conv && state.conv.nodes && state.conv.nodes[id];
+    if (!node) return;
+    state.nodeId = id;
     state.talking = "talk";
-    state.talkLines = lines;
+    state.talkLines = node.lines || [];
     state.lineIndex = 0;
+    $("choices").hidden = true;
+    $("choices").innerHTML = "";
     $("action-bar").hidden = true;
-    if (lines.some((l) => l.speaker === "Eva")) showEvaSprite(true);
+    $("end-card").hidden = true;
     playLine();
+  }
+  function startTalk(talk, nodeId) {
+    const conv = normalizeTalk(talk);
+    if (!conv) return;
+    state.conv = conv;
+    startNode(nodeId || conv.start);
   }
   function endTalk() {
     state.talking = null;
     state.talkLines = [];
+    state.conv = null;
+    state.nodeId = null;
+    $("choices").hidden = true;
+    $("choices").innerHTML = "";
     showDialogue(false);
     const loc = locById(state.location);
     const evaHere = HOUSE.evaIn.indexOf(state.location) !== -1;
-    showEvaSprite(evaHere);
+    if (evaHere) showEvaSprite(true, "neutral");
+    else showEvaSprite(false);
     renderActions(loc, evaHere);
     autosave();
   }
@@ -389,6 +498,7 @@
     if (!$("modal-menu").hidden || !$("modal-saves").hidden || !$("modal-confirm").hidden || !$("modal-map").hidden) return;
     if (!$("end-card").hidden) return;
     if ($("dialogue").hidden) return;
+    if (!$("choices").hidden) return;
 
     if (state.typing) {
       showFullLine();
@@ -396,10 +506,12 @@
     }
     if (state.lineIndex < state.talkLines.length - 1) {
       state.lineIndex += 1;
-      if (state.phase === "intro" && state.talkLines[state.lineIndex].speaker === "Eva") {
-        showEvaSprite(true);
-      }
       playLine();
+      return;
+    }
+    const node = currentNode();
+    if (node && node.choices && node.choices.length) {
+      showNodeChoices(node.choices);
       return;
     }
     if (state.phase === "intro") {
@@ -487,9 +599,6 @@
     if (state.phase === "intro") {
       startIntroStory();
       state.lineIndex = Math.min(snap.lineIndex || 0, INTRO.lines.length - 1);
-      if (INTRO.lines[state.lineIndex] && INTRO.lines[state.lineIndex].speaker === "Eva") {
-        showEvaSprite(true);
-      }
       playLine();
     } else {
       enterHouse(state.location);
@@ -572,81 +681,130 @@
     showScreen("editor");
     await renderEditor();
   }
+  function fileButton(label, accept, onFile) {
+    const lab = document.createElement("label");
+    lab.className = "file-btn";
+    lab.textContent = label;
+    const inp = document.createElement("input");
+    inp.type = "file";
+    inp.accept = accept;
+    inp.addEventListener("change", async () => {
+      const f = inp.files && inp.files[0];
+      if (!f) return;
+      await onFile(f);
+    });
+    lab.appendChild(inp);
+    return lab;
+  }
+  async function renderExprSlot(item) {
+    const media = await MediaStore.mediaFor(item.id);
+    const slot = document.createElement("div");
+    slot.className = "expr-slot";
+    const lab = document.createElement("p");
+    lab.textContent = EXPR_LABELS[item.expr] || item.name;
+    slot.appendChild(lab);
+    const img = document.createElement("img");
+    img.className = "prev prev-sprite";
+    img.alt = lab.textContent;
+    img.src = media.imageURL || item.defaultImage;
+    slot.appendChild(img);
+    const actions = document.createElement("div");
+    actions.className = "editor-actions";
+    actions.appendChild(fileButton("Agregar imagen", "image/*", async (f) => {
+      await MediaStore.put(item.id, "image", f, f.name);
+      await renderEditor();
+    }));
+    if (media.image) {
+      const rm = document.createElement("button");
+      rm.type = "button";
+      rm.className = "btn btn-ghost btn-tiny";
+      rm.textContent = "Quitar";
+      rm.addEventListener("click", async () => {
+        await MediaStore.remove(item.id, "image");
+        await renderEditor();
+      });
+      actions.appendChild(rm);
+    }
+    slot.appendChild(actions);
+    return slot;
+  }
+  async function renderMediaCard(item) {
+    const media = await MediaStore.mediaFor(item.id);
+    const card = document.createElement("article");
+    card.className = "editor-card";
+    const h = document.createElement("h3");
+    h.textContent = item.name;
+    card.appendChild(h);
+    const pre = document.createElement("div");
+    pre.className = "editor-previews";
+    const img = document.createElement("img");
+    img.className = "prev" + (item.kind === "sprite" || item.kind === "expression" ? " prev-sprite" : "");
+    img.alt = "";
+    img.src = media.imageURL || item.defaultImage;
+    pre.appendChild(img);
+    if (media.videoURL) {
+      const vid = document.createElement("video");
+      vid.className = "prev";
+      vid.src = media.videoURL;
+      vid.muted = true;
+      vid.playsInline = true;
+      pre.appendChild(vid);
+    }
+    card.appendChild(pre);
+    const actions = document.createElement("div");
+    actions.className = "editor-actions";
+    actions.appendChild(fileButton("Agregar imagen", "image/*", async (f) => {
+      await MediaStore.put(item.id, "image", f, f.name);
+      await renderEditor();
+    }));
+    actions.appendChild(fileButton("Agregar video", "video/*", async (f) => {
+      await MediaStore.put(item.id, "video", f, f.name);
+      await renderEditor();
+    }));
+    if (media.image || media.video) {
+      const rm = document.createElement("button");
+      rm.type = "button";
+      rm.className = "btn btn-ghost btn-tiny";
+      rm.textContent = "Quitar";
+      rm.addEventListener("click", async () => {
+        if (media.image) await MediaStore.remove(item.id, "image");
+        if (media.video) await MediaStore.remove(item.id, "video");
+        await renderEditor();
+      });
+      actions.appendChild(rm);
+    }
+    card.appendChild(actions);
+    return card;
+  }
   async function renderEditor() {
     const list = $("editor-list");
     list.innerHTML = "";
-    for (const item of EDITOR_ITEMS) {
-      const media = await MediaStore.mediaFor(item.id);
+    const intro = EDITOR_ITEMS.find((i) => i.kind === "intro");
+    if (intro) list.appendChild(await renderMediaCard(intro));
+
+    const exprItems = EDITOR_ITEMS.filter((i) => i.kind === "expression");
+    const byChar = {};
+    exprItems.forEach((i) => {
+      (byChar[i.character] = byChar[i.character] || []).push(i);
+    });
+    for (const charId of Object.keys(byChar)) {
+      const ch = CHARACTERS[charId] || { name: charId };
       const card = document.createElement("article");
-      card.className = "editor-card";
+      card.className = "editor-card editor-character";
       const h = document.createElement("h3");
-      h.textContent = item.name;
+      h.textContent = ch.name + " — expresiones";
       card.appendChild(h);
-
-      const pre = document.createElement("div");
-      pre.className = "editor-previews";
-      const img = document.createElement("img");
-      img.className = "prev" + (item.kind === "sprite" ? " prev-sprite" : "");
-      img.alt = "";
-      img.src = media.imageURL || item.defaultImage;
-      pre.appendChild(img);
-      if (media.videoURL) {
-        const vid = document.createElement("video");
-        vid.className = "prev";
-        vid.src = media.videoURL;
-        vid.muted = true;
-        vid.playsInline = true;
-        pre.appendChild(vid);
+      const grid = document.createElement("div");
+      grid.className = "expr-grid";
+      for (const item of byChar[charId]) {
+        grid.appendChild(await renderExprSlot(item));
       }
-      card.appendChild(pre);
-
-      const actions = document.createElement("div");
-      actions.className = "editor-actions";
-
-      const imgLab = document.createElement("label");
-      imgLab.className = "file-btn";
-      imgLab.textContent = "Agregar imagen";
-      const imgIn = document.createElement("input");
-      imgIn.type = "file";
-      imgIn.accept = "image/*";
-      imgIn.addEventListener("change", async () => {
-        const f = imgIn.files && imgIn.files[0];
-        if (!f) return;
-        await MediaStore.put(item.id, "image", f, f.name);
-        await renderEditor();
-      });
-      imgLab.appendChild(imgIn);
-      actions.appendChild(imgLab);
-
-      const vidLab = document.createElement("label");
-      vidLab.className = "file-btn";
-      vidLab.textContent = "Agregar video";
-      const vidIn = document.createElement("input");
-      vidIn.type = "file";
-      vidIn.accept = "video/*";
-      vidIn.addEventListener("change", async () => {
-        const f = vidIn.files && vidIn.files[0];
-        if (!f) return;
-        await MediaStore.put(item.id, "video", f, f.name);
-        await renderEditor();
-      });
-      vidLab.appendChild(vidIn);
-      actions.appendChild(vidLab);
-
-      if (media.image || media.video) {
-        const rm = document.createElement("button");
-        rm.type = "button";
-        rm.className = "btn btn-ghost btn-tiny";
-        rm.textContent = "Quitar";
-        rm.addEventListener("click", async () => {
-          if (media.image) await MediaStore.remove(item.id, "image");
-          if (media.video) await MediaStore.remove(item.id, "video");
-          await renderEditor();
-        });
-        actions.appendChild(rm);
-      }
-      card.appendChild(actions);
+      card.appendChild(grid);
       list.appendChild(card);
+    }
+
+    for (const item of EDITOR_ITEMS.filter((i) => i.kind === "location")) {
+      list.appendChild(await renderMediaCard(item));
     }
   }
   async function exportMedia() {
@@ -672,12 +830,18 @@
     if (demo === "closed") { showScreen("closed"); return; }
     if (demo === "name") { openName(); return; }
     if (demo === "editor") { openEditor(); return; }
-    if (demo === "house" || demo === "map" || demo === "talk") {
+    if (demo === "house" || demo === "map" || demo === "talk" || demo === "enojada" || demo === "enamorada" || demo === "triste") {
       state.name = "Doc";
       state.bars = { ...HOUSE.startBars };
-      if (demo === "talk") {
+      if (demo === "talk" || demo === "enojada" || demo === "enamorada" || demo === "triste") {
         enterHouse("cocina");
-        startTalk(EVA.talk.cocina || []);
+        if (demo === "enojada") startTalk(EVA.talk.cocina, "enojo");
+        else if (demo === "enamorada") startTalk(EVA.talk.cocina, "cariño");
+        else startTalk(EVA.talk.cocina);
+        if (demo === "triste") {
+          state.lineIndex = 2;
+          playLine();
+        }
       } else {
         enterHouse("cuarto");
         if (demo === "map") openMap();
@@ -839,7 +1003,7 @@
     });
   }
 
-  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot };
+  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, getExpr: () => currentExpr };
 
   document.addEventListener("DOMContentLoaded", () => {
     bind();

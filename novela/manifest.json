@@ -2,7 +2,7 @@
   "name": "Título del juego",
   "short_name": "Novela",
   "description": "Novela visual en horizontal",
-  "start_url": "./?v=4",
+  "start_url": "./?v=5",
   "scope": "./",
   "display": "fullscreen",
   "orientation": "landscape",
