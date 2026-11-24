@@ -1,0 +1,19 @@
+{
+  "name": "Título del juego",
+  "short_name": "Novela",
+  "description": "Novela visual en horizontal",
+  "start_url": "./?v=4",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#050508",
+  "theme_color": "#050508",
+  "icons": [
+    {
+      "src": "assets/logo-eva.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}

@@ -414,26 +414,32 @@
     const box = $("map-floors");
     box.innerHTML = "";
     const floors = [
-      { key: 2, label: "Piso 2" },
-      { key: 0, label: "Conexión" },
-      { key: 1, label: "Piso 1" }
+      { label: "Piso 2", ids: ["cuarto", "pasillo", "cuarto_eva", "estudio", "bano"] },
+      { label: "Piso 1", ids: ["escaleras", "sala", "cocina", "lavanderia", "jardin", "cochera"] }
     ];
     floors.forEach((f) => {
-      const locs = HOUSE.locations.filter((l) => l.floor === f.key);
+      const locs = f.ids.map((id) => locById(id)).filter(Boolean);
       if (!locs.length) return;
       const wrap = document.createElement("div");
       const lab = document.createElement("p");
       lab.className = "map-floor-label";
       lab.textContent = f.label;
       const grid = document.createElement("div");
-      grid.className = "map-grid";
+      grid.className = "map-grid map-cols-" + locs.length;
       locs.forEach((loc) => {
         const t = document.createElement("button");
         t.type = "button";
         t.className = "map-tile" + (loc.id === state.location ? " is-here" : "");
         t.style.backgroundImage = "url('" + loc.image + "')";
         const span = document.createElement("span");
-        span.textContent = loc.name;
+        const shortNames = {
+          pasillo: "Pasillo",
+          cuarto_eva: "Cuarto Eva",
+          jardin: "Jardín",
+          lavanderia: "Lavandería",
+          cuarto: "Tu cuarto"
+        };
+        span.textContent = shortNames[loc.id] || loc.name;
         t.appendChild(span);
         MediaStore.mediaFor(loc.id).then((m) => {
           if (m.imageURL) t.style.backgroundImage = "url('" + m.imageURL + "')";
@@ -666,11 +672,16 @@
     if (demo === "closed") { showScreen("closed"); return; }
     if (demo === "name") { openName(); return; }
     if (demo === "editor") { openEditor(); return; }
-    if (demo === "house" || demo === "map") {
+    if (demo === "house" || demo === "map" || demo === "talk") {
       state.name = "Doc";
       state.bars = { ...HOUSE.startBars };
-      enterHouse("cuarto");
-      if (demo === "map") openMap();
+      if (demo === "talk") {
+        enterHouse("cocina");
+        startTalk(EVA.talk.cocina || []);
+      } else {
+        enterHouse("cuarto");
+        if (demo === "map") openMap();
+      }
       return;
     }
     if (demo === "game") {
@@ -703,7 +714,48 @@
     setTimeout(() => { try { window.close(); } catch (e) { /* ignore */ } }, 400);
   }
 
+  /* ---------- Landscape lock + portrait overlay ---------- */
+  function isPortraitPhone() {
+    try {
+      return window.matchMedia("(orientation: portrait) and (max-width: 900px)").matches;
+    } catch (e) {
+      return window.innerHeight > window.innerWidth && window.innerWidth <= 900;
+    }
+  }
+  function updateRotateOverlay() {
+    const el = $("rotate-overlay");
+    if (!el) return;
+    el.classList.toggle("is-visible", isPortraitPhone());
+  }
+  function tryLockLandscape() {
+    try {
+      const root = document.documentElement;
+      const req = root.requestFullscreen || root.webkitRequestFullscreen || root.mozRequestFullScreen;
+      if (req && !document.fullscreenElement && !document.webkitFullscreenElement) {
+        Promise.resolve(req.call(root)).catch(() => {});
+      }
+    } catch (e) { /* ignore */ }
+    try {
+      const ori = screen.orientation || screen.mozOrientation || screen.msOrientation;
+      if (ori && typeof ori.lock === "function") {
+        ori.lock("landscape").catch(() => {});
+      } else if (typeof screen.lockOrientation === "function") {
+        screen.lockOrientation("landscape");
+      }
+    } catch (e) { /* ignore */ }
+  }
+
   function bind() {
+    updateRotateOverlay();
+    window.addEventListener("orientationchange", updateRotateOverlay);
+    window.addEventListener("resize", updateRotateOverlay);
+    let lockTried = false;
+    document.addEventListener("pointerup", () => {
+      if (lockTried) return;
+      lockTried = true;
+      tryLockLandscape();
+    }, true);
+
     $("btn-yes").addEventListener("click", (e) => { e.stopPropagation(); goPowered(); });
     $("btn-no").addEventListener("click", (e) => { e.stopPropagation(); closeGame(); });
     $("btn-jugar").addEventListener("click", openName);

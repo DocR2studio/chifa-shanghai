@@ -7,12 +7,26 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="mobile-web-app-capable" content="yes">
+  <meta name="screen-orientation" content="landscape">
   <title>Título del juego</title>
+  <link rel="manifest" href="manifest.json?v=4">
   <link rel="icon" href="assets/logo-eva.jpg">
   <link rel="apple-touch-icon" href="assets/logo-eva.jpg">
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
+
+  <div id="rotate-overlay" role="dialog" aria-label="Gira tu celular">
+    <div class="rotate-card">
+      <svg class="rotate-icon" viewBox="0 0 88 88" aria-hidden="true">
+        <rect x="30" y="10" width="28" height="48" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <circle cx="44" cy="52" r="1.6" fill="currentColor"/>
+        <path d="M16 64c4 10 16 18 28 18 16 0 28-8 32-18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M72 54l8 10-12 0" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <p>Gira tu celular</p>
+    </div>
+  </div>
   <div id="app">
 
     <section id="screen-black" class="screen is-on" aria-hidden="true"></section>
@@ -33,9 +47,9 @@
         <p class="kicker">Potenciado por</p>
         <div class="brand-row">
           <div class="brand-card">
-            <img src="assets/logo-eva.jpg?v=3" alt="Eva_D2studio" class="brand-logo" width="900" height="900">
+            <img src="assets/logo-eva.jpg?v=4" alt="Eva_D2studio" class="brand-logo" width="900" height="900">
           </div>
-          <img src="assets/verificado.png?v=3" alt="Verificado" class="brand-check">
+          <img src="assets/verificado.png?v=4" alt="Verificado" class="brand-check">
         </div>
         <p class="brand-name">Eva_D2studio</p>
       </div>
@@ -57,7 +71,7 @@
 
     <section id="screen-title" class="screen" aria-label="Pantalla de inicio">
       <div class="title-bg" aria-hidden="true">
-        <img id="portada-img" src="assets/portada.jpg?v=3" alt="">
+        <img id="portada-img" src="assets/portada.jpg?v=4" alt="">
         <div class="title-shade"></div>
       </div>
       <div class="title-content">
@@ -195,9 +209,9 @@
     <div id="toast" class="toast" hidden></div>
 
   </div>
-  <script src="vendor/jszip.min.js?v=3"></script>
-  <script src="story.js?v=3"></script>
-  <script src="media.js?v=3"></script>
-  <script src="engine.js?v=3"></script>
+  <script src="vendor/jszip.min.js?v=4"></script>
+  <script src="story.js?v=4"></script>
+  <script src="media.js?v=4"></script>
+  <script src="engine.js?v=4"></script>
 </body>
 </html>
