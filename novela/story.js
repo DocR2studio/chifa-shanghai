@@ -1,74 +1,181 @@
-/* story.js — Historia de demostración (romance y misterio).
-   Para reemplazar el contenido, edita este archivo.
-   Cada escena admite:
-     name        Nombre que aparece en las partidas guardadas
-     bg          Clase CSS de fondo (bg-rain, bg-cafe, bg-tension, bg-dawn, bg-alone)
-     background  Ruta a una imagen (opcional). Si no carga, se usa el degradado de bg.
-     video       Ruta a un video de fondo (opcional). El motor usa <video> automáticamente.
-     lines       { speaker, text } — speaker vacío = narrador (sin placa de nombre)
-     next        Id de la siguiente escena
-     choices     [{ text, next }] — si está presente, se muestra al terminar las líneas
-     end         true = final de una ruta
-*/
+/* story.js — Datos de la demo: casa, intro, diálogos.
+   Usa {nombre} donde deba aparecer el nombre del jugador.
+   Las imágenes por defecto están en assets/locs/ y assets/eva.png.
+   El editor puede sustituirlas en el dispositivo (IndexedDB). */
 const STORY = {
   title: "Título del juego",
-  version: "0.1",
-  start: "cafe_lluvia",
-  scenes: {
-    cafe_lluvia: {
-      name: "Café bajo la lluvia",
-      bg: "bg-rain",
-      background: "assets/portada.jpg",
-      lines: [
-        { speaker: "", text: "La ciudad duerme bajo una lluvia fina. Las luces del café parpadean al otro lado de la calle." },
-        { speaker: "Tú", text: "Dije que no volvería a este lugar." },
-        { speaker: "Elena", text: "Y, aun así, aquí estás." }
-      ],
-      next: "la_noticia"
-    },
-    la_noticia: {
-      name: "Una noticia",
-      bg: "bg-cafe",
-      lines: [
-        { speaker: "Elena", text: "Lo viste en el periódico, ¿verdad? El hombre del callejón." },
-        { speaker: "Tú", text: "La policía dice que fue un robo. Tú no lo crees." },
-        { speaker: "Elena", text: "Alguien lo conocía. Alguien de aquí." },
-        { speaker: "", text: "Elena desliza un sobre sobre la mesa. Está sin abrir." }
-      ],
-      next: "la_decision"
-    },
-    la_decision: {
-      name: "La decisión",
-      bg: "bg-tension",
-      lines: [
-        { speaker: "Elena", text: "Si lo abrimos, ya no hay vuelta atrás." },
-        { speaker: "Elena", text: "Si te vas ahora, puedo entenderlo. No te lo voy a reclamar." },
-        { speaker: "", text: "El sobre permanece entre los dos. La lluvia golpea el ventanal." }
-      ],
-      choices: [
-        { text: "Quédate. Lo abrimos juntos.", next: "final_juntos" },
-        { text: "Necesito pensarlo. Me iré solo.", next: "final_solo" }
+  version: "0.1"
+};
+
+const EDITOR_PIN = "1997";
+const SAVE_KEY = "eva_novela_v3";
+
+const HOUSE = {
+  start: "cuarto",
+  moveCost: 5,
+  barsMax: 100,
+  startBars: { energia: 70, fuerza: 30, aprendizaje: 30 },
+  evaIn: ["cocina", "sala", "cuarto_eva"],
+  locations: [
+    {
+      id: "cuarto",
+      name: "Tu cuarto",
+      floor: 2,
+      image: "assets/locs/cuarto.jpg",
+      look: "Tu cuarto está en orden. La luz de la tarde entra en silencio.",
+      actions: [
+        { id: "dormir", label: "Dormir", energia: 40, text: "Cierras los ojos un rato. El cansancio se va poco a poco." }
       ]
     },
-    final_juntos: {
-      name: "Final: El sobre",
-      bg: "bg-dawn",
-      end: true,
-      lines: [
-        { speaker: "", text: "Dentro hay una fotografía mojada y una dirección escrita a mano." },
-        { speaker: "Elena", text: "Entonces empezamos esta noche." },
-        { speaker: "Tú", text: "Juntos. Hasta el final." }
+    {
+      id: "pasillo",
+      name: "Pasillo (piso 2)",
+      floor: 2,
+      image: "assets/locs/pasillo.jpg",
+      look: "El pasillo conecta las habitaciones. Al fondo, la luz del jardín.",
+      actions: [
+        { id: "observar", label: "Observar", text: "Las puertas están cerradas. Se oye apenas el viento en los árboles." }
       ]
     },
-    final_solo: {
-      name: "Final: La lluvia",
-      bg: "bg-alone",
-      end: true,
-      lines: [
-        { speaker: "", text: "Dejas el sobre sobre la mesa. La puerta del café se cierra a tu espalda." },
-        { speaker: "Tú", text: "Si hay una verdad, la encontraré a mi modo." },
-        { speaker: "", text: "Afuera, la lluvia no ha dejado de caer." }
+    {
+      id: "cuarto_eva",
+      name: "Cuarto de Eva",
+      floor: 2,
+      image: "assets/locs/cuarto-eva.jpg",
+      look: "El cuarto de Eva es sencillo y luminoso. Hay libros junto a la ventana.",
+      actions: [
+        { id: "mirar", label: "Mirar alrededor", text: "Todo está en su sitio. Un cuaderno cerrado descansa sobre el tocador." }
+      ]
+    },
+    {
+      id: "estudio",
+      name: "Estudio",
+      floor: 2,
+      image: "assets/locs/estudio.jpg",
+      look: "El estudio huele a papel y madera. Hay una mesa lista para trabajar.",
+      actions: [
+        { id: "estudiar", label: "Estudiar", aprendizaje: 12, energia: -15, text: "Te concentras en los apuntes. Algo queda más claro que antes." }
+      ]
+    },
+    {
+      id: "bano",
+      name: "Baño",
+      floor: 2,
+      image: "assets/locs/bano.jpg",
+      look: "El baño está vacío y en silencio. Las toallas están dobladas.",
+      actions: [
+        { id: "asearse", label: "Asearse", energia: 8, text: "El agua fría te despeja. Te sientes un poco más despierto." }
+      ]
+    },
+    {
+      id: "escaleras",
+      name: "Escaleras",
+      floor: 0,
+      image: "assets/locs/escaleras.jpg",
+      look: "Las escaleras unen los dos pisos. El sol dibuja rayas en la madera.",
+      actions: [
+        { id: "observar", label: "Observar", text: "Desde aquí se ve el jardín a través del ventanal." }
+      ]
+    },
+    {
+      id: "cocina",
+      name: "Cocina",
+      floor: 1,
+      image: "assets/locs/cocina.jpg",
+      look: "La cocina está cálida y ordenada. Hay fruta sobre la isla.",
+      actions: [
+        { id: "comer", label: "Comer", energia: 25, text: "Preparas algo sencillo. La energía vuelve poco a poco." }
+      ]
+    },
+    {
+      id: "lavanderia",
+      name: "Lavandería",
+      floor: 1,
+      image: "assets/locs/lavanderia.jpg",
+      look: "La lavandería está limpia. Las toallas esperan dobladas en la cesta.",
+      actions: [
+        { id: "ordenar", label: "Ordenar", text: "Doblas lo que había suelto. No es mucho, pero queda mejor." }
+      ]
+    },
+    {
+      id: "sala",
+      name: "Sala",
+      floor: 1,
+      image: "assets/locs/sala.jpg",
+      look: "La sala se llena de luz dorada. El jardín se ve enorme detrás del cristal.",
+      actions: [
+        { id: "descansar", label: "Descansar", energia: 10, text: "Te sientas un momento en el sofá. El silencio no estorba." }
+      ]
+    },
+    {
+      id: "jardin",
+      name: "Jardín y piscina",
+      floor: 1,
+      image: "assets/locs/jardin.jpg",
+      look: "El jardín está quieto. El agua de la piscina refleja los árboles.",
+      actions: [
+        { id: "entrenar", label: "Entrenar", fuerza: 12, energia: -15, text: "Haces una rutina breve al aire libre. El cuerpo responde." }
+      ]
+    },
+    {
+      id: "cochera",
+      name: "Cochera",
+      floor: 1,
+      image: "assets/locs/cochera.jpg",
+      look: "La cochera está ordenada. Hay espacio de sobra para moverse.",
+      actions: [
+        { id: "entrenar", label: "Entrenar", fuerza: 12, energia: -15, text: "Entrenas junto al banco de trabajo. Sales un poco más firme." }
       ]
     }
+  ]
+};
+
+const INTRO = {
+  id: "intro",
+  name: "Introducción",
+  image: "assets/locs/cuarto.jpg",
+  lines: [
+    { speaker: "", text: "La casa de Eva te recibe en silencio, {nombre}. La luz de la tarde entra por los ventanales." },
+    { speaker: "Eva", text: "El cuarto del fondo es tuyo. Descansa, recorre la casa cuando quieras. Si me necesitas, suele encontrarme en la cocina o en la sala." },
+    { speaker: "", text: "Dejas la maleta junto a la cama. Hoy puedes estudiar, entrenar o simplemente mirar alrededor." }
+  ]
+};
+
+const EVA = {
+  id: "eva",
+  name: "Eva",
+  image: "assets/eva.png",
+  talk: {
+    cocina: [
+      { speaker: "Eva", text: "Hola, {nombre}. Si tienes hambre, sirve lo que quieras. La casa también es tuya mientras estés aquí." },
+      { speaker: "Eva", text: "Yo suelo quedarme por aquí a esta hora. No molestes si me ves pensando en voz baja, ¿sí?" }
+    ],
+    sala: [
+      { speaker: "Eva", text: "Me gusta esta hora, cuando el sol se apoya en el jardín." },
+      { speaker: "Eva", text: "¿Cómo te sientes en la casa, {nombre}? Todavía puedes tomarte el día con calma." }
+    ],
+    cuarto_eva: [
+      { speaker: "Eva", text: "Ah, {nombre}. Pasa, no te quedes en la puerta." },
+      { speaker: "Eva", text: "No hay mucho que ver, lo sé. A veces trabajo aquí cuando no quiero que me interrumpan… excepto tú, claro." }
+    ]
   }
 };
+
+function locById(id) {
+  return HOUSE.locations.find((l) => l.id === id) || null;
+}
+
+function fillName(text, name) {
+  return String(text || "").replace(/\{nombre\}/g, name || "tú");
+}
+
+const EDITOR_ITEMS = [
+  { id: "intro", name: "Introducción", kind: "intro", defaultImage: INTRO.image },
+  { id: "eva", name: "Eva (personaje)", kind: "sprite", defaultImage: EVA.image },
+  ...HOUSE.locations.map((l) => ({
+    id: l.id,
+    name: l.name,
+    kind: "location",
+    defaultImage: l.image
+  }))
+];

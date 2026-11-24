@@ -10,7 +10,7 @@
   <title>Título del juego</title>
   <link rel="icon" href="assets/logo-eva.jpg">
   <link rel="apple-touch-icon" href="assets/logo-eva.jpg">
-  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
   <div id="app">
@@ -33,9 +33,9 @@
         <p class="kicker">Potenciado por</p>
         <div class="brand-row">
           <div class="brand-card">
-            <img src="assets/logo-eva.jpg?v=2" alt="Eva_D2studio" class="brand-logo" width="900" height="900">
+            <img src="assets/logo-eva.jpg?v=3" alt="Eva_D2studio" class="brand-logo" width="900" height="900">
           </div>
-          <img src="assets/verificado.png?v=2" alt="Verificado" class="brand-check">
+          <img src="assets/verificado.png?v=3" alt="Verificado" class="brand-check">
         </div>
         <p class="brand-name">Eva_D2studio</p>
       </div>
@@ -57,7 +57,7 @@
 
     <section id="screen-title" class="screen" aria-label="Pantalla de inicio">
       <div class="title-bg" aria-hidden="true">
-        <img id="portada-img" src="assets/portada.jpg?v=2" alt="">
+        <img id="portada-img" src="assets/portada.jpg?v=3" alt="">
         <div class="title-shade"></div>
       </div>
       <div class="title-content">
@@ -69,6 +69,47 @@
         </div>
       </div>
       <span class="version" id="version-label">v0.1</span>
+      <button type="button" id="btn-editor-lock" class="editor-lock" aria-label="Editor">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path fill="currentColor" d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm-3 8V6a3 3 0 1 1 6 0v3H9z"/>
+        </svg>
+      </button>
+    </section>
+
+    <section id="screen-name" class="screen" aria-label="Introduce tu nombre">
+      <div class="screen-inner name-inner">
+        <p class="kicker">Nueva partida</p>
+        <h2 class="name-title">Introduce tu nombre</h2>
+        <input id="input-nombre" type="text" maxlength="20" autocomplete="name" placeholder="Tu nombre" enterkeyhint="done">
+        <button type="button" id="btn-nombre" class="btn btn-primary" disabled>Continuar</button>
+        <button type="button" id="btn-nombre-atras" class="btn btn-text">Volver</button>
+      </div>
+    </section>
+
+    <section id="screen-pin" class="screen" aria-label="Editor">
+      <div class="screen-inner name-inner">
+        <p class="kicker">Modo editor</p>
+        <h2 class="name-title">Introduce el PIN</h2>
+        <input id="input-pin" type="password" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="••••">
+        <p id="pin-error" class="pin-error" hidden>PIN incorrecto</p>
+        <button type="button" id="btn-pin" class="btn btn-primary">Entrar</button>
+        <button type="button" id="btn-pin-atras" class="btn btn-text">Volver</button>
+      </div>
+    </section>
+
+    <section id="screen-editor" class="screen" aria-label="Editor de medios">
+      <div class="editor-shell">
+        <header class="editor-head">
+          <p class="kicker" style="margin:0">Editor</p>
+          <h2>Imágenes y videos</h2>
+          <p class="editor-note">Los cambios se guardan en este teléfono. Usa Exportar para armar el APK después.</p>
+        </header>
+        <div id="editor-list" class="editor-list"></div>
+        <div class="editor-foot">
+          <button type="button" id="btn-exportar" class="btn btn-primary">Exportar</button>
+          <button type="button" id="btn-editor-cerrar" class="btn btn-ghost">Cerrar</button>
+        </div>
+      </div>
     </section>
 
     <section id="screen-game" class="screen" aria-label="Juego">
@@ -76,11 +117,32 @@
         <div id="bg-fallback" class="bg-fallback"></div>
         <img id="bg-img" alt="">
         <video id="bg-video" playsinline muted loop preload="none"></video>
-        <div class="game-shade"></div>
+        <div class="game-shade" id="game-shade"></div>
+      </div>
+      <img id="sprite-eva" class="sprite-eva" alt="Eva" hidden>
+      <div id="hud" class="hud" hidden>
+        <div class="bar" data-bar="energia">
+          <span class="bar-label">Energía</span>
+          <div class="bar-track"><div class="bar-fill bar-energia" id="fill-energia"></div></div>
+          <span class="bar-val" id="val-energia">70</span>
+        </div>
+        <div class="bar" data-bar="fuerza">
+          <span class="bar-label">Fuerza</span>
+          <div class="bar-track"><div class="bar-fill bar-fuerza" id="fill-fuerza"></div></div>
+          <span class="bar-val" id="val-fuerza">30</span>
+        </div>
+        <div class="bar" data-bar="aprendizaje">
+          <span class="bar-label">Aprendizaje</span>
+          <div class="bar-track"><div class="bar-fill bar-aprendizaje" id="fill-aprendizaje"></div></div>
+          <span class="bar-val" id="val-aprendizaje">30</span>
+        </div>
+        <p id="loc-name" class="loc-name"></p>
       </div>
       <button type="button" id="btn-menu" class="menu-btn" aria-label="Menú">
         <span></span><span></span><span></span>
       </button>
+      <button type="button" id="btn-saltar" class="btn-saltar" hidden>Saltar</button>
+      <div id="action-bar" class="action-bar" hidden></div>
       <div id="choices" class="choices" hidden></div>
       <div id="end-card" class="end-card" hidden>
         <p class="end-kicker">Demostración</p>
@@ -88,12 +150,21 @@
         <p class="end-note">Esta es una prueba del motor. La historia y las imágenes se reemplazarán por las tuyas.</p>
         <button type="button" id="btn-end-home" class="btn btn-primary">Volver al inicio</button>
       </div>
-      <div id="dialogue" class="dialogue">
+      <div id="dialogue" class="dialogue" hidden>
         <div id="speaker" class="speaker" hidden></div>
         <p id="line" class="line"></p>
         <span id="click-hint" class="click-hint" hidden></span>
       </div>
     </section>
+
+    <div id="modal-map" class="modal" hidden>
+      <div class="modal-panel map-panel">
+        <p class="modal-title">Mapa de la casa</p>
+        <p class="map-hint">Moverse cuesta un poco de energía.</p>
+        <div id="map-floors" class="map-floors"></div>
+        <button type="button" id="btn-cerrar-mapa" class="btn btn-text">Cerrar</button>
+      </div>
+    </div>
 
     <div id="modal-menu" class="modal" hidden>
       <div class="modal-panel">
@@ -121,8 +192,12 @@
       </div>
     </div>
 
+    <div id="toast" class="toast" hidden></div>
+
   </div>
-  <script src="story.js?v=2"></script>
-  <script src="engine.js?v=2"></script>
+  <script src="vendor/jszip.min.js?v=3"></script>
+  <script src="story.js?v=3"></script>
+  <script src="media.js?v=3"></script>
+  <script src="engine.js?v=3"></script>
 </body>
 </html>
