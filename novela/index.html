@@ -9,10 +9,10 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="screen-orientation" content="landscape">
   <title>Título del juego</title>
-  <link rel="manifest" href="manifest.json?v=24">
+  <link rel="manifest" href="manifest.json?v=25">
   <link rel="icon" href="assets/logo-eva.jpg">
   <link rel="apple-touch-icon" href="assets/logo-eva.jpg">
-  <link rel="stylesheet" href="style.css?v=24">
+  <link rel="stylesheet" href="style.css?v=25">
 </head>
 <body>
 
@@ -47,9 +47,9 @@
         <p class="kicker">Potenciado por</p>
         <div class="brand-row">
           <div class="brand-card">
-            <img src="assets/logo-eva.jpg?v=24" alt="Eva_D2studio" class="brand-logo" width="900" height="900">
+            <img src="assets/logo-eva.jpg?v=25" alt="Eva_D2studio" class="brand-logo" width="900" height="900">
           </div>
-          <img src="assets/verificado.png?v=24" alt="Verificado" class="brand-check">
+          <img src="assets/verificado.png?v=25" alt="Verificado" class="brand-check">
         </div>
         <p class="brand-name">Eva_D2studio</p>
       </div>
@@ -90,13 +90,13 @@
       <div class="title-stage-wrap">
         <div class="title-stage" id="title-stage">
           <h1 class="title-logo-wrap">
-            <img class="title-logo" src="assets/title/logo.png?v=24" alt="Unknown Love" width="475" height="263">
+            <img class="title-logo" src="assets/title/logo.png?v=25" alt="Unknown Love" width="475" height="263">
           </h1>
           <div class="title-eyes">
-            <img class="title-eyes-top" src="assets/title/ojos-enojada.png?v=24" alt="" width="430" height="215">
-            <img class="title-eyes-bot" src="assets/title/ojos-enamorada.png?v=24" alt="" width="430" height="215">
+            <img class="title-eyes-top" src="assets/title/ojos-enojada.png?v=25" alt="" width="430" height="215">
+            <img class="title-eyes-bot" src="assets/title/ojos-enamorada.png?v=25" alt="" width="430" height="215">
           </div>
-          <img class="title-eva" src="assets/title/eva.png?v=24" alt="" width="214" height="705">
+          <img class="title-eva" src="assets/title/eva.png?v=25" alt="" width="214" height="705">
           <div class="title-actions">
             <button type="button" id="btn-jugar" class="title-btn">Jugar</button>
             <button type="button" id="btn-title-cargar" class="title-btn" disabled>Cargar</button>
@@ -166,6 +166,9 @@
         </div>
       </div>
       <div id="travel-fade" class="travel-fade" aria-hidden="true"></div>
+      <div id="sprite-prota-layer" class="sprite-prota-layer" hidden>
+        <img id="sprite-prota" class="sprite-prota" alt="???">
+      </div>
       <div id="sprite-layer" class="sprite-layer" hidden>
         <img id="sprite-eva-a" class="sprite-eva" alt="Eva">
         <img id="sprite-eva-b" class="sprite-eva" alt="">
@@ -213,6 +216,11 @@
         </div>
       </div>
       <p id="hud-day" class="hud-day" hidden>Día 1 · Mañana</p>
+      <div id="hud-mission" class="hud-mission" hidden>
+        <span class="hm-mark" aria-hidden="true"></span>
+        <span class="hm-kicker" id="hud-mission-kicker">Misión</span>
+        <span class="hm-text" id="hud-mission-text"></span>
+      </div>
       <div id="hud-icons" class="hud-icons" hidden>
         <button type="button" id="btn-peek" class="hud-icon" aria-label="Ocultar interfaz"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.6-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.6 6.5-9.5 6.5S2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.4"/><path d="M4 20 L20 4"/></svg></button>
         <button type="button" id="btn-tasks" class="hud-icon" aria-label="Tareas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 3.4 H14.8 L18.2 6.8 V20.6 H6.6 Z"/><path d="M14.8 3.4 V6.8 H18.2"/><path d="M8.8 9.4 H16 M8.8 12.4 H16 M8.8 15.4 H13.4"/><path d="M11.6 17.6 L18.8 10.4 L20.1 11.7 L12.9 18.9 L10.8 19.6 Z"/><path d="M17.5 11.7 L18.8 13"/></svg></button>
@@ -239,6 +247,20 @@
         <div id="speaker" class="speaker" hidden></div>
         <p id="line" class="line"></p>
         <span id="click-hint" class="click-hint" hidden></span>
+      </div>
+      <div id="cine" class="cine" hidden>
+        <div class="cine-stage">
+          <div class="cine-shot" id="cine-shot-a"><div class="cine-blur"></div><img class="cine-img" alt=""></div>
+          <div class="cine-shot" id="cine-shot-b"><div class="cine-blur"></div><img class="cine-img" alt=""></div>
+        </div>
+        <div class="cine-bar cine-bar-top"></div>
+        <div class="cine-bar cine-bar-bot"></div>
+        <div class="cine-sub" id="cine-sub">
+          <p class="cine-who" id="cine-who"></p>
+          <p class="cine-text" id="cine-text"></p>
+        </div>
+        <div class="cine-black" id="cine-black"><p class="cine-black-text" id="cine-black-text"></p></div>
+        <button type="button" id="btn-saltar-intro" class="cine-skip">Saltar intro</button>
       </div>
     </section>
 
@@ -331,9 +353,9 @@
           </div>
           <div id="phone-home" class="phone-body phone-home">
             <div class="phone-apps">
-              <button type="button" class="phone-app" data-app="contacts"><img class="phone-app-icon" src="assets/phone/app-contactos.png?v=24" alt=""><span>Contactos</span></button>
-              <button type="button" class="phone-app" data-app="camera"><img class="phone-app-icon" src="assets/phone/app-camara.png?v=24" alt=""><span>Cámara</span></button>
-              <button type="button" class="phone-app" data-app="info"><img class="phone-app-icon" src="assets/phone/app-info.png?v=24" alt=""><span>Info</span></button>
+              <button type="button" class="phone-app" data-app="contacts"><img class="phone-app-icon" src="assets/phone/app-contactos.png?v=25" alt=""><span>Contactos</span></button>
+              <button type="button" class="phone-app" data-app="camera"><img class="phone-app-icon" src="assets/phone/app-camara.png?v=25" alt=""><span>Cámara</span></button>
+              <button type="button" class="phone-app" data-app="info"><img class="phone-app-icon" src="assets/phone/app-info.png?v=25" alt=""><span>Info</span></button>
             </div>
           </div>
           <div id="phone-app" class="phone-body phone-app-screen" hidden>
@@ -374,10 +396,10 @@
 
 
   </div>
-  <script src="vendor/jszip.min.js?v=24"></script>
-  <script src="story.js?v=24"></script>
-  <script src="eva-sils.js?v=24"></script>
-  <script src="media.js?v=24"></script>
-  <script src="engine.js?v=24"></script>
+  <script src="vendor/jszip.min.js?v=25"></script>
+  <script src="story.js?v=25"></script>
+  <script src="eva-sils.js?v=25"></script>
+  <script src="media.js?v=25"></script>
+  <script src="engine.js?v=25"></script>
 </body>
 </html>

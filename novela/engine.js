@@ -36,6 +36,9 @@
     ejected: false,
     pendingKick: false,
     meetSub: null,
+    missions: { active: [], done: [] },
+    eventsDone: [],
+    introCine: false,
     settings: { music: 70, sfx: 70, textSpeed: "normal" }
   };
   let editorLive = false;
@@ -65,6 +68,7 @@
   }
 
   function showScreen(id) {
+    if (id !== "game") stopIntroCine();
     document.querySelectorAll(".screen").forEach((s) => {
       const on = s.id === "screen-" + id;
       s.classList.toggle("is-on", on);
@@ -144,7 +148,10 @@
       tasksDone: (state.tasksDone || []).slice(),
       chats: cloneChats(state.chats),
       evaInfo: cloneEvaInfo(state.evaInfo),
-      ejected: !!state.ejected
+      ejected: !!state.ejected,
+      missions: { active: ensureMissions().active.slice(), done: ensureMissions().done.slice() },
+      eventsDone: (state.eventsDone || []).slice(),
+      introCine: !!state.introCine
     };
   }
   function autosave() {
@@ -326,6 +333,7 @@
     }
     if ($("hud-day")) $("hud-day").textContent = timeLabel();
     applyTimeShade();
+    renderMissionHud(false);
   }
   function countActivity() {
     if (state.phase !== "house") return;
@@ -560,6 +568,7 @@
     $("dialogue").hidden = !on;
     const game = $("screen-game");
     if (game) game.classList.toggle("has-dialogue", !!on);
+    if (!on) setDuoLayout(null);
   }
   function showFullLine() {
     stopTyping();
@@ -598,7 +607,7 @@
     const speaker = $("speaker");
     if (who) {
       speaker.hidden = false;
-      speaker.textContent = who;
+      speaker.textContent = displayWho(who);
     } else {
       speaker.hidden = true;
       speaker.textContent = "";
@@ -611,6 +620,7 @@
     if (cid && !exprSeqActive()) showEvaSprite(true, lineExpr(line));
     else if (cid && exprSeqActive()) showEvaSprite(true, currentExpr || lineExpr(line));
     showDialogue(true);
+    setDuoLayout(cid === "eva" ? "eva" : (isProtaWho(who) ? "prota" : "none"));
     typeLine(fillName(line.text, state.name));
     bindLinePencil(line);
     if (state.phase === "intro") autosave();
@@ -635,6 +645,8 @@
     state.evaMeet = false;
     state.ejected = false;
     state.pendingKick = false;
+    state.missions = { active: [], done: [] };
+    state.eventsDone = [];
     setPeek(false);
     hideModals();
     if ($("eva-eject")) $("eva-eject").hidden = true;
@@ -909,6 +921,12 @@
     startNode(nodeId || conv.start);
   }
   function endTalk() {
+    const hook = talkDoneHook;
+    talkDoneHook = null;
+    endTalkCore();
+    if (typeof hook === "function") hook();
+  }
+  function endTalkCore() {
     state.talking = null;
     state.talkLines = [];
     state.conv = null;
@@ -1619,6 +1637,516 @@
     $("modal-map").hidden = false;
   }
 
+  /* ---------- v25: protagonista, diálogos a dos, misiones, eventos e intro ---------- */
+  let talkDoneHook = null;
+  function protaInfo() {
+    return (typeof PROTA !== "undefined" && PROTA) || { id: "prota", name: "???", sprite: "assets/intro/prota.webp" };
+  }
+  function isProtaWho(who) {
+    const w = String(who || "").trim().toLowerCase();
+    if (!w) return false;
+    return w === "prota" || w === "???" || w === String(protaInfo().name || "").toLowerCase();
+  }
+  function displayWho(who) {
+    if (isProtaWho(who)) return protaInfo().name || "???";
+    return who || "";
+  }
+  function showProtaSprite(on) {
+    const layer = $("sprite-prota-layer");
+    const img = $("sprite-prota");
+    if (!layer || !img) return;
+    if (!on) {
+      layer.hidden = true;
+      return;
+    }
+    if (!img.getAttribute("src")) {
+      const info = protaInfo();
+      img.onerror = () => {
+        img.onerror = null;
+        if (info.spriteFallback) img.src = assetUrl(info.spriteFallback);
+      };
+      img.src = assetUrl(info.sprite);
+    }
+    layer.hidden = false;
+  }
+  function setDuoLayout(kind) {
+    const game = $("screen-game");
+    if (!game) return;
+    if (!kind) {
+      game.classList.remove("is-duo", "speak-eva", "speak-prota", "speak-none");
+      showProtaSprite(false);
+      return;
+    }
+    const evaOn = kind === "eva" || spriteVisible;
+    const duo = evaOn || kind === "prota";
+    showProtaSprite(duo);
+    game.classList.toggle("is-duo", duo);
+    game.classList.toggle("speak-eva", duo && kind === "eva");
+    game.classList.toggle("speak-prota", duo && kind === "prota");
+    game.classList.toggle("speak-none", duo && kind === "none");
+  }
+
+  function normalizeMissions(m) {
+    const out = { active: [], done: [] };
+    if (m && typeof m === "object") {
+      if (Array.isArray(m.active)) out.active = m.active.filter((x) => typeof x === "string");
+      if (Array.isArray(m.done)) out.done = m.done.filter((x) => typeof x === "string");
+    }
+    return out;
+  }
+  function ensureMissions() {
+    if (!state.missions || !Array.isArray(state.missions.active) || !Array.isArray(state.missions.done)) {
+      state.missions = normalizeMissions(state.missions);
+    }
+    return state.missions;
+  }
+  function missionById(id) {
+    return (typeof MISSIONS !== "undefined" ? MISSIONS : []).find((m) => m && m.id === id) || null;
+  }
+  let missionDoneTimer = null;
+  function renderMissionHud(flash) {
+    const box = $("hud-mission");
+    if (!box) return;
+    if (box.classList.contains("is-done")) return;
+    const ms = ensureMissions();
+    const m = ms.active.map(missionById).filter(Boolean)[0];
+    if (!m || state.phase !== "house") {
+      box.hidden = true;
+      return;
+    }
+    $("hud-mission-kicker").textContent = "Misión";
+    $("hud-mission-text").textContent = m.title;
+    box.hidden = false;
+    if (flash) {
+      box.classList.remove("is-new");
+      void box.offsetWidth;
+      box.classList.add("is-new");
+    }
+  }
+  function startMission(id, announce) {
+    const m = missionById(id);
+    if (!m) return;
+    const ms = ensureMissions();
+    if (ms.active.indexOf(id) === -1 && ms.done.indexOf(id) === -1) ms.active.push(id);
+    renderMissionHud(!!announce);
+    if (announce) toast("Nueva misión: " + m.title);
+    renderHotspots();
+    autosave();
+  }
+  function completeMission(id) {
+    const m = missionById(id);
+    const ms = ensureMissions();
+    ms.active = ms.active.filter((x) => x !== id);
+    if (ms.done.indexOf(id) === -1) ms.done.push(id);
+    const box = $("hud-mission");
+    if (box && m) {
+      clearTimeout(missionDoneTimer);
+      $("hud-mission-kicker").textContent = "Misión completada";
+      $("hud-mission-text").textContent = m.title;
+      box.hidden = false;
+      box.classList.remove("is-new");
+      box.classList.add("is-done");
+      void box.offsetWidth;
+      box.classList.add("is-new");
+      missionDoneTimer = setTimeout(() => {
+        box.classList.remove("is-done", "is-new");
+        renderMissionHud(false);
+      }, 3600);
+    }
+    renderHotspots();
+    autosave();
+  }
+
+  function storyEvents() {
+    return typeof STORY_EVENTS !== "undefined" && Array.isArray(STORY_EVENTS) ? STORY_EVENTS : [];
+  }
+  function eventPending(ev) {
+    if (!ev || !ev.id || !ev.location) return false;
+    if ((state.eventsDone || []).indexOf(ev.id) !== -1) return false;
+    if (ev.moment && ev.moment !== state.moment) return false;
+    if (ev.minDay && (state.day || 0) < ev.minDay) return false;
+    if (ev.mission) return ensureMissions().active.indexOf(ev.mission) !== -1;
+    return ev.enabled !== false;
+  }
+  /* Puertas (destinos) que acercan a un evento pendiente: camino más corto por DOORS. */
+  function eventDoorTargets(locId) {
+    const out = new Set();
+    if (state.phase !== "house" || typeof DOORS === "undefined") return out;
+    const targets = storyEvents().filter(eventPending).map((ev) => ev.location);
+    if (!targets.length) return out;
+    const rev = {};
+    Object.keys(DOORS).forEach((from) => {
+      (DOORS[from] || []).forEach((d) => {
+        if (!d || !d.to || d.closed) return;
+        (rev[d.to] = rev[d.to] || []).push(from);
+      });
+    });
+    const dist = {};
+    const queue = [];
+    targets.forEach((t) => { if (dist[t] == null) { dist[t] = 0; queue.push(t); } });
+    while (queue.length) {
+      const cur = queue.shift();
+      (rev[cur] || []).forEach((from) => {
+        if (dist[from] == null) {
+          dist[from] = dist[cur] + 1;
+          queue.push(from);
+        }
+      });
+    }
+    const here = dist[locId];
+    if (here == null || here === 0) return out;
+    (DOORS[locId] || []).forEach((d) => {
+      if (d && d.to && !d.closed && dist[d.to] === here - 1) out.add(d.to);
+    });
+    return out;
+  }
+  function appendEventMark(svg, pts, isBack) {
+    const xs = pts.map((p) => p[0] * 1280);
+    const ys = pts.map((p) => p[1] * 720);
+    const minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+    const minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+    const cx = (minX + maxX) / 2;
+    let cy = isBack ? minY - 46 : minY + Math.min((maxY - minY) * 0.3, 170);
+    cy = Math.max(170, Math.min(640, cy));
+    const NS = "http://www.w3.org/2000/svg";
+    const g = document.createElementNS(NS, "g");
+    g.setAttribute("class", "event-mark");
+    g.setAttribute("transform", "translate(" + cx.toFixed(1) + "," + cy.toFixed(1) + ")");
+    const bob = document.createElementNS(NS, "g");
+    bob.setAttribute("class", "event-mark-bob");
+    const bar = document.createElementNS(NS, "path");
+    bar.setAttribute("d", "M -9 -40 Q 0 -46 9 -40 L 6 6 Q 0 10 -6 6 Z");
+    const dot = document.createElementNS(NS, "circle");
+    dot.setAttribute("cx", "0");
+    dot.setAttribute("cy", "24");
+    dot.setAttribute("r", "8.5");
+    bob.appendChild(bar);
+    bob.appendChild(dot);
+    g.appendChild(bob);
+    svg.appendChild(g);
+  }
+  async function showPlainLocationBg(loc) {
+    if (!loc) return;
+    const custom = await MediaStore.mediaFor(loc.id);
+    if (custom.videoURL) return;
+    clearVideo();
+    setImg(custom.imageURL || loc.image || "");
+  }
+  function maybeTriggerEvent() {
+    if (state.phase !== "house" || state.talking || state.evaMeet || traveling) return false;
+    const ev = storyEvents().find((e) => eventPending(e) && e.location === state.location);
+    if (!ev || !Array.isArray(ev.lines) || !ev.lines.length) return false;
+    playStoryEvent(ev);
+    return true;
+  }
+  function playStoryEvent(ev) {
+    closeEvaMeet(true);
+    showPlainLocationBg(locById(state.location));
+    talkDoneHook = () => {
+      if ((state.eventsDone || []).indexOf(ev.id) === -1) state.eventsDone = (state.eventsDone || []).concat([ev.id]);
+      if (ev.completes) completeMission(ev.completes);
+      else { renderHotspots(); autosave(); }
+    };
+    startTalk(ev.lines);
+  }
+
+  /* Intro cinematográfica (solo partida nueva). */
+  let cineRun = 0;
+  let cineTap = null;
+  let cineFront = "a";
+  let cineFinishing = false;
+  function cineSleep(ms) {
+    return new Promise((r) => setTimeout(r, ms));
+  }
+  function cineWait(ms) {
+    return new Promise((resolve) => {
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        clearTimeout(t);
+        if (cineTap === finish) cineTap = null;
+        resolve();
+      };
+      const t = setTimeout(finish, ms);
+      cineTap = finish;
+    });
+  }
+  function cineTapNow() {
+    const txt = $("cine-text");
+    if (txt && txt.classList.contains("is-typing")) {
+      txt.classList.remove("is-typing");
+      txt.classList.add("is-full");
+      return;
+    }
+    if (cineTap) cineTap();
+  }
+  function cineSetText(who, text) {
+    const sub = $("cine-sub");
+    const w = $("cine-who");
+    const t = $("cine-text");
+    if (!sub || !t) return 0;
+    w.textContent = who ? displayWho(who) : "";
+    w.className = "cine-who" + (isProtaWho(who) ? " is-prota" : (who ? " is-eva" : ""));
+    t.innerHTML = "";
+    t.className = "cine-text is-typing";
+    const words = String(text || "").split(/(\s+)/);
+    let i = 0;
+    words.forEach((wd) => {
+      if (/^\s+$/.test(wd)) { t.appendChild(document.createTextNode(wd)); return; }
+      if (!wd) return;
+      const sp = document.createElement("span");
+      sp.textContent = wd;
+      sp.style.animationDelay = (i * 0.11) + "s";
+      t.appendChild(sp);
+      i += 1;
+    });
+    sub.classList.add("is-on");
+    return i * 110 + 650;
+  }
+  function cineHideText() {
+    const sub = $("cine-sub");
+    if (sub) sub.classList.remove("is-on");
+  }
+  function cineShow(shot) {
+    const next = cineFront === "a" ? $("cine-shot-b") : $("cine-shot-a");
+    const prev = cineFront === "a" ? $("cine-shot-a") : $("cine-shot-b");
+    const img = next.querySelector(".cine-img");
+    const blur = next.querySelector(".cine-blur");
+    const url = assetUrl(shot.image);
+    return new Promise((resolve) => {
+      let fired = false;
+      const go = () => {
+        if (fired) return;
+        fired = true;
+        next.className = "cine-shot fx-" + (shot.fx || "kb-in");
+        next.style.setProperty("--cine-dur", ((shot.hold || 4000) + 3200) + "ms");
+        blur.style.backgroundImage = "url(\"" + url + "\")";
+        const fy = typeof shot.focus === "number" ? Math.max(0, Math.min(100, shot.focus)) : 45;
+        img.style.objectPosition = "50% " + fy + "%";
+        img.style.transformOrigin = "50% " + fy + "%";
+        void next.offsetWidth;
+        next.classList.add("is-on");
+        prev.classList.remove("is-on");
+        prev.classList.add("is-out");
+        cineFront = cineFront === "a" ? "b" : "a";
+        resolve();
+      };
+      img.onload = go;
+      img.onerror = go;
+      if (img.getAttribute("src") === url && img.complete) go();
+      else img.src = url;
+      setTimeout(go, 2500);
+    });
+  }
+  function resetCine() {
+    ["cine-shot-a", "cine-shot-b"].forEach((id) => {
+      const el = $(id);
+      if (!el) return;
+      el.className = "cine-shot";
+      const img = el.querySelector(".cine-img");
+      if (img) img.removeAttribute("src");
+    });
+    cineFront = "a";
+    cineHideText();
+    const black = $("cine-black");
+    if (black) black.classList.remove("is-on", "is-text");
+    const cine = $("cine");
+    if (cine) cine.classList.remove("is-bars", "is-leaving");
+  }
+  function stopIntroCine() {
+    const cine = $("cine");
+    if (!cine || cine.hidden) return;
+    cineRun += 1;
+    cineTap = null;
+    cineFinishing = false;
+    cine.hidden = true;
+    resetCine();
+  }
+  async function startIntroCine() {
+    const cine = $("cine");
+    const shots = (typeof INTRO_CINE !== "undefined" && Array.isArray(INTRO_CINE.shots)) ? INTRO_CINE.shots : [];
+    if (!cine || !shots.length) {
+      startIntroStory();
+      return;
+    }
+    state.phase = "intro";
+    state.location = HOUSE.start;
+    state.lineIndex = 0;
+    state.talking = null;
+    state.talkLines = [];
+    state.bars = { ...HOUSE.startBars };
+    state.day = 0;
+    state.moment = "noche";
+    state.activityCount = 0;
+    state.inventory = exampleInventory();
+    state.unlockedScenes = [];
+    state.tasksDone = [];
+    state.chats = seedChatHistory(emptyChatState());
+    state.evaInfo = defaultEvaInfo();
+    state.evaMeet = false;
+    state.ejected = false;
+    state.pendingKick = false;
+    state.missions = { active: [], done: [] };
+    state.eventsDone = [];
+    state.introCine = true;
+    setPeek(false);
+    hideModals();
+    if ($("eva-eject")) $("eva-eject").hidden = true;
+    showScreen("game");
+    showHudChrome(false);
+    $("action-bar").hidden = true;
+    $("btn-saltar").hidden = true;
+    $("end-card").hidden = true;
+    showDialogue(false);
+    showEvaSprite(false);
+    showRoomEva(false);
+    renderHotspots();
+    renderMissionHud(false);
+    const run = ++cineRun;
+    cineFinishing = false;
+    resetCine();
+    cine.hidden = false;
+    shots.forEach((sh) => { const im = new Image(); im.src = assetUrl(sh.image); });
+    await cineSleep(80);
+    if (run !== cineRun) return;
+    cine.classList.add("is-bars");
+    await cineSleep(1000);
+    for (let i = 0; i < shots.length; i++) {
+      if (run !== cineRun) return;
+      const shot = shots[i];
+      await cineShow(shot);
+      if (run !== cineRun) return;
+      await cineSleep(shot.fx && shot.fx.indexOf("panel") === 0 ? 650 : 900);
+      if (run !== cineRun) return;
+      if (shot.text) {
+        const reveal = cineSetText(shot.who, shot.text);
+        await cineWait(Math.max(shot.hold || 3500, reveal + 1800));
+        if (run !== cineRun) return;
+        cineHideText();
+        await cineSleep(500);
+      } else {
+        await cineWait(shot.hold || 3500);
+      }
+    }
+    if (run !== cineRun) return;
+    const black = $("cine-black");
+    black.classList.add("is-on");
+    await cineSleep(1500);
+    if (run !== cineRun) return;
+    const dawn = (typeof INTRO_CINE !== "undefined" && INTRO_CINE.dawnText) || "";
+    if (dawn) {
+      $("cine-black-text").textContent = dawn;
+      black.classList.add("is-text");
+      await cineWait(2600);
+      if (run !== cineRun) return;
+      black.classList.remove("is-text");
+      await cineSleep(800);
+      if (run !== cineRun) return;
+    }
+    finishIntroCine(false);
+  }
+  function skipIntroCine() {
+    const cine = $("cine");
+    if (!cine || cine.hidden || cineFinishing) return;
+    finishIntroCine(true);
+  }
+  async function finishIntroCine(skipped) {
+    if (cineFinishing) return;
+    cineFinishing = true;
+    cineRun += 1;
+    const run = cineRun;
+    cineTap = null;
+    const cine = $("cine");
+    const black = $("cine-black");
+    cineHideText();
+    if (black) black.classList.add("is-on");
+    if (black) black.classList.remove("is-text");
+    await cineSleep(skipped ? 450 : 200);
+    if (run !== cineRun) return;
+    const firstId = (typeof INTRO_CINE !== "undefined" && INTRO_CINE.firstMission) || "";
+    state.phase = "intro";
+    state.missions = { active: missionById(firstId) ? [firstId] : [], done: [] };
+    state.eventsDone = [];
+    state.introCine = true;
+    enterHouse(HOUSE.start);
+    cine.classList.add("is-leaving");
+    await cineSleep(1300);
+    if (run !== cineRun) return;
+    cine.hidden = true;
+    resetCine();
+    cineFinishing = false;
+    const wake = (typeof INTRO_CINE !== "undefined" && Array.isArray(INTRO_CINE.wake)) ? INTRO_CINE.wake : [];
+    const announce = () => { if (firstId) startMission(firstId, true); };
+    if (!skipped && wake.length) {
+      talkDoneHook = announce;
+      startTalk(wake);
+    } else {
+      announce();
+    }
+  }
+
+  function renderIntroCineCard() {
+    const card = document.createElement("article");
+    card.className = "editor-card editor-aviso-card editor-intro-card";
+    const h = document.createElement("h3");
+    h.textContent = "Intro, despertar y primera misión";
+    card.appendChild(h);
+    const note = document.createElement("p");
+    note.className = "editor-note";
+    note.textContent = "Textos de la intro de partida nueva. ??? es el protagonista: Eva todavía no sabe su nombre.";
+    card.appendChild(note);
+    const addRow = (label, value, multi, onSave) => {
+      const row = document.createElement("div");
+      row.className = "seq-row";
+      const lab = document.createElement("label");
+      lab.textContent = label;
+      const inp = multi ? document.createElement("textarea") : document.createElement("input");
+      if (!multi) inp.type = "text";
+      inp.value = value != null ? value : "";
+      const save = () => { onSave(inp.value); saveStoryPatch(); };
+      inp.addEventListener("change", save);
+      row.appendChild(lab);
+      row.appendChild(inp);
+      row.appendChild(makePencil(() => {
+        openEditModal(label, inp.value, (v) => { inp.value = v; save(); });
+      }, "Editar"));
+      card.appendChild(row);
+    };
+    const sub = (t) => {
+      const p = document.createElement("p");
+      p.className = "editor-note editor-subhead";
+      p.textContent = t;
+      card.appendChild(p);
+    };
+    const whoLabel = (w) => (isProtaWho(w) ? (protaInfo().name || "???") : (w || "Narración"));
+    if (typeof INTRO_CINE !== "undefined") {
+      sub("Intro (cada imagen)");
+      (INTRO_CINE.shots || []).forEach((shot, i) => {
+        addRow((i + 1) + ". " + shot.id + " · " + whoLabel(shot.who), shot.text, true, (v) => { shot.text = v; });
+      });
+      addRow("Texto en negro (amanece)", INTRO_CINE.dawnText, false, (v) => { INTRO_CINE.dawnText = v; });
+      sub("Despertar (Día 1, mañana)");
+      (INTRO_CINE.wake || []).forEach((line, i) => {
+        addRow((i + 1) + ". " + whoLabel(line.who), line.text, true, (v) => { line.text = v; });
+      });
+    }
+    if (typeof MISSIONS !== "undefined") {
+      sub("Misiones");
+      MISSIONS.forEach((m) => {
+        addRow("Misión · título", m.title, false, (v) => { m.title = v; renderMissionHud(false); });
+        addRow("Misión · pista", m.hint, false, (v) => { m.hint = v; });
+      });
+    }
+    storyEvents().forEach((ev) => {
+      sub("Evento: " + ev.id);
+      (ev.lines || []).forEach((line, i) => {
+        addRow((i + 1) + ". " + whoLabel(line.who), line.text, true, (v) => { line.text = v; });
+      });
+    });
+    return card;
+  }
+
   /* ---------- Name / new game ---------- */
   function openName() {
     hideModals();
@@ -1631,7 +2159,7 @@
     const name = $("input-nombre").value.trim().replace(/\s+/g, " ");
     if (name.length < 1) return;
     state.name = name.slice(0, 20);
-    startIntroStory();
+    startIntroCine();
   }
 
   function applySnapshot(snap) {
@@ -1652,6 +2180,9 @@
     state.evaInfo = mergeEvaInfo(snap.evaInfo);
     state.ejected = !!snap.ejected;
     state.pendingKick = false;
+    state.missions = normalizeMissions(snap.missions);
+    state.eventsDone = Array.isArray(snap.eventsDone) ? snap.eventsDone.slice() : [];
+    state.introCine = !!snap.introCine;
     setPeek(false);
     hideModals();
     if (state.ejected) {
@@ -1660,9 +2191,8 @@
       return;
     }
     if (state.phase === "intro") {
-      startIntroStory();
-      state.lineIndex = Math.min(snap.lineIndex || 0, INTRO.lines.length - 1);
-      playLine();
+      /* v25: las partidas guardadas no vuelven a ver la intro. */
+      enterHouse(HOUSE.start);
     } else {
       enterHouse(state.location);
     }
@@ -1745,7 +2275,25 @@
     const list = $("tasks-list");
     list.innerHTML = "";
     const items = TASKS || [];
-    if (!items.length) {
+    const ms = ensureMissions();
+    let missionRows = 0;
+    (typeof MISSIONS !== "undefined" ? MISSIONS : []).forEach((m) => {
+      const active = ms.active.indexOf(m.id) !== -1;
+      const done = ms.done.indexOf(m.id) !== -1;
+      if (!active && !done) return;
+      missionRows += 1;
+      const li = document.createElement("li");
+      li.className = "task-item is-mission" + (done ? " is-done" : "");
+      const mark = document.createElement("span");
+      mark.className = "task-mark";
+      const text = document.createElement("span");
+      text.className = "task-text";
+      text.textContent = "Misión: " + m.title + (!done && m.hint ? " — " + m.hint : "");
+      li.appendChild(mark);
+      li.appendChild(text);
+      list.appendChild(li);
+    });
+    if (!items.length && !missionRows) {
       const empty = document.createElement("p");
       empty.className = "tasks-empty";
       empty.textContent = "No hay tareas por ahora.";
@@ -1788,6 +2336,7 @@
     }
     const doors = (typeof DOORS !== "undefined" && DOORS[state.location]) || [];
     setSvgHidden(svg, doors.length === 0);
+    const marked = eventDoorTargets(state.location);
     doors.forEach((d) => {
       const pts = doorPoints(d);
       if (pts.length < 3) return;
@@ -1803,6 +2352,7 @@
         if (ev.key === "Enter" || ev.key === " ") go(ev);
       });
       svg.appendChild(el);
+      if (d.to && !d.closed && marked.has(d.to)) appendEventMark(svg, pts, d.kind === "back");
     });
   }
   async function onDoor(d, el) {
@@ -1840,6 +2390,7 @@
     if (prev && prev !== locId) recoverPaciencia("room");
     await wait(220);
     traveling = false;
+    maybeTriggerEvent();
   }
   async function fadeAdvance(kind) {
     traveling = true;
@@ -3046,6 +3597,7 @@
     list.innerHTML = "";
     list.appendChild(renderBarsEditorCard());
     list.appendChild(renderAvisoCard());
+    list.appendChild(renderIntroCineCard());
     list.appendChild(renderPacienciaRecoverCard());
     list.appendChild(renderEvaScheduleCard());
     list.appendChild(renderRoomActionsCard());
@@ -3624,6 +4176,11 @@
       startIntroStory();
       return;
     }
+    if (demo === "intro") {
+      state.name = "Doc";
+      startIntroCine();
+      return;
+    }
 
     showScreen("black");
     await wait(1500);
@@ -3746,6 +4303,17 @@
       await showMeetScene(meetSceneId);
     });
 
+    if ($("btn-saltar-intro")) $("btn-saltar-intro").addEventListener("click", (e) => {
+      e.stopPropagation();
+      skipIntroCine();
+    });
+    if ($("cine")) {
+      $("cine").addEventListener("pointerup", (e) => {
+        if (e.target.closest("button")) return;
+        e.stopPropagation();
+        cineTapNow();
+      });
+    }
     $("btn-saltar").addEventListener("click", (e) => {
       e.stopPropagation();
       if (state.phase === "intro") enterHouse(HOUSE.start);
@@ -3823,7 +4391,7 @@
       $("eva-room-hit").addEventListener("click", (e) => { e.stopPropagation(); onRoomEvaClick(e); });
     }
     $("screen-game").addEventListener("pointerup", (e) => {
-      if (e.target.closest("button, .action-bar, .modal, .end-card, .menu-btn, .hud, .hud-icons, .chip, .phone-shell, .hud-panel, .hotspots, .travel-fade, .eva-meet, .eva-room, .eva-eject, .editor-live-bar, .ed-pencil, .eva-scene-slot")) return;
+      if (e.target.closest("button, .action-bar, .modal, .end-card, .menu-btn, .hud, .hud-icons, .chip, .phone-shell, .hud-panel, .hotspots, .travel-fade, .eva-meet, .eva-room, .eva-eject, .editor-live-bar, .ed-pencil, .eva-scene-slot, .cine")) return;
       if (state.evaMeet && !state.talking) return;
       if (state.peek) {
         setPeek(false);
@@ -3842,6 +4410,11 @@
 
     document.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " " || e.key === "ArrowRight") {
+        if ($("cine") && !$("cine").hidden && document.activeElement.tagName !== "INPUT") {
+          e.preventDefault();
+          cineTapNow();
+          return;
+        }
         if ($("screen-game").classList.contains("is-on") && document.activeElement.tagName !== "INPUT") {
           e.preventDefault();
           advance();
@@ -3851,7 +4424,7 @@
     });
   }
 
-  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, playTitleIntro, openBag, openSettings, openPhone, openChatThread, openTasks, travelTo, setPeek, getExpr: () => currentExpr, getState: () => state, openEvaMeet, closeEvaMeet, addAfecto, setAfecto, addEvaInfoBar, setEvaInfoBar, setEditorLive, ejectFromHouse, evaStatus: currentEvaStatus, weekdayName: (d) => weekdayName(d != null ? d : state.day), renderHUD, renderActions, showRoomEva, isEvaHere, isEvaCleaning, currentSceneVariant, isEvaSleeping, refreshRoomVisual };
+  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, playTitleIntro, openBag, openSettings, openPhone, openChatThread, openTasks, travelTo, setPeek, getExpr: () => currentExpr, getState: () => state, openEvaMeet, closeEvaMeet, addAfecto, setAfecto, addEvaInfoBar, setEvaInfoBar, setEditorLive, ejectFromHouse, evaStatus: currentEvaStatus, weekdayName: (d) => weekdayName(d != null ? d : state.day), renderHUD, renderActions, showRoomEva, isEvaHere, isEvaCleaning, currentSceneVariant, isEvaSleeping, refreshRoomVisual, startIntroCine, skipIntroCine, startMission, completeMission, maybeTriggerEvent, renderHotspots, eventDoorTargets };
 
   document.addEventListener("DOMContentLoaded", () => {
     bind();

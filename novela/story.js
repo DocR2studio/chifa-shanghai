@@ -936,6 +936,100 @@ const AVISO = {
   button: "Entendido"
 };
 
+/* v25: protagonista, intro cinematográfica, misiones y eventos.
+   El prota no tiene nombre todavía: en los diálogos se muestra como "???".
+   who: "prota" = habla el protagonista; who: "Eva" = habla Eva; sin who = narración. */
+const PROTA = {
+  id: "prota",
+  name: "???",
+  sprite: "assets/intro/prota.webp",
+  spriteFallback: "assets/intro/prota.png"
+};
+
+/* Intro de partida nueva. fx: kb-in, kb-out, kb-left, kb-right, push, panel-fade, panel-slide, panel-zoom, room-night.
+   focus = altura (0 arriba, 100 abajo) que se mantiene a la vista; las caras van arriba.
+   hold = milisegundos mínimos en pantalla (tocar avanza). */
+const INTRO_CINE = {
+  shots: [
+    { id: "calle", focus: 0, image: "assets/intro/calle.webp", fx: "kb-in", hold: 5200, who: "prota", text: "Mmm... bueno, al parecer todo acaba aquí..." },
+    { id: "vereda", focus: 30, image: "assets/intro/vereda.webp", fx: "kb-left", hold: 4800, who: "prota", text: "Parecía que tenía la vida resuelta..." },
+    { id: "panel-1", focus: 50, image: "assets/intro/panel-1.webp", fx: "panel-fade", hold: 3200, who: "prota", text: "Familia..." },
+    { id: "panel-2", focus: 50, image: "assets/intro/panel-2.webp", fx: "panel-slide", hold: 3200, who: "prota", text: "un viaje..." },
+    { id: "panel-3", focus: 50, image: "assets/intro/panel-3.webp", fx: "panel-zoom", hold: 3800, who: "prota", text: "y adiós a todo." },
+    { id: "rodillas", focus: 35, image: "assets/intro/rodillas.webp", fx: "kb-out", hold: 5600, who: "prota", text: "Tengo mucha hambre... y mucho frío... moriré aquí..." },
+    { id: "primer-plano", focus: 40, image: "assets/intro/primer-plano.webp", fx: "push", hold: 2600, who: "prota", text: "¿Ohh...?" },
+    { id: "eva-preocupada", focus: 0, image: "assets/intro/eva-preocupada.webp", fx: "kb-in", hold: 4200, who: "Eva", text: "Oye pequeño, ¿qué haces ahí?" },
+    { id: "abrazo", focus: 6, image: "assets/intro/abrazo.webp", fx: "kb-out", hold: 4200, who: "", text: "" },
+    { id: "cuarto-noche", focus: 60, image: "assets/locs/cuarto.jpg", fx: "room-night", hold: 2600, who: "", text: "Esa noche." },
+    { id: "buenas-noches", focus: 0, image: "assets/intro/eva-buenas-noches.webp", fx: "kb-in", hold: 5600, who: "Eva", text: "Esa ropa te queda bien. Ponte cómodo y descansa, ¿sí? Buenas noches." }
+  ],
+  dawnText: "A la mañana siguiente...",
+  wake: [
+    { who: "Eva", expr: "feliz", text: "Ah, ya despertaste. ¡Buenos días!" },
+    { who: "prota", text: "Hola... buenos días." },
+    { who: "Eva", expr: "feliz", text: "Preparé el desayuno. Baja a la cocina cuando estés listo, ¿sí?" },
+    { who: "prota", text: "Gracias." }
+  ],
+  firstMission: "desayuno"
+};
+
+/* Misiones: target = lugar al que hay que ir. La puerta que lleva hacia un evento pendiente muestra un signo amarillo. */
+const MISSIONS = [
+  { id: "desayuno", title: "Bajar a desayunar", hint: "Eva te espera en la cocina.", target: "cocina" }
+];
+
+/* Eventos: se disparan al entrar a location si la misión está activa (o sin misión, una sola vez).
+   completes = id de misión que se completa al terminar. */
+const STORY_EVENTS = [
+  {
+    id: "desayuno",
+    location: "cocina",
+    mission: "desayuno",
+    completes: "desayuno",
+    lines: [
+      { who: "Eva", expr: "feliz", text: "Ahí estás. Siéntate, ya está servido." },
+      { who: "prota", text: "Huele muy bien..." },
+      { who: "Eva", expr: "sonrojada", text: "Come con calma. Si quieres más, hay de sobra." },
+      { who: "", text: "Por primera vez en mucho tiempo, comes algo caliente." },
+      { who: "prota", text: "Gracias... de verdad." }
+    ]
+  }
+];
+
+function applyV25Story(data) {
+  if (!data || typeof data !== "object") return;
+  const cine = data.introCine;
+  if (cine && typeof cine === "object") {
+    if (Array.isArray(cine.shots)) {
+      cine.shots.forEach((src) => {
+        if (!src || !src.id) return;
+        const shot = INTRO_CINE.shots.find((x) => x.id === src.id);
+        if (!shot) return;
+        ["text", "who", "image", "fx"].forEach((k) => { if (typeof src[k] === "string") shot[k] = src[k]; });
+        if (typeof src.hold === "number") shot.hold = src.hold;
+        if (typeof src.focus === "number") shot.focus = src.focus;
+      });
+    }
+    if (typeof cine.dawnText === "string") INTRO_CINE.dawnText = cine.dawnText;
+    if (Array.isArray(cine.wake) && cine.wake.length) INTRO_CINE.wake = cine.wake;
+  }
+  if (Array.isArray(data.missions)) {
+    data.missions.forEach((src) => {
+      const m = src && MISSIONS.find((x) => x.id === src.id);
+      if (!m) return;
+      if (typeof src.title === "string") m.title = src.title;
+      if (typeof src.hint === "string") m.hint = src.hint;
+    });
+  }
+  if (Array.isArray(data.storyEvents)) {
+    data.storyEvents.forEach((src) => {
+      const ev = src && STORY_EVENTS.find((x) => x.id === src.id);
+      if (!ev) return;
+      if (Array.isArray(src.lines) && src.lines.length) ev.lines = src.lines;
+    });
+  }
+}
+
 const STORY_PATCH_KEY = "eva_novela_story_v16";
 
 function editableStory() {
@@ -968,7 +1062,10 @@ function editableStory() {
     sceneLines: typeof EVA_SCENE_LINES !== "undefined" ? EVA_SCENE_LINES : {},
     aviso: AVISO,
     inventory: DEFAULT_INVENTORY,
-    balanceVersion: 24
+    balanceVersion: 24,
+    introCine: { shots: INTRO_CINE.shots, dawnText: INTRO_CINE.dawnText, wake: INTRO_CINE.wake },
+    missions: MISSIONS,
+    storyEvents: STORY_EVENTS
   }));
 }
 
@@ -1039,6 +1136,7 @@ function applyEditableStory(data) {
   }
   ensureV23RoomActions();
   ensureV24Balance(data);
+  applyV25Story(data);
 }
 
 function ensureV23RoomActions() {
