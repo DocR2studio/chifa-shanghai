@@ -9,10 +9,10 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="screen-orientation" content="landscape">
   <title>Título del juego</title>
-  <link rel="manifest" href="manifest.json?v=11">
+  <link rel="manifest" href="manifest.json?v=12">
   <link rel="icon" href="assets/logo-eva.jpg">
   <link rel="apple-touch-icon" href="assets/logo-eva.jpg">
-  <link rel="stylesheet" href="style.css?v=11">
+  <link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
 
@@ -47,9 +47,9 @@
         <p class="kicker">Potenciado por</p>
         <div class="brand-row">
           <div class="brand-card">
-            <img src="assets/logo-eva.jpg?v=11" alt="Eva_D2studio" class="brand-logo" width="900" height="900">
+            <img src="assets/logo-eva.jpg?v=12" alt="Eva_D2studio" class="brand-logo" width="900" height="900">
           </div>
-          <img src="assets/verificado.png?v=11" alt="Verificado" class="brand-check">
+          <img src="assets/verificado.png?v=12" alt="Verificado" class="brand-check">
         </div>
         <p class="brand-name">Eva_D2studio</p>
       </div>
@@ -74,13 +74,13 @@
       <div class="title-stage-wrap">
         <div class="title-stage" id="title-stage">
           <h1 class="title-logo-wrap">
-            <img class="title-logo" src="assets/title/logo.png?v=11" alt="Unknown Love" width="475" height="263">
+            <img class="title-logo" src="assets/title/logo.png?v=12" alt="Unknown Love" width="475" height="263">
           </h1>
           <div class="title-eyes">
-            <img class="title-eyes-top" src="assets/title/ojos-enojada.png?v=11" alt="" width="430" height="215">
-            <img class="title-eyes-bot" src="assets/title/ojos-enamorada.png?v=11" alt="" width="430" height="215">
+            <img class="title-eyes-top" src="assets/title/ojos-enojada.png?v=12" alt="" width="430" height="215">
+            <img class="title-eyes-bot" src="assets/title/ojos-enamorada.png?v=12" alt="" width="430" height="215">
           </div>
-          <img class="title-eva" src="assets/title/eva.png?v=11" alt="" width="214" height="705">
+          <img class="title-eva" src="assets/title/eva.png?v=12" alt="" width="214" height="705">
           <div class="title-actions">
             <button type="button" id="btn-jugar" class="title-btn">Jugar</button>
             <button type="button" id="btn-title-cargar" class="title-btn" disabled>Cargar</button>
@@ -138,11 +138,21 @@
         <video id="bg-video" playsinline muted loop preload="none"></video>
         <div class="game-shade" id="game-shade"></div>
         <svg id="hotspots" class="hotspots" viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid slice" aria-hidden="false" hidden></svg>
+        <div id="eva-room" class="eva-room" hidden>
+          <button type="button" id="eva-room-hit" class="eva-room-hit" aria-label="Eva">
+            <img id="eva-room-sprite" class="eva-room-sprite" alt="Eva">
+          </button>
+        </div>
       </div>
       <div id="travel-fade" class="travel-fade" aria-hidden="true"></div>
       <div id="sprite-layer" class="sprite-layer" hidden>
         <img id="sprite-eva-a" class="sprite-eva" alt="Eva">
         <img id="sprite-eva-b" class="sprite-eva" alt="">
+      </div>
+      <div id="eva-meet" class="eva-meet" hidden>
+        <div class="eva-meet-dim" aria-hidden="true"></div>
+        <img id="eva-meet-close" class="eva-meet-close" alt="Eva">
+        <div id="eva-meet-menu" class="eva-meet-menu"></div>
       </div>
       <div id="hud" class="hud" hidden>
         <div class="hud-panel">
@@ -288,9 +298,9 @@
           </div>
           <div id="phone-home" class="phone-body phone-home">
             <div class="phone-apps">
-              <button type="button" class="phone-app" data-app="contacts"><img class="phone-app-icon" src="assets/phone/app-contactos.png?v=11" alt=""><span>Contactos</span></button>
-              <button type="button" class="phone-app" data-app="camera"><img class="phone-app-icon" src="assets/phone/app-camara.png?v=11" alt=""><span>Cámara</span></button>
-              <button type="button" class="phone-app" data-app="info"><img class="phone-app-icon" src="assets/phone/app-info.png?v=11" alt=""><span>Info</span></button>
+              <button type="button" class="phone-app" data-app="contacts"><img class="phone-app-icon" src="assets/phone/app-contactos.png?v=12" alt=""><span>Contactos</span></button>
+              <button type="button" class="phone-app" data-app="camera"><img class="phone-app-icon" src="assets/phone/app-camara.png?v=12" alt=""><span>Cámara</span></button>
+              <button type="button" class="phone-app" data-app="info"><img class="phone-app-icon" src="assets/phone/app-info.png?v=12" alt=""><span>Info</span></button>
             </div>
           </div>
           <div id="phone-app" class="phone-body phone-app-screen" hidden>
@@ -312,9 +322,9 @@
 
 
   </div>
-  <script src="vendor/jszip.min.js?v=11"></script>
-  <script src="story.js?v=11"></script>
-  <script src="media.js?v=11"></script>
-  <script src="engine.js?v=11"></script>
+  <script src="vendor/jszip.min.js?v=12"></script>
+  <script src="story.js?v=12"></script>
+  <script src="media.js?v=12"></script>
+  <script src="engine.js?v=12"></script>
 </body>
 </html>

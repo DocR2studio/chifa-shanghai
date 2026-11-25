@@ -301,6 +301,45 @@ const EVA = {
 };
 
 
+const EVA_MENU = {
+  fullImage: "assets/eva-full.png",
+  closeImage: "assets/eva-close.png",
+  options: [
+    { id: "hablar", label: "Hablar" },
+    { id: "regalar", label: "Regalar" },
+    { id: "peticion", label: "Petición" },
+    { id: "accion", label: "Acción" },
+    { id: "olvidalo", label: "Olvídalo" }
+  ],
+  /* Placeholders — editar estas líneas cuando haya contenido. */
+  peticion: {
+    placeholder: true,
+    lines: [
+      { who: "Eva", expr: "neutral", text: "Próximamente." }
+    ]
+  },
+  accion: {
+    placeholder: true,
+    lines: [
+      { who: "Eva", expr: "neutral", text: "Próximamente." }
+    ]
+  },
+  noGift: {
+    expr: "neutral",
+    text: "No tienes nada que pueda aceptar ahora, {nombre}."
+  },
+  giftOk: {
+    expr: "feliz",
+    text: "Gracias, {nombre}. Lo voy a guardar."
+  },
+  /* x = centro, y = pies, h = altura, en coordenadas 0-1 del fondo 16:9. */
+  place: {
+    cocina: { x: 0.40, y: 0.885, h: 0.62 },
+    sala: { x: 0.30, y: 0.885, h: 0.60 },
+    cuarto_eva: { x: 0.46, y: 0.885, h: 0.62 }
+  }
+};
+
 const TIMES = ["mañana", "tarde", "noche", "madrugada"];
 const TIME_LABELS = {
   "mañana": "Mañana",
@@ -315,6 +354,29 @@ const DEFAULT_INVENTORY = [
   { id: "llaves", name: "Llaves", example: true, desc: "Objeto de ejemplo. Todavía no se usa." },
   { id: "cuaderno", name: "Cuaderno", example: true, desc: "Objeto de ejemplo. Todavía no se usa." }
 ];
+
+
+const EVA_INFO = {
+  image: "assets/eva-info.png",
+  fields: [
+    { label: "Nombre", value: "Eva" },
+    { label: "Apellido", value: "Dallas" },
+    { label: "Estatura", value: "1.71 m" },
+    { label: "Edad", value: "35 años" },
+    { label: "Hijas", value: "1" },
+    { label: "Estado", value: "Casada" }
+  ],
+  /* Barras sin nombre por ahora. color e id se editan aquí; los valores viven en la partida. */
+  bars: [
+    { id: "rosa", color: "#e56b9a" },
+    { id: "morada", color: "#8a5cf6" },
+    { id: "roja", color: "#e23b3b" }
+  ],
+  startBars: { rosa: 0, morada: 0, roja: 0 },
+  startAfecto: 10,
+  barsMax: 100,
+  afectoMax: 100
+};
 
 const CODEX = {
   eva: {

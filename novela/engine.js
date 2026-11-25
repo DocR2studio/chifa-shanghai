@@ -30,6 +30,8 @@
     tasksDone: [],
     chats: {},
     peek: false,
+    evaMeet: false,
+    evaInfo: defaultEvaInfo(),
     settings: { music: 70, sfx: 70, textSpeed: "normal" }
   };
 
@@ -130,7 +132,8 @@
       inventory: (state.inventory || []).map((it) => Object.assign({}, it)),
       unlockedScenes: (state.unlockedScenes || []).slice(),
       tasksDone: (state.tasksDone || []).slice(),
-      chats: cloneChats(state.chats)
+      chats: cloneChats(state.chats),
+      evaInfo: cloneEvaInfo(state.evaInfo)
     };
   }
   function autosave() {
@@ -470,6 +473,8 @@
     state.unlockedScenes = [];
     state.tasksDone = [];
     state.chats = seedChatHistory(emptyChatState());
+    state.evaInfo = defaultEvaInfo();
+    state.evaMeet = false;
     setPeek(false);
     hideModals();
     showScreen("game");
@@ -511,8 +516,9 @@
     renderHUD();
     applyLocationVisual(loc.id, loc.image);
     const evaHere = isEvaHere(loc.id);
-    if (evaHere) showEvaSprite(true, "neutral");
-    else showEvaSprite(false);
+    closeEvaMeet(true);
+    showEvaSprite(false);
+    showRoomEva(evaHere);
     renderActions(loc, evaHere);
     completeTaskBy("enter", loc.id);
     renderHotspots();
@@ -521,17 +527,6 @@
   function renderActions(loc, evaHere) {
     const bar = $("action-bar");
     bar.innerHTML = "";
-    if (evaHere) {
-      const talk = document.createElement("button");
-      talk.type = "button";
-      talk.className = "chip";
-      talk.textContent = "Hablar con Eva";
-      talk.addEventListener("click", (e) => {
-        e.stopPropagation();
-        startTalk(EVA.talk[loc.id] || [], null, { countsAsActivity: true });
-      });
-      bar.appendChild(talk);
-    }
     (loc.actions || []).forEach((act) => {
       const b = document.createElement("button");
       b.type = "button";
@@ -610,6 +605,7 @@
   function startTalk(talk, nodeId, opts) {
     const conv = normalizeTalk(talk);
     if (!conv) return;
+    showRoomEva(false);
     state.conv = conv;
     if (opts && opts.countsAsActivity) {
       countActivity();
@@ -626,10 +622,17 @@
     $("choices").hidden = true;
     $("choices").innerHTML = "";
     showDialogue(false);
+    if (state.evaMeet) {
+      showEvaSprite(false);
+      const meet = $("eva-meet");
+      if (meet) meet.classList.remove("is-talking");
+      autosave();
+      return;
+    }
     const loc = locById(state.location);
     const evaHere = isEvaHere(state.location);
-    if (evaHere) showEvaSprite(true, "neutral");
-    else showEvaSprite(false);
+    showEvaSprite(false);
+    showRoomEva(evaHere);
     renderActions(loc, evaHere);
     autosave();
   }
@@ -663,7 +666,297 @@
     endTalk();
   }
 
-  /* ---------- Map ---------- */
+
+  function assetUrl(path) {
+    if (!path) return path;
+    const s = document.querySelector("script[src*=\"story.js\"]");
+    const m = s && s.src && s.src.match(/[?&]v=([^&]+)/);
+    if (!m) return path;
+    return path + (path.indexOf("?") >= 0 ? "&" : "?") + "v=" + m[1];
+  }
+  function defaultEvaInfo() {
+    const info = typeof EVA_INFO !== "undefined" ? EVA_INFO : {};
+    const bars = {};
+    const start = info.startBars || { rosa: 0, morada: 0, roja: 0 };
+    (info.bars || [{ id: "rosa" }, { id: "morada" }, { id: "roja" }]).forEach((b) => {
+      bars[b.id] = start[b.id] != null ? start[b.id] : 0;
+    });
+    return {
+      bars: bars,
+      afecto: info.startAfecto != null ? info.startAfecto : 10
+    };
+  }
+  function cloneEvaInfo(src) {
+    const base = defaultEvaInfo();
+    if (!src) return base;
+    const bars = { ...base.bars };
+    if (src.bars) Object.keys(src.bars).forEach((k) => { bars[k] = src.bars[k]; });
+    return { bars: bars, afecto: src.afecto != null ? src.afecto : base.afecto };
+  }
+  function mergeEvaInfo(src) {
+    return cloneEvaInfo(src);
+  }
+  function ensureEvaInfo() {
+    state.evaInfo = cloneEvaInfo(state.evaInfo);
+    return state.evaInfo;
+  }
+  function clampInfoVal(n, max) {
+    const m = max == null ? 100 : max;
+    return Math.max(0, Math.min(m, Math.round(Number(n) || 0)));
+  }
+  function addAfecto(n) {
+    const info = typeof EVA_INFO !== "undefined" ? EVA_INFO : {};
+    const ev = ensureEvaInfo();
+    ev.afecto = clampInfoVal((ev.afecto || 0) + (Number(n) || 0), info.afectoMax || 100);
+    autosave();
+    if (phoneScreen === "info" && $("modal-phone") && !$("modal-phone").hidden) openPhoneApp("info");
+    return ev.afecto;
+  }
+  function setAfecto(n) {
+    const info = typeof EVA_INFO !== "undefined" ? EVA_INFO : {};
+    const ev = ensureEvaInfo();
+    ev.afecto = clampInfoVal(n, info.afectoMax || 100);
+    autosave();
+    if (phoneScreen === "info" && $("modal-phone") && !$("modal-phone").hidden) openPhoneApp("info");
+    return ev.afecto;
+  }
+  function addEvaInfoBar(id, n) {
+    const info = typeof EVA_INFO !== "undefined" ? EVA_INFO : {};
+    const ev = ensureEvaInfo();
+    ev.bars[id] = clampInfoVal((ev.bars[id] || 0) + (Number(n) || 0), info.barsMax || 100);
+    autosave();
+    if (phoneScreen === "info" && $("modal-phone") && !$("modal-phone").hidden) openPhoneApp("info");
+    return ev.bars[id];
+  }
+  function setEvaInfoBar(id, n) {
+    const info = typeof EVA_INFO !== "undefined" ? EVA_INFO : {};
+    const ev = ensureEvaInfo();
+    ev.bars[id] = clampInfoVal(n, info.barsMax || 100);
+    autosave();
+    if (phoneScreen === "info" && $("modal-phone") && !$("modal-phone").hidden) openPhoneApp("info");
+    return ev.bars[id];
+  }
+  function renderEvaInfoSheet() {
+    const cfg = typeof EVA_INFO !== "undefined" ? EVA_INFO : {};
+    const ev = ensureEvaInfo();
+    const sheet = document.createElement("section");
+    sheet.className = "phone-eva-sheet";
+    const top = document.createElement("div");
+    top.className = "phone-eva-top";
+    const barsBox = document.createElement("div");
+    barsBox.className = "phone-eva-bars";
+    (cfg.bars || []).forEach((b) => {
+      const track = document.createElement("div");
+      track.className = "phone-eva-bar";
+      track.setAttribute("data-bar", b.id);
+      const col = b.color || "#888";
+      let hx = String(col).replace("#", "");
+      if (hx.length === 3) hx = hx[0] + hx[0] + hx[1] + hx[1] + hx[2] + hx[2];
+      if (hx.length === 6) {
+        const r = parseInt(hx.slice(0, 2), 16), g = parseInt(hx.slice(2, 4), 16), bl = parseInt(hx.slice(4, 6), 16);
+        track.style.background = "rgba(" + r + "," + g + "," + bl + ",0.28)";
+      }
+      const fill = document.createElement("span");
+      const v = ev.bars[b.id] != null ? ev.bars[b.id] : 0;
+      fill.style.width = v + "%";
+      fill.style.background = col;
+      track.appendChild(fill);
+      barsBox.appendChild(track);
+    });
+    const heart = document.createElement("div");
+    heart.className = "phone-eva-heart";
+    heart.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.4 S3.2 14.2 3.2 8.8 A4.6 4.6 0 0 1 12 6.7 A4.6 4.6 0 0 1 20.8 8.8 C20.8 14.2 12 20.4 12 20.4 Z"/></svg>';
+    const pct = document.createElement("b");
+    pct.textContent = String(ev.afecto != null ? ev.afecto : 10) + "%";
+    heart.appendChild(pct);
+    top.appendChild(barsBox);
+    top.appendChild(heart);
+    sheet.appendChild(top);
+    const img = document.createElement("img");
+    img.className = "phone-eva-photo";
+    img.alt = "Eva";
+    img.src = assetUrl(cfg.image || "assets/eva-info.png");
+    sheet.appendChild(img);
+    const dl = document.createElement("dl");
+    dl.className = "phone-eva-fields";
+    (cfg.fields || []).forEach((f) => {
+      const dt = document.createElement("dt");
+      dt.textContent = f.label || "";
+      const dd = document.createElement("dd");
+      dd.textContent = fillName(f.value || "", state.name);
+      dl.appendChild(dt);
+      dl.appendChild(dd);
+    });
+    sheet.appendChild(dl);
+    return sheet;
+  }
+
+  let evaMeetBusy = false;
+  function coverBox(el) {
+    const vw = el.clientWidth;
+    const vh = el.clientHeight;
+    if (!vw || !vh) return null;
+    const iw = 1280, ih = 720;
+    const scale = Math.max(vw / iw, vh / ih);
+    return { w: iw * scale, h: ih * scale, x: (vw - iw * scale) / 2, y: (vh - ih * scale) / 2 };
+  }
+  function placeRoomEva() {
+    const layer = $("eva-room");
+    const hit = $("eva-room-hit");
+    if (!layer || !hit || layer.hidden) return;
+    const box = coverBox(layer);
+    if (!box) return;
+    const places = (typeof EVA_MENU !== "undefined" && EVA_MENU.place) || {};
+    const place = places[state.location] || { x: 0.5, y: 0.90, h: 0.60 };
+    const height = place.h * box.h;
+    hit.style.height = height + "px";
+    hit.style.left = (box.x + place.x * box.w) + "px";
+    hit.style.top = (box.y + place.y * box.h - height) + "px";
+  }
+  function showRoomEva(on) {
+    const layer = $("eva-room");
+    const img = $("eva-room-sprite");
+    const hit = $("eva-room-hit");
+    if (!layer) return;
+    if (!on || state.evaMeet) {
+      layer.hidden = true;
+      return;
+    }
+    const src = assetUrl((typeof EVA_MENU !== "undefined" && EVA_MENU.fullImage) || "assets/eva-full.png");
+    if (img) {
+      img.alt = "Eva";
+      if (img.getAttribute("src") !== src) {
+        img.onload = () => placeRoomEva();
+        img.src = src;
+      }
+    }
+    layer.hidden = false;
+    if (hit) hit.hidden = false;
+    placeRoomEva();
+  }
+  function buildEvaMeetMenu() {
+    const box = $("eva-meet-menu");
+    if (!box) return;
+    box.innerHTML = "";
+    const opts = (typeof EVA_MENU !== "undefined" && EVA_MENU.options) || [];
+    opts.forEach((opt) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "eva-meet-opt";
+      b.textContent = opt.label;
+      b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        onEvaMeetOption(opt.id);
+      });
+      box.appendChild(b);
+    });
+  }
+  function openEvaMeet() {
+    state.evaMeet = true;
+    const meet = $("eva-meet");
+    const img = $("eva-meet-close");
+    if (img) {
+      img.alt = "Eva";
+      img.src = assetUrl((typeof EVA_MENU !== "undefined" && EVA_MENU.closeImage) || "assets/eva-close.png");
+    }
+    buildEvaMeetMenu();
+    if (meet) {
+      meet.classList.remove("is-talking");
+      meet.hidden = false;
+      meet.classList.remove("is-in");
+      void meet.offsetWidth;
+      meet.classList.add("is-in");
+    }
+    const game = $("screen-game");
+    if (game) game.classList.add("is-eva-meet");
+    if ($("action-bar")) $("action-bar").hidden = true;
+    showRoomEva(false);
+  }
+  function closeEvaMeet(instant) {
+    state.evaMeet = false;
+    evaMeetBusy = false;
+    const meet = $("eva-meet");
+    if (meet) {
+      meet.hidden = true;
+      meet.classList.remove("is-talking", "is-in");
+    }
+    const game = $("screen-game");
+    if (game) game.classList.remove("is-eva-meet");
+    if (state.phase !== "house") return;
+    const loc = locById(state.location);
+    const evaHere = isEvaHere(state.location);
+    if (!state.talking) {
+      showRoomEva(evaHere);
+      if (loc) renderActions(loc, evaHere);
+    }
+  }
+  function beginMeetTalk(talk, nodeId, opts) {
+    const meet = $("eva-meet");
+    if (meet) meet.classList.add("is-talking");
+    startTalk(talk, nodeId, opts);
+  }
+  function sayNoGift() {
+    const line = (typeof EVA_MENU !== "undefined" && EVA_MENU.noGift) || { expr: "neutral", text: "No tienes nada que pueda aceptar ahora, {nombre}." };
+    beginMeetTalk([{ who: "Eva", expr: line.expr || "neutral", text: line.text }], null, { countsAsActivity: false });
+  }
+  function isGiftSuitable(it) {
+    if (!it) return false;
+    if (it.example) return false;
+    if (it.gift === false) return false;
+    return !!it.gift;
+  }
+  function tryGift(it) {
+    if (!isGiftSuitable(it)) {
+      sayNoGift();
+      return;
+    }
+    const line = (typeof EVA_MENU !== "undefined" && EVA_MENU.giftOk) || { expr: "feliz", text: "Gracias, {nombre}. Lo voy a guardar." };
+    beginMeetTalk([{ who: "Eva", expr: line.expr || "feliz", text: line.text }], null, { countsAsActivity: false });
+  }
+  function onEvaMeetOption(id) {
+    if (id === "olvidalo") {
+      closeEvaMeet();
+      return;
+    }
+    if (id === "hablar") {
+      const talk = EVA.talk[state.location];
+      if (!talk) {
+        beginMeetTalk([{ who: "Eva", expr: "neutral", text: "Ahora no se me ocurre qué decir." }], null, { countsAsActivity: false });
+        return;
+      }
+      beginMeetTalk(talk, null, { countsAsActivity: true });
+      return;
+    }
+    if (id === "regalar") {
+      const items = state.inventory || [];
+      if (!items.length) {
+        sayNoGift();
+        return;
+      }
+      openBag({ gift: true });
+      return;
+    }
+    if (id === "peticion" || id === "accion") {
+      const data = (typeof EVA_MENU !== "undefined" && EVA_MENU[id]) || { lines: [{ who: "Eva", expr: "neutral", text: "Próximamente." }] };
+      beginMeetTalk({ start: "main", nodes: { main: { lines: data.lines || [{ who: "Eva", expr: "neutral", text: "Próximamente." }] } } }, "main", { countsAsActivity: false });
+    }
+  }
+  async function onRoomEvaClick(e) {
+    if (e) e.stopPropagation();
+    if (traveling || evaMeetBusy || state.evaMeet) return;
+    if (state.talking || state.peek) return;
+    evaMeetBusy = true;
+    const hit = $("eva-room-hit");
+    if (hit) {
+      hit.classList.add("is-flash");
+      await wait(300);
+      hit.classList.remove("is-flash");
+    }
+    openEvaMeet();
+    evaMeetBusy = false;
+  }
+
+    /* ---------- Map ---------- */
   function openMap() {
     const box = $("map-floors");
     box.innerHTML = "";
@@ -755,6 +1048,7 @@
     state.unlockedScenes = Array.isArray(snap.unlockedScenes) ? snap.unlockedScenes.slice() : [];
     state.tasksDone = Array.isArray(snap.tasksDone) ? snap.tasksDone.slice() : [];
     state.chats = normalizeChats(snap.chats);
+    state.evaInfo = mergeEvaInfo(snap.evaInfo);
     setPeek(false);
     hideModals();
     if (state.phase === "intro") {
@@ -936,8 +1230,11 @@
     await wait(500);
     traveling = false;
   }
-  function openBag() {
+  function openBag(opts) {
     hideModals();
+    const giftMode = !!(opts && opts.gift);
+    const title = document.querySelector("#modal-bag .modal-title");
+    if (title) title.textContent = giftMode ? "Regalar" : "Mochila";
     const grid = $("bag-grid");
     const detail = $("bag-detail");
     grid.innerHTML = "";
@@ -959,6 +1256,11 @@
         }
         cell.addEventListener("click", (e) => {
           e.stopPropagation();
+          if (giftMode) {
+            $("modal-bag").hidden = true;
+            tryGift(it);
+            return;
+          }
           detail.hidden = false;
           detail.textContent = it.name + (it.example ? " (ejemplo). " : ". ") + (it.desc || "");
         });
@@ -1146,18 +1448,18 @@
       shot.appendChild(cap);
       body.appendChild(shot);
     } else if (app === "info") {
-      [["eva", CODEX.eva], ["player", CODEX.player]].forEach(([id, entry]) => {
-        if (!entry) return;
+      body.appendChild(renderEvaInfoSheet());
+      if (CODEX.player) {
         const card = document.createElement("article");
         card.className = "phone-codex";
         const h = document.createElement("h3");
-        h.textContent = fillName(entry.name || id, state.name);
+        h.textContent = fillName(CODEX.player.name || "Tú", state.name);
         const p = document.createElement("p");
-        p.textContent = fillName(entry.text || "", state.name);
+        p.textContent = fillName(CODEX.player.text || "", state.name);
         card.appendChild(h);
         card.appendChild(p);
         body.appendChild(card);
-      });
+      }
     }
   }
   function lastChatPreview(id) {
@@ -1494,7 +1796,7 @@
     if (demo === "closed") { showScreen("closed"); return; }
     if (demo === "name") { openName(); return; }
     if (demo === "editor") { openEditor(); return; }
-    if (demo === "house" || demo === "map" || demo === "talk" || demo === "enojada" || demo === "enamorada" || demo === "triste" || demo === "peek" || demo === "bag" || demo === "settings" || demo === "phone" || demo === "info" || demo === "tasks" || demo === "pasillo" || demo === "sala" || demo === "cuarto_eva" || demo === "fade" || demo === "chats" || demo === "chat") {
+    if (demo === "house" || demo === "map" || demo === "talk" || demo === "enojada" || demo === "enamorada" || demo === "triste" || demo === "peek" || demo === "bag" || demo === "settings" || demo === "phone" || demo === "info" || demo === "tasks" || demo === "pasillo" || demo === "sala" || demo === "cuarto_eva" || demo === "fade" || demo === "chats" || demo === "chat" || demo === "cocina" || demo === "eva" || demo === "eva-menu" || demo === "eva-hablar") {
       state.name = "Doc";
       state.bars = { ...HOUSE.startBars };
       state.day = 1;
@@ -1504,6 +1806,8 @@
       state.unlockedScenes = [];
       state.tasksDone = [];
       state.chats = seedChatHistory(emptyChatState());
+      state.evaInfo = defaultEvaInfo();
+      state.evaMeet = false;
       if (demo === "talk" || demo === "enojada" || demo === "enamorada" || demo === "triste") {
         enterHouse("cocina");
         if (demo === "enojada") startTalk(EVA.talk.cocina, "enojo");
@@ -1514,8 +1818,10 @@
           playLine();
         }
       } else {
-        const startLoc = (demo === "pasillo" || demo === "fade") ? "pasillo" : (demo === "sala" ? "sala" : (demo === "cuarto_eva" ? "cuarto_eva" : "cuarto"));
+        const startLoc = (demo === "pasillo" || demo === "fade") ? "pasillo" : (demo === "sala" ? "sala" : (demo === "cuarto_eva" ? "cuarto_eva" : ((demo === "cocina" || demo === "eva" || demo === "eva-menu" || demo === "eva-hablar") ? "cocina" : "cuarto")));
         enterHouse(startLoc);
+        if (demo === "eva-menu" || demo === "eva-hablar") openEvaMeet();
+        if (demo === "eva-hablar") beginMeetTalk(EVA.talk.cocina, null, { countsAsActivity: true });
         if (demo === "map") openMap();
         if (demo === "peek") setPeek(true);
         if (demo === "bag") openBag();
@@ -1593,7 +1899,8 @@
   function bind() {
     updateRotateOverlay();
     window.addEventListener("orientationchange", updateRotateOverlay);
-    window.addEventListener("resize", updateRotateOverlay);
+    window.addEventListener("resize", () => { updateRotateOverlay(); placeRoomEva(); });
+    window.addEventListener("orientationchange", () => placeRoomEva());
     let lockTried = false;
     document.addEventListener("pointerup", () => {
       if (lockTried) return;
@@ -1695,8 +2002,12 @@
       showScreen("title");
     });
 
+    if ($("eva-room-hit")) {
+      $("eva-room-hit").addEventListener("click", (e) => { e.stopPropagation(); onRoomEvaClick(e); });
+    }
     $("screen-game").addEventListener("pointerup", (e) => {
-      if (e.target.closest("button, .action-bar, .modal, .end-card, .menu-btn, .hud, .hud-icons, .chip, .phone-shell, .hud-panel, .hotspots, .travel-fade")) return;
+      if (e.target.closest("button, .action-bar, .modal, .end-card, .menu-btn, .hud, .hud-icons, .chip, .phone-shell, .hud-panel, .hotspots, .travel-fade, .eva-meet, .eva-room")) return;
+      if (state.evaMeet && !state.talking) return;
       if (state.peek) {
         setPeek(false);
         return;
@@ -1723,7 +2034,7 @@
     });
   }
 
-  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, playTitleIntro, openBag, openSettings, openPhone, openChatThread, openTasks, travelTo, setPeek, getExpr: () => currentExpr, getState: () => state };
+  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, playTitleIntro, openBag, openSettings, openPhone, openChatThread, openTasks, travelTo, setPeek, getExpr: () => currentExpr, getState: () => state, openEvaMeet, closeEvaMeet, addAfecto, setAfecto, addEvaInfoBar, setEvaInfoBar };
 
   document.addEventListener("DOMContentLoaded", () => {
     bind();
