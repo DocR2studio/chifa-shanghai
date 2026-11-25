@@ -1037,11 +1037,27 @@ const STORY_EVENTS = [
         ]
       },
       {
+        id: "estirandose",
+        image: "assets/evento-desayuno/01b-eva-estirandose.webp",
+        fx: "kb-right",
+        lines: [
+          { id: "casi-esta", who: "Eva", text: "¡Mmm... ya casi está!" }
+        ]
+      },
+      {
         id: "plato",
         image: "assets/evento-desayuno/02-eva-plato.webp",
         fx: "kb-out",
         lines: [
           { id: "listo", who: "Eva", text: "¡Listo! Huevitos y café calientito. Siéntate." }
+        ]
+      },
+      {
+        id: "sonriendo-plato",
+        image: "assets/evento-desayuno/02b-eva-sonriendo-plato.webp",
+        fx: "kb-out",
+        lines: [
+          { id: "buen-provecho", who: "Eva", text: "¡Buen provecho!" }
         ]
       },
       {
