@@ -3,7 +3,7 @@
    Las imágenes por defecto están en assets/locs/ y assets/eva.png.
    El editor puede sustituirlas en el dispositivo (IndexedDB). */
 const STORY = {
-  title: "Título del juego",
+  title: "Unknown Love",
   version: "0.1"
 };
 

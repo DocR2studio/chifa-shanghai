@@ -1,8 +1,8 @@
 {
-  "name": "Título del juego",
+  "name": "Unknown Love",
   "short_name": "Novela",
   "description": "Novela visual en horizontal",
-  "start_url": "./?v=5",
+  "start_url": "./?v=6",
   "scope": "./",
   "display": "fullscreen",
   "orientation": "landscape",

@@ -50,6 +50,26 @@
       s.classList.toggle("is-on", on);
       s.setAttribute("aria-hidden", on ? "false" : "true");
     });
+    if (id === "title") playTitleIntro();
+  }
+
+  let titleTimer = null;
+  function playTitleIntro() {
+    const el = $("screen-title");
+    if (!el) return;
+    el.classList.remove("title-play", "title-ready");
+    void el.offsetWidth;
+    let reduce = false;
+    try {
+      reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    } catch (e) { /* ignore */ }
+    if (reduce) {
+      el.classList.add("title-play", "title-ready");
+      return;
+    }
+    el.classList.add("title-play");
+    clearTimeout(titleTimer);
+    titleTimer = setTimeout(() => el.classList.add("title-ready"), 2200);
   }
   function hideModals() {
     ["modal-menu", "modal-saves", "modal-confirm", "modal-map"].forEach((id) => {
@@ -129,7 +149,8 @@
     }
   }
   function refreshTitleButtons() {
-    $("btn-continuar").disabled = !latestSave();
+    const cargar = $("btn-title-cargar");
+    if (cargar) cargar.disabled = !latestSave();
   }
 
   /* ---------- Toast / HUD ---------- */
@@ -923,9 +944,9 @@
     $("btn-yes").addEventListener("click", (e) => { e.stopPropagation(); goPowered(); });
     $("btn-no").addEventListener("click", (e) => { e.stopPropagation(); closeGame(); });
     $("btn-jugar").addEventListener("click", openName);
-    $("btn-continuar").addEventListener("click", () => {
-      const snap = latestSave();
-      if (snap) applySnapshot(snap);
+    $("btn-title-cargar").addEventListener("click", () => {
+      if (!latestSave()) return;
+      openSaves("load");
     });
     $("btn-editor-lock").addEventListener("click", (e) => { e.stopPropagation(); openPin(); });
 
@@ -986,11 +1007,8 @@
       });
     });
 
-    const portada = $("portada-img");
-    portada.addEventListener("error", () => portada.classList.add("is-missing"));
-    $("game-title").textContent = STORY.title || "Título del juego";
     $("version-label").textContent = "v" + (STORY.version || "0.1");
-    document.title = STORY.title || "Título del juego";
+    document.title = STORY.title || "Unknown Love";
 
     document.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " " || e.key === "ArrowRight") {
@@ -1003,7 +1021,7 @@
     });
   }
 
-  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, getExpr: () => currentExpr };
+  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, playTitleIntro, getExpr: () => currentExpr };
 
   document.addEventListener("DOMContentLoaded", () => {
     bind();
