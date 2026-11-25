@@ -685,26 +685,42 @@
     if (!m) return path;
     return path + (path.indexOf("?") >= 0 ? "&" : "?") + "v=" + m[1];
   }
+  function evaInfoBarMax(id) {
+    const info = typeof EVA_INFO !== "undefined" ? EVA_INFO : {};
+    const found = (info.bars || []).find((b) => b.id === id);
+    if (found && found.max != null) return found.max;
+    if (id === "rosa" || id === "morada") return 150;
+    if (id === "roja") return 100;
+    return 100;
+  }
   function defaultEvaInfo() {
     const info = typeof EVA_INFO !== "undefined" ? EVA_INFO : {};
     const bars = {};
     const start = info.startBars || { rosa: 0, morada: 0, roja: 0 };
     (info.bars || [{ id: "rosa" }, { id: "morada" }, { id: "roja" }]).forEach((b) => {
-      bars[b.id] = start[b.id] != null ? start[b.id] : 0;
+      const raw = start[b.id] != null ? start[b.id] : 0;
+      bars[b.id] = clampInfoVal(raw, evaInfoBarMax(b.id));
     });
     return {
       bars: bars,
-      afecto: info.startAfecto != null ? info.startAfecto : 10
+      afecto: clampInfoVal(info.startAfecto != null ? info.startAfecto : 10, info.afectoMax || 100)
     };
   }
   function cloneEvaInfo(src) {
     const base = defaultEvaInfo();
     if (!src) return base;
     const bars = { ...base.bars };
-    if (src.bars) Object.keys(src.bars).forEach((k) => { bars[k] = src.bars[k]; });
-    return { bars: bars, afecto: src.afecto != null ? src.afecto : base.afecto };
+    const ids = new Set(Object.keys(bars).concat(src.bars ? Object.keys(src.bars) : []));
+    ids.forEach((k) => {
+      const raw = src.bars && src.bars[k] != null ? src.bars[k] : bars[k];
+      bars[k] = clampInfoVal(raw, evaInfoBarMax(k));
+    });
+    const info = typeof EVA_INFO !== "undefined" ? EVA_INFO : {};
+    const afecto = clampInfoVal(src.afecto != null ? src.afecto : base.afecto, info.afectoMax || 100);
+    return { bars: bars, afecto: afecto };
   }
   function mergeEvaInfo(src) {
+    /* Partidas viejas: se clampa cada barra a su máximo (rosa/morada 150, roja 100) y el afecto a 100. */
     return cloneEvaInfo(src);
   }
   function ensureEvaInfo() {
@@ -715,12 +731,16 @@
     const m = max == null ? 100 : max;
     return Math.max(0, Math.min(m, Math.round(Number(n) || 0)));
   }
+  function refreshEvaInfoUI() {
+    if (phoneScreen === "info" && $("modal-phone") && !$("modal-phone").hidden) openPhoneApp("info");
+    if (state.evaMeet && !state.talking) renderEvaMeetStats();
+  }
   function addAfecto(n) {
     const info = typeof EVA_INFO !== "undefined" ? EVA_INFO : {};
     const ev = ensureEvaInfo();
     ev.afecto = clampInfoVal((ev.afecto || 0) + (Number(n) || 0), info.afectoMax || 100);
     autosave();
-    if (phoneScreen === "info" && $("modal-phone") && !$("modal-phone").hidden) openPhoneApp("info");
+    refreshEvaInfoUI();
     return ev.afecto;
   }
   function setAfecto(n) {
@@ -728,24 +748,48 @@
     const ev = ensureEvaInfo();
     ev.afecto = clampInfoVal(n, info.afectoMax || 100);
     autosave();
-    if (phoneScreen === "info" && $("modal-phone") && !$("modal-phone").hidden) openPhoneApp("info");
+    refreshEvaInfoUI();
     return ev.afecto;
   }
   function addEvaInfoBar(id, n) {
-    const info = typeof EVA_INFO !== "undefined" ? EVA_INFO : {};
     const ev = ensureEvaInfo();
-    ev.bars[id] = clampInfoVal((ev.bars[id] || 0) + (Number(n) || 0), info.barsMax || 100);
+    ev.bars[id] = clampInfoVal((ev.bars[id] || 0) + (Number(n) || 0), evaInfoBarMax(id));
     autosave();
-    if (phoneScreen === "info" && $("modal-phone") && !$("modal-phone").hidden) openPhoneApp("info");
+    refreshEvaInfoUI();
     return ev.bars[id];
   }
   function setEvaInfoBar(id, n) {
-    const info = typeof EVA_INFO !== "undefined" ? EVA_INFO : {};
     const ev = ensureEvaInfo();
-    ev.bars[id] = clampInfoVal(n, info.barsMax || 100);
+    ev.bars[id] = clampInfoVal(n, evaInfoBarMax(id));
     autosave();
-    if (phoneScreen === "info" && $("modal-phone") && !$("modal-phone").hidden) openPhoneApp("info");
+    refreshEvaInfoUI();
     return ev.bars[id];
+  }
+  function appendEvaBarRow(parent, b, ev) {
+    const row = document.createElement("div");
+    row.className = "phone-eva-bar-row";
+    const track = document.createElement("div");
+    track.className = "phone-eva-bar";
+    track.setAttribute("data-bar", b.id);
+    const col = b.color || "#888";
+    let hx = String(col).replace("#", "");
+    if (hx.length === 3) hx = hx[0] + hx[0] + hx[1] + hx[1] + hx[2] + hx[2];
+    if (hx.length === 6) {
+      const r = parseInt(hx.slice(0, 2), 16), g = parseInt(hx.slice(2, 4), 16), bl = parseInt(hx.slice(4, 6), 16);
+      track.style.background = "rgba(" + r + "," + g + "," + bl + ",0.28)";
+    }
+    const max = evaInfoBarMax(b.id);
+    const v = ev.bars[b.id] != null ? ev.bars[b.id] : 0;
+    const fill = document.createElement("span");
+    fill.style.width = (max ? Math.max(0, Math.min(100, (v / max) * 100)) : 0) + "%";
+    fill.style.background = col;
+    track.appendChild(fill);
+    const lab = document.createElement("span");
+    lab.className = "phone-eva-bar-val";
+    lab.textContent = v + "/" + max;
+    row.appendChild(track);
+    row.appendChild(lab);
+    parent.appendChild(row);
   }
   function renderEvaInfoSheet() {
     const cfg = typeof EVA_INFO !== "undefined" ? EVA_INFO : {};
@@ -756,24 +800,7 @@
     top.className = "phone-eva-top";
     const barsBox = document.createElement("div");
     barsBox.className = "phone-eva-bars";
-    (cfg.bars || []).forEach((b) => {
-      const track = document.createElement("div");
-      track.className = "phone-eva-bar";
-      track.setAttribute("data-bar", b.id);
-      const col = b.color || "#888";
-      let hx = String(col).replace("#", "");
-      if (hx.length === 3) hx = hx[0] + hx[0] + hx[1] + hx[1] + hx[2] + hx[2];
-      if (hx.length === 6) {
-        const r = parseInt(hx.slice(0, 2), 16), g = parseInt(hx.slice(2, 4), 16), bl = parseInt(hx.slice(4, 6), 16);
-        track.style.background = "rgba(" + r + "," + g + "," + bl + ",0.28)";
-      }
-      const fill = document.createElement("span");
-      const v = ev.bars[b.id] != null ? ev.bars[b.id] : 0;
-      fill.style.width = v + "%";
-      fill.style.background = col;
-      track.appendChild(fill);
-      barsBox.appendChild(track);
-    });
+    (cfg.bars || []).forEach((b) => appendEvaBarRow(barsBox, b, ev));
     const heart = document.createElement("div");
     heart.className = "phone-eva-heart";
     heart.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.4 S3.2 14.2 3.2 8.8 A4.6 4.6 0 0 1 12 6.7 A4.6 4.6 0 0 1 20.8 8.8 C20.8 14.2 12 20.4 12 20.4 Z"/></svg>';
@@ -820,24 +847,7 @@
     top.className = "eva-meet-stats-row";
     const barsBox = document.createElement("div");
     barsBox.className = "eva-meet-stats-bars";
-    (cfg.bars || []).forEach((b) => {
-      const track = document.createElement("div");
-      track.className = "phone-eva-bar";
-      track.setAttribute("data-bar", b.id);
-      const col = b.color || "#888";
-      let hx = String(col).replace("#", "");
-      if (hx.length === 3) hx = hx[0] + hx[0] + hx[1] + hx[1] + hx[2] + hx[2];
-      if (hx.length === 6) {
-        const r = parseInt(hx.slice(0, 2), 16), g = parseInt(hx.slice(2, 4), 16), bl = parseInt(hx.slice(4, 6), 16);
-        track.style.background = "rgba(" + r + "," + g + "," + bl + ",0.28)";
-      }
-      const fill = document.createElement("span");
-      const v = ev.bars[b.id] != null ? ev.bars[b.id] : 0;
-      fill.style.width = v + "%";
-      fill.style.background = col;
-      track.appendChild(fill);
-      barsBox.appendChild(track);
-    });
+    (cfg.bars || []).forEach((b) => appendEvaBarRow(barsBox, b, ev));
     const heart = document.createElement("div");
     heart.className = "phone-eva-heart eva-meet-stats-heart";
     heart.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.4 S3.2 14.2 3.2 8.8 A4.6 4.6 0 0 1 12 6.7 A4.6 4.6 0 0 1 20.8 8.8 C20.8 14.2 12 20.4 12 20.4 Z"/></svg>';

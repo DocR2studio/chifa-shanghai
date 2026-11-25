@@ -2455,6 +2455,22 @@ body { min-height: 100dvh; }
   border-radius: inherit;
   min-width: 0;
 }
+.phone-eva-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.phone-eva-bar-row .phone-eva-bar { flex: 1; min-width: 0; }
+.phone-eva-bar-val {
+  flex: 0 0 auto;
+  min-width: 2.7em;
+  font-size: 0.6rem;
+  font-variant-numeric: lining-nums tabular-nums;
+  color: rgba(233, 237, 239, 0.8);
+  text-align: right;
+  letter-spacing: 0.01em;
+  font-family: var(--font-ui);
+}
 .phone-eva-heart {
   flex: 0 0 auto;
   width: 42px;
@@ -2520,11 +2536,11 @@ body { min-height: 100dvh; }
 /* ---- v13: meet stats + portrait placement ---- */
 .eva-meet-stats {
   position: absolute;
-  left: 55.7%;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 210px;
-  max-width: 26%;
+  left: 38.5%;
+  top: 11%;
+  transform: none;
+  width: 228px;
+  max-width: 29%;
   z-index: 2;
   padding: 10px 12px 11px;
   background: rgba(8, 10, 16, 0.86);
@@ -2537,7 +2553,11 @@ body { min-height: 100dvh; }
 }
 .eva-meet-stats[hidden] { display: none !important; }
 .eva-meet.is-in .eva-meet-stats {
-  animation: eva-menu-in 0.4s ease 0.08s both;
+  animation: eva-stats-in 0.4s ease 0.08s both;
+}
+@keyframes eva-stats-in {
+  from { opacity: 0; transform: translateX(10px); }
+  to { opacity: 1; transform: none; }
 }
 .eva-meet-stats-row {
   display: flex;
@@ -2559,6 +2579,10 @@ body { min-height: 100dvh; }
 .eva-meet-stats-heart svg {
   width: 22px;
   height: 22px;
+}
+.eva-meet-stats .phone-eva-bar-val {
+  font-size: 0.66rem;
+  color: rgba(243, 239, 230, 0.9);
 }
 .eva-meet-stats-heart b {
   font-size: 0.78rem;

@@ -384,15 +384,14 @@ const EVA_INFO = {
     { label: "Hijas", value: "1" },
     { label: "Estado", value: "Casada" }
   ],
-  /* Barras sin nombre por ahora. color e id se editan aquí; los valores viven en la partida. */
+  /* Barras sin nombre por ahora. color, id y max se editan aquí; los valores viven en la partida. */
   bars: [
-    { id: "rosa", color: "#e56b9a" },
-    { id: "morada", color: "#8a5cf6" },
-    { id: "roja", color: "#e23b3b" }
+    { id: "rosa", color: "#e56b9a", max: 150 },
+    { id: "morada", color: "#8a5cf6", max: 150 },
+    { id: "roja", color: "#e23b3b", max: 100 }
   ],
   startBars: { rosa: 0, morada: 0, roja: 0 },
   startAfecto: 10,
-  barsMax: 100,
   afectoMax: 100
 };
 
