@@ -30,9 +30,9 @@ const HOUSE = {
       image: "assets/locs/cuarto.jpg",
       look: "Tu cuarto está en orden. La cama, el escritorio y el armario esperan.",
       actions: [
-        { id: "dormir", label: "Dormir", energia: 40, text: "Cierras los ojos un rato. El cansancio se va poco a poco." },
         { id: "ejercicio", label: "Hacer ejercicio", kind: "exercise-home", energia: -10, text: "Haces una rutina breve en el cuarto. El cuerpo responde." },
-        { id: "gimnasio", label: "Gimnasio", comingSoon: true }
+        { id: "dormir", label: "Dormir", advance: "day", energia: 40, text: "Cierras los ojos. Cuando despiertas, ya es de mañana." },
+        { id: "descansar", label: "Descansar", advance: "moment", energia: 10, text: "Te recuestas un rato. El tiempo pasa sin prisa.", disabledAt: "madrugada", disabledHint: "Ya es madrugada. Si quieres que amanezca, mejor duerme." }
       ]
     },
     {
@@ -52,7 +52,8 @@ const HOUSE = {
       image: "assets/locs/cuarto-eva.jpg",
       look: "El cuarto de Eva es sencillo y luminoso. Hay libros junto a la ventana.",
       actions: [
-        { id: "mirar", label: "Mirar alrededor", text: "Todo está en su sitio. Un cuaderno cerrado descansa sobre el tocador." }
+        { id: "jugar-eva", label: "Jugar con Eva", scene: "jugar-eva", energia: -5, vinculo: 3, afecto: 2, text: "Pasan un rato entre juegos sencillos. Eva se distrae un poco." },
+        { id: "dormir-eva", label: "Dormir con Eva", advance: "day", energia: 40, vinculo: 2, afecto: 2, needRosa: 100, needMorada: 100, lockedHint: "Todavía no. Cuando Vinculo y Confianzas lleguen a 100, podrás quedarte a dormir.", text: "Se queda dormida a un lado, en paz. No pasa nada más. Amanece." }
       ]
     },
     {
@@ -61,10 +62,7 @@ const HOUSE = {
       floor: 2,
       image: "assets/locs/estudio.jpg",
       look: "El estudio huele a papel y madera. Hay una mesa lista para trabajar.",
-      actions: [
-        { id: "estudiar", label: "Estudiar", aprendizaje: 12, energia: -15, text: "Te concentras en los apuntes. Algo queda más claro que antes." },
-        { id: "archivo", label: "Consultar el archivo", needAprendizaje: 40, text: "Revisas el archivo con más cuidado. Ahora encaja algo que antes se te escapaba." }
-      ]
+      actions: []
     },
     {
       id: "bano",
@@ -72,9 +70,7 @@ const HOUSE = {
       floor: 2,
       image: "assets/locs/bano.jpg",
       look: "El baño está vacío y en silencio. Las toallas están dobladas.",
-      actions: [
-        { id: "asearse", label: "Asearse", energia: 8, text: "El agua fría te despeja. Te sientes un poco más despierto." }
-      ]
+      actions: []
     },
     {
       id: "escaleras",
@@ -82,9 +78,7 @@ const HOUSE = {
       floor: 0,
       image: "assets/locs/escaleras.jpg",
       look: "Las escaleras unen los dos pisos. El sol dibuja rayas en la madera.",
-      actions: [
-        { id: "observar", label: "Observar", text: "Desde aquí se ve el jardín a través del ventanal." }
-      ]
+      actions: []
     },
     {
       id: "cocina",
@@ -93,7 +87,10 @@ const HOUSE = {
       image: "assets/locs/cocina.jpg",
       look: "La cocina está cálida y ordenada. Hay fruta sobre la isla.",
       actions: [
-        { id: "comer", label: "Comer", energia: 25, text: "Preparas algo sencillo. La energía vuelve poco a poco." }
+        { id: "comer", label: "Comer", options: [
+          { id: "comer-solo", label: "Comer solo", scene: "comer-solo", energia: 25, text: "Comes con calma. Nadie interrumpe." },
+          { id: "comer-familia", label: "Comer en familia", scene: "comer-familia", energia: 25, vinculo: 2, afecto: 1, text: "Comen juntos. La mesa se siente un poco más cálida." }
+        ]}
       ]
     },
     {
@@ -103,7 +100,8 @@ const HOUSE = {
       image: "assets/locs/lavanderia.jpg",
       look: "Las dos máquinas descansan junto al tanque. En el estante están el detergente y un balde; las cajas quedan apiladas a un lado.",
       actions: [
-        { id: "ordenar", label: "Ordenar", text: "Doblas lo que había suelto. No es mucho, pero queda mejor." }
+        { id: "ordenar", label: "Ordenar", energia: -5, text: "Doblas lo que había suelto. No es mucho, pero queda mejor." },
+        { id: "broma", label: "Jugarle una broma", scene: "broma", energia: -2, paciencia: -15, pacienciaSkipAtHeart: 100, text: "La broma no cae del todo bien.", textIfSkipped: "Se ríe un poco, aunque pone los ojos en blanco." }
       ]
     },
     {
@@ -113,7 +111,10 @@ const HOUSE = {
       image: "assets/locs/sala.jpg",
       look: "La sala se llena de luz dorada. El jardín se ve enorme detrás del cristal.",
       actions: [
-        { id: "descansar", label: "Descansar", energia: 10, text: "Te sientas un momento en el sofá. El silencio no estorba." }
+        { id: "ver-tv", label: "Ver TV", options: [
+          { id: "tv-solo", label: "Ver TV solo", scene: "tv-solo", energia: 10, text: "Dejas el televisor un rato. El cansancio baja un poco." },
+          { id: "tv-familia", label: "Ver TV en familia", scene: "tv-familia", energia: 10, vinculo: 2, text: "Ven algo juntos, sin hablar mucho." }
+        ]}
       ]
     },
     {
@@ -123,8 +124,10 @@ const HOUSE = {
       image: "assets/locs/jardin.jpg",
       look: "El jardín está quieto. El agua de la piscina refleja los árboles.",
       actions: [
-        { id: "entrenar", label: "Entrenar", kind: "exercise-home", energia: -10, text: "Haces una rutina breve al aire libre. El cuerpo responde." },
-        { id: "gimnasio", label: "Gimnasio", comingSoon: true }
+        { id: "piscina", label: "Meterse a la piscina", options: [
+          { id: "piscina-solo", label: "Solo", scene: "piscina-solo", energia: -8, fuerza: 1, text: "El agua está fría al principio. Luego se siente bien." },
+          { id: "piscina-familia", label: "En familia", scene: "piscina-familia", energia: -5, vinculo: 2, text: "Comparten un rato en el agua, sin prisa." }
+        ]}
       ]
     },
     {
@@ -133,9 +136,7 @@ const HOUSE = {
       floor: 1,
       image: "assets/locs/cochera.jpg",
       look: "La cochera está ordenada. Hay espacio de sobra para moverse.",
-      actions: [
-        { id: "entrenar", label: "Entrenar", kind: "exercise-home", energia: -10, text: "Entrenas junto al banco de trabajo. Sales un poco más firme." }
-      ]
+      actions: []
     }
   ]
 };
@@ -369,7 +370,14 @@ const EVA_MENU = {
   place: {
     cocina: { x: 0.40, y: 0.885, h: 0.62 },
     sala: { x: 0.30, y: 0.885, h: 0.60 },
-    cuarto_eva: { x: 0.46, y: 0.885, h: 0.62 }
+    cuarto_eva: { x: 0.46, y: 0.885, h: 0.62 },
+    bano: { x: 0.70, y: 0.92, h: 0.58 },
+    estudio: { x: 0.48, y: 0.92, h: 0.60 },
+    pasillo: { x: 0.35, y: 0.92, h: 0.62 },
+    escaleras: { x: 0.22, y: 0.93, h: 0.64 },
+    lavanderia: { x: 0.22, y: 0.93, h: 0.62 },
+    cochera: { x: 0.30, y: 0.93, h: 0.60 },
+    jardin: { x: 0.88, y: 0.94, h: 0.58 }
   }
 };
 
@@ -524,10 +532,52 @@ function exampleInventory() {
   return DEFAULT_INVENTORY.map((it) => Object.assign({}, it));
 }
 
-function evaAt(moment, phase) {
-  if (phase === "intro") return HOUSE.start;
-  const map = HOUSE.evaByTime || {};
-  return map[moment] || "sala";
+function weekdayIndex(day) {
+  const d = Math.max(1, Number(day) || 1);
+  const names = (typeof EVA_SCHEDULE !== "undefined" && EVA_SCHEDULE.weekdays) || [];
+  const n = names.length || 7;
+  return (d - 1) % n;
+}
+function weekdayName(day) {
+  const names = (typeof EVA_SCHEDULE !== "undefined" && EVA_SCHEDULE.weekdays) || ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+  return names[weekdayIndex(day)] || names[0];
+}
+function evaMoveIndex(activityCount) {
+  const sch = (typeof EVA_SCHEDULE !== "undefined" && EVA_SCHEDULE) || {};
+  const per = sch.activitiesPerMove != null ? sch.activitiesPerMove : 2;
+  const moves = sch.movesPerSlot != null ? sch.movesPerSlot : 2;
+  const n = Math.max(1, Number(per) || 2);
+  const max = Math.max(1, Number(moves) || 2);
+  return Math.min(max - 1, Math.floor((Number(activityCount) || 0) / n));
+}
+function scheduleHash(day, moment, move) {
+  const slots = { "mañana": 1, "tarde": 2, "noche": 3, "madrugada": 4 };
+  let n = ((Number(day) || 1) * 73856093) ^ ((slots[moment] || 0) * 19349663) ^ ((Number(move) || 0) * 83492791);
+  n = Math.imul((n ^ (n >>> 16)) >>> 0, 2246822519);
+  n = Math.imul((n ^ (n >>> 13)) >>> 0, 3266489917);
+  return (n ^ (n >>> 16)) >>> 0;
+}
+function evaStatus(day, moment, activityCount, phase) {
+  if (phase === "intro") return { loc: HOUSE.start, cleaning: false, move: 0 };
+  const sch = (typeof EVA_SCHEDULE !== "undefined" && EVA_SCHEDULE) || {};
+  const move = evaMoveIndex(activityCount);
+  const pool = (sch.pools && sch.pools[moment]) || ["sala"];
+  const hash = scheduleHash(day, moment, move);
+  const poolLoc = pool.length ? pool[hash % pool.length] : "sala";
+  const wd = weekdayIndex(day);
+  const plan = sch.cleaning;
+  const dayPlan = Array.isArray(plan) ? (plan[wd] || []) : ((plan && (plan[wd] || plan[String(wd)])) || []);
+  const jobs = (dayPlan || []).filter((j) => j && j.slot === moment && j.room);
+  if (jobs.length) {
+    const job = jobs[hash % jobs.length];
+    const moves = sch.movesPerSlot != null ? sch.movesPerSlot : 2;
+    const cleanMove = scheduleHash(day, moment, 97) % Math.max(1, Number(moves) || 2);
+    if (move === cleanMove && job.room) return { loc: job.room, cleaning: true, move: move };
+  }
+  return { loc: poolLoc, cleaning: false, move: move };
+}
+function evaAt(moment, phase, day, activityCount) {
+  return evaStatus(day, moment, activityCount, phase).loc;
 }
 
 function locById(id) {
@@ -684,6 +734,42 @@ const EVA_PACIENCIA_RECOVERY = {
   heartBonusAt: 100
 };
 
+/* Horario semanal de Eva. Día 1 = Lunes … Día 7 = Domingo, y se repite.
+   Dos movimientos por franja (después de 2 y 4 actividades).
+   Si toca limpiar en esa franja, uno de los dos movimientos es la limpieza. */
+const EVA_SCHEDULE = {
+  weekdays: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"],
+  movesPerSlot: 2,
+  activitiesPerMove: 2,
+  pools: {
+    "mañana": ["bano", "cocina"],
+    "tarde": ["sala", "jardin"],
+    "noche": ["cuarto_eva", "estudio"],
+    "madrugada": ["cuarto_eva"]
+  },
+  cleaning: [
+    [ { slot: "mañana", room: "cocina" }, { slot: "tarde", room: "sala" } ],
+    [ { slot: "mañana", room: "bano" }, { slot: "tarde", room: "lavanderia" } ],
+    [ { slot: "mañana", room: "pasillo" }, { slot: "tarde", room: "escaleras" } ],
+    [ { slot: "tarde", room: "jardin" }, { slot: "noche", room: "estudio" } ],
+    [ { slot: "tarde", room: "cochera" } ],
+    [ { slot: "noche", room: "cuarto_eva" } ],
+    [ { slot: "mañana", room: "cocina" } ]
+  ]
+};
+
+const EVA_ROOM_ACTIONS = {
+  ayudarEva: {
+    id: "ayudar-eva",
+    label: "Ayudar a Eva",
+    recover: "ayudar",
+    energia: -5,
+    vinculo: 2,
+    text: "Echas una mano con la limpieza. Eva lo agradece."
+  },
+  backLabel: "Volver"
+};
+
 const EVA_RULES = {
   warningAt: -80,
   kickAt: -100,
@@ -702,7 +788,15 @@ const EVA_RULES = {
 const EDITOR_SCENES = [
   { id: "eva-peticion", name: "Eva Petición", kind: "scene" },
   { id: "eva-accion", name: "Eva Acción", kind: "scene" },
-  { id: "eva-regalo", name: "Regalo", kind: "scene" }
+  { id: "eva-regalo", name: "Regalo", kind: "scene" },
+  { id: "comer-solo", name: "Comer solo", kind: "scene" },
+  { id: "comer-familia", name: "Comer en familia", kind: "scene" },
+  { id: "tv-solo", name: "Ver TV solo", kind: "scene" },
+  { id: "tv-familia", name: "Ver TV en familia", kind: "scene" },
+  { id: "piscina-solo", name: "Piscina solo", kind: "scene" },
+  { id: "piscina-familia", name: "Piscina en familia", kind: "scene" },
+  { id: "broma", name: "Jugarle una broma", kind: "scene" },
+  { id: "jugar-eva", name: "Jugar con Eva", kind: "scene" }
 ];
 
 const STORY_PATCH_KEY = "eva_novela_story_v16";
@@ -730,6 +824,9 @@ function editableStory() {
     giftOk: EVA_MENU.giftOk,
     rules: EVA_RULES,
     pacienciaRecovery: EVA_PACIENCIA_RECOVERY,
+    schedule: EVA_SCHEDULE,
+    roomActionTemplate: EVA_ROOM_ACTIONS,
+    roomActions: HOUSE.locations.map((l) => ({ id: l.id, actions: l.actions || [] })),
     inventory: DEFAULT_INVENTORY
   }));
 }
@@ -768,6 +865,20 @@ function applyEditableStory(data) {
   if (data.giftOk) EVA_MENU.giftOk = data.giftOk;
   if (data.rules) Object.assign(EVA_RULES, data.rules);
   if (data.pacienciaRecovery && typeof EVA_PACIENCIA_RECOVERY !== "undefined") Object.assign(EVA_PACIENCIA_RECOVERY, data.pacienciaRecovery);
+  if (data.schedule && typeof EVA_SCHEDULE !== "undefined") {
+    if (Array.isArray(data.schedule.weekdays)) EVA_SCHEDULE.weekdays = data.schedule.weekdays;
+    if (data.schedule.movesPerSlot != null) EVA_SCHEDULE.movesPerSlot = data.schedule.movesPerSlot;
+    if (data.schedule.activitiesPerMove != null) EVA_SCHEDULE.activitiesPerMove = data.schedule.activitiesPerMove;
+    if (data.schedule.pools) EVA_SCHEDULE.pools = data.schedule.pools;
+    if (data.schedule.cleaning) EVA_SCHEDULE.cleaning = data.schedule.cleaning;
+  }
+  if (data.roomActionTemplate && typeof EVA_ROOM_ACTIONS !== "undefined") Object.assign(EVA_ROOM_ACTIONS, data.roomActionTemplate);
+  if (Array.isArray(data.roomActions)) {
+    data.roomActions.forEach((src) => {
+      const loc = locById(src.id);
+      if (loc && Array.isArray(src.actions)) loc.actions = src.actions;
+    });
+  }
   if (Array.isArray(data.inventory)) {
     DEFAULT_INVENTORY.length = 0;
     data.inventory.forEach((it) => DEFAULT_INVENTORY.push(it));

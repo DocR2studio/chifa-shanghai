@@ -218,7 +218,14 @@
   function timeLabel() {
     const mom = TIME_LABELS[state.moment] || state.moment;
     if (!state.day) return mom;
-    return "Día " + state.day + " · " + mom;
+    const wd = typeof weekdayName === "function" ? weekdayName(state.day) : "";
+    return wd ? ("Día " + state.day + " · " + wd + " · " + mom) : ("Día " + state.day + " · " + mom);
+  }
+  function currentEvaStatus() {
+    if (typeof evaStatus === "function") {
+      return evaStatus(state.day, state.moment, state.activityCount, state.phase);
+    }
+    return { loc: (typeof evaAt === "function" ? evaAt(state.moment, state.phase, state.day, state.activityCount) : null), cleaning: false, move: 0 };
   }
   function applyTimeShade() {
     const el = $("game-shade");
@@ -228,7 +235,11 @@
     if (cls) el.classList.add(cls);
   }
   function isEvaHere(locId) {
-    return evaAt(state.moment, state.phase) === locId;
+    return currentEvaStatus().loc === locId;
+  }
+  function isEvaCleaning(locId) {
+    const st = currentEvaStatus();
+    return !!(st.cleaning && st.loc === locId);
   }
   function setPeek(on) {
     state.peek = !!on;
@@ -545,6 +556,8 @@
     state.lineIndex = 0;
     state.talking = null;
     state.talkLines = [];
+    state.actionSub = null;
+    hideActionScene();
     setPeek(false);
     stopTyping();
     hideModals();
@@ -565,27 +578,101 @@
     renderHotspots();
     autosave();
   }
+  function ayudarEvaAction() {
+    const src = (typeof EVA_ROOM_ACTIONS !== "undefined" && EVA_ROOM_ACTIONS.ayudarEva) || {
+      id: "ayudar-eva", label: "Ayudar a Eva", recover: "ayudar", energia: -5, vinculo: 2,
+      text: "Echas una mano con la limpieza. Eva lo agradece."
+    };
+    return Object.assign({}, src);
+  }
+  function isActionLocked(act) {
+    if (!act) return false;
+    if (act.needRosa != null || act.needMorada != null) {
+      const ev = ensureEvaInfo();
+      if (act.needRosa != null && (ev.bars.rosa || 0) < act.needRosa) return true;
+      if (act.needMorada != null && (ev.bars.morada || 0) < act.needMorada) return true;
+    }
+    return false;
+  }
+  function isActionDisabled(act) {
+    return !!(act && act.disabledAt && state.moment === act.disabledAt);
+  }
+  function roomActionList(loc) {
+    if (state.actionSub && state.actionSub.options) {
+      return { list: state.actionSub.options.slice(), back: true };
+    }
+    const list = ((loc && loc.actions) || []).slice();
+    if (loc && isEvaCleaning(loc.id)) {
+      if (!list.some((x) => x.id === "ayudar-eva")) {
+        list.splice(Math.min(1, list.length), 0, ayudarEvaAction());
+      }
+    }
+    return { list: list, back: false };
+  }
   function renderActions(loc, evaHere) {
     const bar = $("action-bar");
     bar.innerHTML = "";
-    (loc.actions || []).forEach((act) => {
+    const pack = roomActionList(loc);
+    pack.list.forEach((act) => {
       const b = document.createElement("button");
       b.type = "button";
       b.className = "chip";
       if (act.comingSoon) b.classList.add("is-soon");
       if (act.needAprendizaje && state.bars.aprendizaje < act.needAprendizaje) b.classList.add("is-locked");
+      if (isActionLocked(act) || isActionDisabled(act)) b.classList.add("is-locked");
       b.textContent = act.comingSoon ? act.label + " (Próximamente)" : act.label;
       b.addEventListener("click", (e) => {
         e.stopPropagation();
         doAction(act);
       });
-      bar.appendChild(b);
+      if (editorLive) {
+        const wrap = document.createElement("div");
+        wrap.className = "ed-row";
+        wrap.appendChild(b);
+        wrap.appendChild(makePencil(() => {
+          openEditModal("Acción", act.label || "", (v) => {
+            act.label = v;
+            saveStoryPatch();
+            renderActions(loc, evaHere);
+          });
+        }, "Editar acción"));
+        bar.appendChild(wrap);
+      } else {
+        bar.appendChild(b);
+      }
     });
-    bar.hidden = false;
+    if (pack.back) {
+      const back = document.createElement("button");
+      back.type = "button";
+      back.className = "chip";
+      back.textContent = (typeof EVA_ROOM_ACTIONS !== "undefined" && EVA_ROOM_ACTIONS.backLabel) || (EVA_HABLAR && EVA_HABLAR.backLabel) || "Volver";
+      back.addEventListener("click", (e) => {
+        e.stopPropagation();
+        state.actionSub = null;
+        renderActions(loc, evaHere);
+      });
+      bar.appendChild(back);
+    }
+    bar.hidden = pack.list.length === 0 && !pack.back;
   }
   function doAction(act) {
+    if (!act) return;
     if (act.comingSoon) {
       toast("Próximamente.");
+      return;
+    }
+    if (isActionDisabled(act)) {
+      toast(act.disabledHint || "No puedes hacer eso ahora.");
+      return;
+    }
+    if (isActionLocked(act)) {
+      toast(act.lockedHint || "Todavía no.");
+      return;
+    }
+    if (act.options && act.options.length) {
+      state.actionSub = { options: act.options, parent: act };
+      const loc = locById(state.location);
+      renderActions(loc, isEvaHere(state.location));
       return;
     }
     if (act.needAprendizaje && state.bars.aprendizaje < act.needAprendizaje) {
@@ -608,10 +695,37 @@
       state.bars.fuerza = clamp(state.bars.fuerza + act.fuerza);
     }
     if (act.aprendizaje) state.bars.aprendizaje = clamp(state.bars.aprendizaje + act.aprendizaje);
-    countActivity();
+    const skipAt = act.pacienciaSkipAtHeart;
+    let paciencia = act.paciencia || 0;
+    if (paciencia && skipAt != null && (ensureEvaInfo().afecto || 0) >= skipAt) {
+      paciencia = 0;
+      if (act.textIfSkipped) text = act.textIfSkipped;
+    }
+    const applied = applyStatDelta({
+      afecto: act.afecto,
+      vinculo: act.vinculo,
+      confianza: act.confianza,
+      rosa: act.rosa,
+      morada: act.morada,
+      paciencia: paciencia
+    });
+    if (applied && applied.paciencia) showStatDelta({ paciencia: applied.paciencia });
+    if (act.recover) recoverPaciencia(act.recover);
+    const advances = act.advance === "day" || act.advance === "moment";
+    if (!advances) countActivity();
     renderHUD();
     autosave();
-    startTalk([{ speaker: "", text: text }]);
+    state.actionSub = null;
+    if (act.scene) {
+      showActionScene(act.scene);
+      state.pendingActionScene = true;
+    }
+    if (advances) state.pendingAdvance = act.advance;
+    startTalk([{
+      speaker: "",
+      text: text,
+      _onEdit: (v) => { act.text = v; saveStoryPatch(); }
+    }]);
   }
   function showNodeChoices(choices) {
     const box = $("choices");
@@ -665,8 +779,18 @@
     showDialogue(false);
     clearLinePencil();
     stopExprSeq();
+    if (state.pendingActionScene) {
+      state.pendingActionScene = false;
+      hideActionScene();
+    }
     if (state.pendingKick || isPacienciaKick()) {
       ejectFromHouse();
+      return;
+    }
+    if (state.pendingAdvance) {
+      const kind = state.pendingAdvance;
+      state.pendingAdvance = null;
+      fadeAdvance(kind);
       return;
     }
     if (state.evaMeet) {
@@ -1244,11 +1368,12 @@
       locs.forEach((loc) => {
         const t = document.createElement("button");
         t.type = "button";
-        t.className = "map-tile" + (loc.id === state.location ? " is-here" : "");
+        const evaHereTile = isEvaHere(loc.id);
+        t.className = "map-tile" + (loc.id === state.location ? " is-here" : "") + (evaHereTile ? " is-eva" : "");
         t.style.backgroundImage = "url('" + loc.image + "')";
         const who = [];
         if (loc.id === state.location) who.push("Tú");
-        if (isEvaHere(loc.id)) who.push("Eva");
+        if (evaHereTile) who.push("Eva");
         if (who.length) {
           const pins = document.createElement("em");
           pins.className = "map-pins";
@@ -1507,6 +1632,64 @@
     if (prev && prev !== locId) recoverPaciencia("room");
     await wait(220);
     traveling = false;
+  }
+  async function fadeAdvance(kind) {
+    traveling = true;
+    const fade = $("travel-fade");
+    if (fade) fade.classList.add("is-on");
+    await wait(350);
+    if (kind === "day") {
+      state.day = (state.day || 1) + 1;
+      state.moment = "mañana";
+      state.activityCount = 0;
+      toast("Amanece. Día " + state.day + ".");
+    } else if (kind === "moment") {
+      const times = (typeof TIMES !== "undefined" && TIMES) || ["mañana", "tarde", "noche", "madrugada"];
+      const i = times.indexOf(state.moment);
+      if (i >= 0 && i < times.length - 1) {
+        state.moment = times[i + 1];
+        state.activityCount = 0;
+        toast("Ahora es de " + (TIME_LABELS[state.moment] || state.moment).toLowerCase() + ".");
+      }
+    }
+    applyTimeShade();
+    renderHUD();
+    const loc = locById(state.location);
+    const evaHere = isEvaHere(state.location);
+    showRoomEva(evaHere);
+    if (loc) renderActions(loc, evaHere);
+    autosave();
+    if (fade) {
+      fade.offsetWidth;
+      fade.classList.remove("is-on");
+    }
+    await wait(500);
+    traveling = false;
+  }
+  function hideActionScene() {
+    const meet = $("eva-meet");
+    if (meet) meet.classList.remove("is-scene-only");
+    if (!state.evaMeet) {
+      showMeetScene(null);
+      if (meet) {
+        meet.hidden = true;
+        meet.classList.remove("has-scene", "is-in", "is-talking");
+      }
+      const game = $("screen-game");
+      if (game) game.classList.remove("is-eva-meet");
+    }
+  }
+  function showActionScene(sceneId) {
+    if (!sceneId) return;
+    const meet = $("eva-meet");
+    if (meet) {
+      meet.hidden = false;
+      meet.classList.add("is-scene-only");
+      meet.classList.remove("is-talking", "is-in");
+    }
+    const game = $("screen-game");
+    if (game) game.classList.add("is-eva-meet");
+    showMeetScene(sceneId, { showEmpty: true });
   }
   function openBag(opts) {
     hideModals();
@@ -2341,7 +2524,7 @@
       }
     }], null, { countsAsActivity: false });
   }
-  async function showMeetScene(sceneId) {
+  async function showMeetScene(sceneId, opts) {
     meetSceneId = sceneId || null;
     const slot = $("eva-scene-slot");
     const meet = $("eva-meet");
@@ -2356,7 +2539,8 @@
     let media = { imageURL: null };
     try { media = await MediaStore.mediaFor(sceneId); } catch (e) { /* ignore */ }
     const has = !!(media && media.imageURL);
-    if (!has && !editorLive) {
+    const showEmpty = !!(opts && opts.showEmpty);
+    if (!has && !editorLive && !showEmpty) {
       slot.hidden = true;
       if (meet) meet.classList.remove("has-scene");
       if ($("btn-agregar-foto")) $("btn-agregar-foto").hidden = true;
@@ -2542,6 +2726,8 @@
     list.innerHTML = "";
     list.appendChild(renderBarsEditorCard());
     list.appendChild(renderPacienciaRecoverCard());
+    list.appendChild(renderEvaScheduleCard());
+    list.appendChild(renderRoomActionsCard());
     list.appendChild(renderElogiarSeqCard());
     for (const item of EDITOR_ITEMS.filter((i) => i.kind === "scene")) {
       list.appendChild(await renderMediaCard(item));
@@ -2647,6 +2833,138 @@
     return card;
   }
 
+
+  function formatCleaningDay(jobs) {
+    return (jobs || []).map((j) => (j.slot || "") + ":" + (j.room || "")).filter((s) => s !== ":").join(", ");
+  }
+  function parseCleaningDay(text) {
+    return String(text || "").split(",").map((part) => {
+      const s = part.trim();
+      if (!s) return null;
+      const i = s.indexOf(":");
+      if (i < 0) return { slot: s, room: "" };
+      return { slot: s.slice(0, i).trim(), room: s.slice(i + 1).trim() };
+    }).filter((j) => j && j.slot && j.room);
+  }
+  function renderEvaScheduleCard() {
+    const card = document.createElement("article");
+    card.className = "editor-card editor-schedule-card";
+    const h = document.createElement("h3");
+    h.textContent = "Horario de Eva";
+    card.appendChild(h);
+    const note = document.createElement("p");
+    note.className = "editor-note";
+    note.textContent = "Día 1 es lunes. En cada franja Eva se mueve dos veces. Escribe las habitaciones de cada franja (separadas por coma) y el plan de limpieza: mañana:cocina, tarde:sala.";
+    card.appendChild(note);
+    if (typeof EVA_SCHEDULE === "undefined") return card;
+    const sch = EVA_SCHEDULE;
+    const slots = ["mañana", "tarde", "noche", "madrugada"];
+    const poolBox = document.createElement("div");
+    poolBox.className = "schedule-pools";
+    slots.forEach((slot) => {
+      const row = document.createElement("div");
+      row.className = "seq-row";
+      const lab = document.createElement("label");
+      lab.textContent = (typeof TIME_LABELS !== "undefined" && TIME_LABELS[slot]) || slot;
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.value = ((sch.pools && sch.pools[slot]) || []).join(", ");
+      inp.addEventListener("change", () => {
+        if (!sch.pools) sch.pools = {};
+        sch.pools[slot] = inp.value.split(",").map((s) => s.trim()).filter(Boolean);
+        saveStoryPatch();
+      });
+      row.appendChild(lab);
+      row.appendChild(inp);
+      poolBox.appendChild(row);
+    });
+    card.appendChild(poolBox);
+    const cleanTitle = document.createElement("h4");
+    cleanTitle.textContent = "Plan de limpieza (lunes a domingo)";
+    card.appendChild(cleanTitle);
+    const days = sch.weekdays || [];
+    if (!Array.isArray(sch.cleaning)) sch.cleaning = days.map(() => []);
+    days.forEach((name, i) => {
+      const row = document.createElement("div");
+      row.className = "seq-row";
+      const lab = document.createElement("label");
+      lab.textContent = name;
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.value = formatCleaningDay(sch.cleaning[i] || []);
+      inp.addEventListener("change", () => {
+        sch.cleaning[i] = parseCleaningDay(inp.value);
+        inp.value = formatCleaningDay(sch.cleaning[i]);
+        saveStoryPatch();
+      });
+      row.appendChild(lab);
+      row.appendChild(inp);
+      card.appendChild(row);
+    });
+    return card;
+  }
+  function renderRoomActionsCard() {
+    const card = document.createElement("article");
+    card.className = "editor-card editor-room-actions-card";
+    const h = document.createElement("h3");
+    h.textContent = "Acciones de cada habitación";
+    card.appendChild(h);
+    const note = document.createElement("p");
+    note.className = "editor-note";
+    note.textContent = "Puedes cambiar el texto de cada botón y la línea que se ve al usarlo. «Ayudar a Eva» solo aparece cuando ella está limpiando.";
+    card.appendChild(note);
+    if (typeof EVA_ROOM_ACTIONS !== "undefined" && EVA_ROOM_ACTIONS.ayudarEva) {
+      const a = EVA_ROOM_ACTIONS.ayudarEva;
+      const row = document.createElement("div");
+      row.className = "seq-row";
+      const lab = document.createElement("label");
+      lab.textContent = "Ayudar a Eva";
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.value = a.label || "";
+      inp.addEventListener("change", () => { a.label = inp.value; saveStoryPatch(); });
+      row.appendChild(lab);
+      row.appendChild(inp);
+      row.appendChild(makePencil(() => {
+        openEditModal("Línea de Ayudar a Eva", a.text || "", (v) => { a.text = v; saveStoryPatch(); });
+      }, "Editar línea"));
+      card.appendChild(row);
+    }
+    (HOUSE.locations || []).forEach((loc) => {
+      const block = document.createElement("div");
+      block.className = "room-act-block";
+      const title = document.createElement("h4");
+      title.textContent = loc.name || loc.id;
+      block.appendChild(title);
+      const acts = loc.actions || [];
+      if (!acts.length) {
+        const empty = document.createElement("p");
+        empty.className = "editor-note";
+        empty.textContent = "Sin acciones fijas.";
+        block.appendChild(empty);
+      }
+      const walk = (act, prefix) => {
+        const row = document.createElement("div");
+        row.className = "seq-row";
+        const lab = document.createElement("label");
+        lab.textContent = prefix || "Acción";
+        const inp = document.createElement("input");
+        inp.type = "text";
+        inp.value = act.label || "";
+        inp.addEventListener("change", () => { act.label = inp.value; saveStoryPatch(); });
+        row.appendChild(lab);
+        row.appendChild(inp);
+        row.appendChild(makePencil(() => {
+          openEditModal(act.label || "Línea", act.text || "", (v) => { act.text = v; saveStoryPatch(); });
+        }, "Editar línea"));
+        block.appendChild(row);
+        (act.options || []).forEach((opt) => walk(opt, act.label || "Opción"));
+      };
+      acts.forEach((act) => walk(act, loc.name));
+      card.appendChild(block);
+    });
+    return card;
+  }
   function renderPacienciaRecoverCard() {
     const card = document.createElement("article");
     card.className = "editor-card editor-recover-card";
@@ -3135,7 +3453,7 @@
     });
   }
 
-  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, playTitleIntro, openBag, openSettings, openPhone, openChatThread, openTasks, travelTo, setPeek, getExpr: () => currentExpr, getState: () => state, openEvaMeet, closeEvaMeet, addAfecto, setAfecto, addEvaInfoBar, setEvaInfoBar, setEditorLive, ejectFromHouse };
+  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, playTitleIntro, openBag, openSettings, openPhone, openChatThread, openTasks, travelTo, setPeek, getExpr: () => currentExpr, getState: () => state, openEvaMeet, closeEvaMeet, addAfecto, setAfecto, addEvaInfoBar, setEvaInfoBar, setEditorLive, ejectFromHouse, evaStatus: currentEvaStatus, weekdayName: (d) => weekdayName(d != null ? d : state.day), renderHUD, renderActions, showRoomEva, isEvaHere, isEvaCleaning };
 
   document.addEventListener("DOMContentLoaded", () => {
     bind();
