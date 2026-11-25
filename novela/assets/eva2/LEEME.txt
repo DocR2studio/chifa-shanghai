@@ -1,11 +1,11 @@
-Retratos de Eva para los diálogos.
-Soltar aquí PNG transparentes (1024 px, de la cintura hacia arriba) con estos nombres:
+Retratos de Eva para los diálogos y el menú cercano.
+Archivos a 900 px, con transparencia: PNG y WebP (el juego usa WebP y, si falta, el PNG).
 
-  neutral.png
-  molesta.png
-  sonrojada.png
-  nerviosa.png
-  feliz.png
-  triste.png
+  neutral.png / .webp
+  molesta.png / .webp      (enojada)
+  sonrojada.png / .webp    (enamorada)
+  nerviosa.png / .webp
+  feliz.png / .webp
+  triste.png / .webp
 
 Si un archivo no está, el juego usa assets/eva-close.png.

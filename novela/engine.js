@@ -320,6 +320,37 @@
     const found = Object.keys(CHARACTERS).find((k) => CHARACTERS[k].name.toLowerCase() === n);
     return found || (n === "eva" ? "eva" : "");
   }
+  function eva2WebpPath(path) {
+    if (!path || /^(blob:|data:|https?:)/i.test(path)) return "";
+    const bare = String(path).split("?")[0];
+    if (/^assets\/eva2\/.+\.png$/i.test(bare)) return bare.replace(/\.png$/i, ".webp");
+    return "";
+  }
+  function loadExprImage(img, url, fallback) {
+    return new Promise((res) => {
+      const list = [];
+      const webp = eva2WebpPath(url);
+      if (webp) list.push(assetUrl(webp));
+      if (url) {
+        const u = assetUrl(url);
+        if (list.indexOf(u) < 0) list.push(u);
+      }
+      if (fallback) {
+        const fb = assetUrl(fallback);
+        if (list.indexOf(fb) < 0) list.push(fb);
+      }
+      let i = 0;
+      const tryNext = () => {
+        if (i >= list.length) { res(); return; }
+        const src = list[i++];
+        img.onload = () => res();
+        img.onerror = () => tryNext();
+        if (img.getAttribute("src") === src && img.complete && img.naturalWidth) { res(); return; }
+        img.src = src;
+      };
+      tryNext();
+    });
+  }
   async function resolveExprUrl(charId, expr) {
     expr = expr || "neutral";
     const custom = await MediaStore.mediaFor(mediaKey(charId, expr));
@@ -340,33 +371,18 @@
     const b = $("sprite-eva-b");
     const instant = !spriteVisible || (opts && opts.instant) || currentExpr === expr;
     const visible = spriteOn === "a" ? a : b;
-    if (spriteVisible && currentExpr === expr && (visible.getAttribute("src") === url || visible.getAttribute("src") === assetUrl(url))) {
+    const curSrc = visible.getAttribute("src");
+    const webpSrc = eva2WebpPath(url) ? assetUrl(eva2WebpPath(url)) : "";
+    if (spriteVisible && currentExpr === expr && (curSrc === url || curSrc === assetUrl(url) || (webpSrc && curSrc === webpSrc))) {
       layer.hidden = false;
       return;
     }
     const incoming = spriteOn === "a" ? b : a;
     const outgoing = spriteOn === "a" ? a : b;
     incoming.alt = (CHARACTERS[charId] && CHARACTERS[charId].name) || "Eva";
-    const src = assetUrl(url);
-    const fallback = assetUrl((typeof EVA_EXPR_FALLBACK !== "undefined" && EVA_EXPR_FALLBACK) || "assets/eva-close.png");
     incoming.removeAttribute("src");
-    incoming.src = src;
     incoming.hidden = false;
-    const ready = new Promise((res) => {
-      if (incoming.complete && incoming.naturalWidth && incoming.getAttribute("src") === src) res();
-      else {
-        incoming.onload = () => res();
-        incoming.onerror = () => {
-          if (charId === "eva" && incoming.getAttribute("src") !== fallback) {
-            incoming.onload = () => res();
-            incoming.src = fallback;
-            return;
-          }
-          res();
-        };
-      }
-    });
-    await ready;
+    await loadExprImage(incoming, url, charId === "eva" ? ((typeof EVA_EXPR_FALLBACK !== "undefined" && EVA_EXPR_FALLBACK) || "assets/eva-close.png") : "");
     if (ticket !== exprTicket) return;
     incoming.classList.add("is-on");
     outgoing.classList.remove("is-on");
@@ -926,7 +942,8 @@
     const img = $("eva-meet-close");
     if (img) {
       img.alt = "Eva";
-      img.src = assetUrl((typeof EVA_MENU !== "undefined" && EVA_MENU.closeImage) || "assets/eva-close.png");
+      const closeSrc = (typeof EVA_MENU !== "undefined" && EVA_MENU.closeImage) || exprAsset("eva", "neutral") || "assets/eva-close.png";
+      loadExprImage(img, closeSrc, (typeof EVA_EXPR_FALLBACK !== "undefined" && EVA_EXPR_FALLBACK) || "assets/eva-close.png");
     }
     buildEvaMeetMenu();
     renderEvaMeetStats();

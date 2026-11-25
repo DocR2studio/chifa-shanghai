@@ -321,7 +321,7 @@ const EVA = {
 
 const EVA_MENU = {
   fullImage: "assets/eva-full.png",
-  closeImage: "assets/eva-close.png",
+  closeImage: "assets/eva2/neutral.png",
   options: [
     { id: "hablar", label: "Hablar" },
     { id: "regalar", label: "Regalar" },
