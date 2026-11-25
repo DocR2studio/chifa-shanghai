@@ -150,50 +150,49 @@ const HOUSE = {
    kind: "back" dibuja una flecha discreta (para el jardín, sin puerta). */
 const DOORS = {
   pasillo: [
-    { id: "cuarto", to: "cuarto", label: "Tu cuarto", points: [[0.068, 0.00], [0.178, 0.015], [0.180, 0.875], [0.062, 0.90]] },
-    { id: "bano", to: "bano", label: "Baño", points: [[0.228, 0.155], [0.290, 0.185], [0.292, 0.80], [0.226, 0.815]] },
-    { id: "escaleras", to: "escaleras", label: "Escaleras", points: [[0.412, 0.465], [0.598, 0.465], [0.598, 0.725], [0.412, 0.725]] },
-    { id: "cuarto_eva", to: "cuarto_eva", label: "Cuarto de Eva", points: [[0.625, 0.215], [0.670, 0.215], [0.672, 0.73], [0.623, 0.73]] },
-    { id: "estudio", to: "estudio", label: "Estudio", points: [[0.688, 0.168], [0.752, 0.152], [0.758, 0.785], [0.686, 0.75]] },
-    { id: "cerrado", to: null, closed: true, label: "Cerrado por ahora", points: [[0.790, 0.03], [0.922, 0.00], [0.938, 0.90], [0.788, 0.90]] }
+    { id: "cuarto", to: "cuarto", label: "Tu cuarto", points: [[0.0969, 0.0111], [0.2109, 0.1083], [0.2125, 0.9986], [0.0961, 0.9986]] },
+    { id: "bano", to: "bano", label: "Baño", points: [[0.25, 0.1639], [0.3078, 0.2167], [0.3078, 0.7639], [0.25, 0.8194]] },
+    { id: "escaleras", to: "escaleras", label: "Escaleras", points: [[0.4125, 0.4917], [0.5906, 0.4917], [0.5906, 0.725], [0.4125, 0.725]] },
+    { id: "cuarto_eva", to: "cuarto_eva", label: "Cuarto de Eva", points: [[0.6406, 0.2417], [0.6687, 0.2222], [0.6687, 0.7333], [0.6406, 0.7361]] },
+    { id: "estudio", to: "estudio", label: "Estudio", points: [[0.6859, 0.2083], [0.7422, 0.1597], [0.7422, 0.8194], [0.6859, 0.7639]] },
+    { id: "cerrado", to: null, closed: true, label: "Cerrado por ahora", points: [[0.7688, 0.0528], [0.8812, 0.0111], [0.8828, 0.9986], [0.7688, 0.9472]] }
   ],
   cuarto: [
-    { id: "pasillo", to: "pasillo", label: "Pasillo", points: [[0.800, 0.04], [0.905, 0.04], [0.910, 0.84], [0.798, 0.84]] }
+    { id: "pasillo", to: "pasillo", label: "Pasillo", points: [[0.8063, 0.0806], [0.9141, 0.0389], [0.9156, 0.8139], [0.8063, 0.7667]] }
   ],
   cuarto_eva: [
-    { id: "pasillo", to: "pasillo", label: "Pasillo", points: [[0.072, 0.00], [0.158, 0.00], [0.160, 0.86], [0.068, 0.88]] }
+    { id: "pasillo", to: "pasillo", label: "Pasillo", points: [[0.0688, 0.0167], [0.1961, 0.1042], [0.1969, 0.8917], [0.0688, 0.975]] }
   ],
   bano: [
-    { id: "pasillo", to: "pasillo", label: "Pasillo", points: [[0.775, 0.00], [0.895, 0.00], [0.905, 0.88], [0.772, 0.88]] }
+    { id: "pasillo", to: "pasillo", label: "Pasillo", points: [[0.775, 0.1056], [0.9016, 0.0083], [0.9031, 0.9972], [0.775, 0.8917]] }
   ],
   estudio: [
-    { id: "pasillo", to: "pasillo", label: "Pasillo", points: [[0.070, 0.00], [0.162, 0.00], [0.165, 0.86], [0.065, 0.88]] }
+    { id: "pasillo", to: "pasillo", label: "Pasillo", points: [[0.0672, 0.0194], [0.1953, 0.1111], [0.1969, 0.8917], [0.0672, 0.9792]] }
   ],
   escaleras: [
-    { id: "pasillo", to: "pasillo", label: "Pasillo (piso 2)", points: [[0.385, 0.00], [0.555, 0.00], [0.530, 0.26], [0.725, 0.34], [0.725, 0.825], [0.488, 0.825], [0.500, 0.36], [0.455, 0.26]] },
-    { id: "lavanderia", to: "lavanderia", label: "Lavandería", points: [[0.375, 0.475], [0.465, 0.475], [0.465, 0.835], [0.375, 0.835]] },
-    { id: "sala", to: "sala", label: "Sala", points: [[0.748, 0.92], [0.748, 0.22], [0.765, 0.08], [0.820, 0.015], [0.875, 0.08], [0.895, 0.22], [0.898, 0.92]] }
+    { id: "pasillo", to: "pasillo", label: "Pasillo (piso 2)", points: [[0.3719, 0.0], [0.4359, 0.0], [0.5016, 0.3444], [0.6656, 0.4889], [0.6781, 0.5417], [0.6906, 0.5972], [0.7016, 0.6528], [0.7125, 0.7083], [0.7227, 0.7639], [0.7266, 0.8556], [0.4828, 0.8556], [0.4859, 0.75], [0.4906, 0.3472], [0.4336, 0.4306], [0.3906, 0.1667]] },
+    { id: "lavanderia", to: "lavanderia", label: "Lavandería", points: [[0.375, 0.5111], [0.475, 0.5111], [0.475, 0.8472], [0.375, 0.8472]] },
+    { id: "sala", to: "sala", label: "Sala", points: [[0.8203, 0.9139], [0.8203, 0.2431], [0.8266, 0.1319], [0.8375, 0.0625], [0.8594, 0.0278], [0.8812, 0.0625], [0.8922, 0.1319], [0.8969, 0.2431], [0.8969, 0.9972]] }
   ],
   sala: [
-    { id: "escaleras", to: "escaleras", label: "Escaleras", points: [[0.075, 0.86], [0.072, 0.20], [0.090, 0.08], [0.125, 0.025], [0.165, 0.025], [0.200, 0.08], [0.215, 0.20], [0.218, 0.86]] },
-    { id: "jardin", to: "jardin", label: "Jardín y piscina", points: [[0.548, 0.225], [0.698, 0.225], [0.698, 0.66], [0.548, 0.66]] },
-    { id: "cocina", to: "cocina", label: "Cocina", points: [[0.748, 0.18], [0.828, 0.18], [0.828, 0.80], [0.748, 0.80]] },
-    { id: "cochera", to: "cochera", label: "Cochera", points: [[0.838, 0.02], [0.925, 0.00], [0.938, 0.92], [0.838, 0.90]] }
+    { id: "escaleras", to: "escaleras", label: "Escaleras", points: [[0.0922, 0.9056], [0.0922, 0.2333], [0.0953, 0.1389], [0.1094, 0.0694], [0.1328, 0.0333], [0.1562, 0.0222], [0.1836, 0.0444], [0.2016, 0.0972], [0.2094, 0.1806], [0.2109, 0.2778], [0.2109, 0.9236]] },
+    { id: "jardin", to: "jardin", label: "Jardín y piscina", points: [[0.5312, 0.2083], [0.7047, 0.2083], [0.7047, 0.6417], [0.5312, 0.6417]] },
+    { id: "cocina", to: "cocina", label: "Cocina", points: [[0.7406, 0.1833], [0.8078, 0.15], [0.8078, 0.7611], [0.7406, 0.7417]] },
+    { id: "cochera", to: "cochera", label: "Cochera", points: [[0.8187, 0.1], [0.9359, 0.0139], [0.9375, 0.9792], [0.8187, 0.8917]] }
   ],
   cocina: [
-    { id: "sala", to: "sala", label: "Sala", points: [[0.072, 0.06], [0.175, 0.06], [0.178, 0.88], [0.068, 0.90]] }
+    { id: "sala", to: "sala", label: "Sala", points: [[0.0859, 0.075], [0.1797, 0.1639], [0.1797, 0.9056], [0.0859, 0.975]] }
   ],
   cochera: [
-    { id: "sala", to: "sala", label: "Sala", points: [[0.052, 0.06], [0.195, 0.06], [0.198, 0.83], [0.050, 0.83]] }
+    { id: "sala", to: "sala", label: "Sala", points: [[0.0625, 0.0694], [0.2109, 0.1028], [0.2125, 0.8333], [0.0625, 0.8778]] }
   ],
   jardin: [
-    { id: "sala", to: "sala", label: "Volver a la sala", kind: "back", points: [[0.28, 0.86], [0.72, 0.86], [0.72, 0.995], [0.28, 0.995]] }
+    { id: "sala", to: "sala", label: "Volver a la sala", kind: "back", points: [[0.2797, 0.8597], [0.7203, 0.8597], [0.7203, 0.9944], [0.2797, 0.9944]] }
   ],
   lavanderia: [
-    { id: "escaleras", to: "escaleras", label: "Escaleras", points: [[0.500, 0.08], [0.608, 0.08], [0.608, 0.675], [0.500, 0.675]] }
+    { id: "escaleras", to: "escaleras", label: "Escaleras", points: [[0.4938, 0.0611], [0.6031, 0.0611], [0.6031, 0.6694], [0.4938, 0.6694]] }
   ]
 };
-
 const TASKS = [
   { id: "hablar-eva-cocina", text: "Habla con Eva en la cocina", when: { type: "talk", location: "cocina" } },
   { id: "ejercicio-una", text: "Haz ejercicio una vez", when: { type: "action", kind: "exercise-home" } },
