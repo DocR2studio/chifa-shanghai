@@ -585,7 +585,7 @@
     };
     return Object.assign({}, src);
   }
-  function isActionLocked(act) {
+  function actionNeedsUnmet(act) {
     if (!act) return false;
     if (act.needRosa != null || act.needMorada != null) {
       const ev = ensureEvaInfo();
@@ -593,6 +593,20 @@
       if (act.needMorada != null && (ev.bars.morada || 0) < act.needMorada) return true;
     }
     return false;
+  }
+  function isActionLocked(act) {
+    if (!act || act.denyTalk) return false;
+    return actionNeedsUnmet(act);
+  }
+  function playDeniedAction(act) {
+    const text = act.deniedText || "Ve a descansar a tu propia cama.";
+    const expr = act.deniedExpr || "neutral";
+    startTalk([{
+      who: "Eva",
+      expr: expr,
+      text: text,
+      _onEdit: (v) => { act.deniedText = v; saveStoryPatch(); }
+    }]);
   }
   function isActionDisabled(act) {
     return !!(act && act.disabledAt && state.moment === act.disabledAt);
@@ -667,6 +681,10 @@
     }
     if (isActionLocked(act)) {
       toast(act.lockedHint || "Todavía no.");
+      return;
+    }
+    if (act.denyTalk && actionNeedsUnmet(act)) {
+      playDeniedAction(act);
       return;
     }
     if (act.options && act.options.length) {
@@ -2725,6 +2743,7 @@
     const list = $("editor-list");
     list.innerHTML = "";
     list.appendChild(renderBarsEditorCard());
+    list.appendChild(renderAvisoCard());
     list.appendChild(renderPacienciaRecoverCard());
     list.appendChild(renderEvaScheduleCard());
     list.appendChild(renderRoomActionsCard());
@@ -2958,10 +2977,74 @@
           openEditModal(act.label || "Línea", act.text || "", (v) => { act.text = v; saveStoryPatch(); });
         }, "Editar línea"));
         block.appendChild(row);
+        if (act.denyTalk || act.deniedText != null) {
+          const drow = document.createElement("div");
+          drow.className = "seq-row";
+          const dlab = document.createElement("label");
+          dlab.textContent = "Negativa";
+          const dinp = document.createElement("input");
+          dinp.type = "text";
+          dinp.value = act.deniedText || "";
+          const saveDenied = () => { act.deniedText = dinp.value; saveStoryPatch(); };
+          dinp.addEventListener("change", saveDenied);
+          drow.appendChild(dlab);
+          drow.appendChild(dinp);
+          drow.appendChild(makePencil(() => {
+            openEditModal("Negativa de " + (act.label || "acción"), dinp.value, (v) => {
+              dinp.value = v;
+              saveDenied();
+            });
+          }, "Editar negativa"));
+          block.appendChild(drow);
+        }
         (act.options || []).forEach((opt) => walk(opt, act.label || "Opción"));
       };
       acts.forEach((act) => walk(act, loc.name));
       card.appendChild(block);
+    });
+    return card;
+  }
+
+  function renderAvisoCard() {
+    const card = document.createElement("article");
+    card.className = "editor-card editor-aviso-card";
+    const h = document.createElement("h3");
+    h.textContent = "Aviso inicial";
+    card.appendChild(h);
+    const note = document.createElement("p");
+    note.className = "editor-note";
+    note.textContent = "Este texto se muestra al abrir el juego, antes de la pantalla de título.";
+    card.appendChild(note);
+    if (typeof AVISO === "undefined") return card;
+    const fields = [
+      ["title", "Título"],
+      ["text", "Texto"],
+      ["button", "Botón"]
+    ];
+    fields.forEach((pair) => {
+      const row = document.createElement("div");
+      row.className = "seq-row";
+      const lab = document.createElement("label");
+      lab.textContent = pair[1];
+      const isText = pair[0] === "text";
+      const inp = isText ? document.createElement("textarea") : document.createElement("input");
+      if (!isText) inp.type = "text";
+      inp.value = AVISO[pair[0]] != null ? AVISO[pair[0]] : "";
+      const save = () => {
+        AVISO[pair[0]] = inp.value;
+        saveStoryPatch();
+        fillAvisoScreen();
+      };
+      inp.addEventListener("change", save);
+      row.appendChild(lab);
+      row.appendChild(inp);
+      row.appendChild(makePencil(() => {
+        openEditModal(pair[1], inp.value, (v) => {
+          inp.value = v;
+          save();
+        });
+      }, "Editar"));
+      card.appendChild(row);
     });
     return card;
   }
@@ -3152,6 +3235,7 @@
     if (demo === "warning") { showScreen("warning"); return; }
     if (demo === "powered") { showScreen("powered"); return; }
     if (demo === "legal") { showScreen("legal"); return; }
+    if (demo === "aviso") { fillAvisoScreen(); showScreen("aviso"); return; }
     if (demo === "title") { showScreen("title"); refreshTitleButtons(); return; }
     if (demo === "closed") { showScreen("closed"); return; }
     if (demo === "name") { openName(); return; }
@@ -3248,7 +3332,17 @@
   }
   function goLegal() {
     showScreen("legal");
-    waitOrTap(4000, $("screen-legal"), 400).then(goTitle);
+    waitOrTap(4000, $("screen-legal"), 400).then(goAviso);
+  }
+  function fillAvisoScreen() {
+    const cfg = (typeof AVISO !== "undefined" && AVISO) || {};
+    if ($("aviso-title")) $("aviso-title").textContent = cfg.title || "Aviso";
+    if ($("aviso-text")) $("aviso-text").textContent = cfg.text || "";
+    if ($("btn-aviso")) $("btn-aviso").textContent = cfg.button || "Entendido";
+  }
+  function goAviso() {
+    fillAvisoScreen();
+    showScreen("aviso");
   }
   async function goTitle() {
     showScreen("black");
@@ -3307,6 +3401,7 @@
 
     $("btn-yes").addEventListener("click", (e) => { e.stopPropagation(); goPowered(); });
     $("btn-no").addEventListener("click", (e) => { e.stopPropagation(); closeGame(); });
+    if ($("btn-aviso")) $("btn-aviso").addEventListener("click", (e) => { e.stopPropagation(); goTitle(); });
     $("btn-jugar").addEventListener("click", openName);
     $("btn-title-cargar").addEventListener("click", () => {
       if (!latestSave()) return;

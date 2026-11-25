@@ -53,7 +53,7 @@ const HOUSE = {
       look: "El cuarto de Eva es sencillo y luminoso. Hay libros junto a la ventana.",
       actions: [
         { id: "jugar-eva", label: "Jugar con Eva", scene: "jugar-eva", energia: -5, vinculo: 3, afecto: 2, text: "Pasan un rato entre juegos sencillos. Eva se distrae un poco." },
-        { id: "dormir-eva", label: "Dormir con Eva", advance: "day", energia: 40, vinculo: 2, afecto: 2, needRosa: 100, needMorada: 100, lockedHint: "Todavía no. Cuando Vinculo y Confianzas lleguen a 100, podrás quedarte a dormir.", text: "Se queda dormida a un lado, en paz. No pasa nada más. Amanece." }
+        { id: "dormir-eva", label: "Dormir con Eva", advance: "day", energia: 40, vinculo: 2, afecto: 2, needRosa: 100, needMorada: 100, denyTalk: true, deniedExpr: "neutral", deniedText: "Ve a descansar a tu propia cama.", text: "Se queda dormida a un lado, en paz. No pasa nada más. Amanece." }
       ]
     },
     {
@@ -799,6 +799,12 @@ const EDITOR_SCENES = [
   { id: "jugar-eva", name: "Jugar con Eva", kind: "scene" }
 ];
 
+const AVISO = {
+  title: "Aviso",
+  text: "Unknown Love es una obra de ficción. Todos los personajes, lugares y hechos son inventados, y todos los personajes son mayores de edad. Cualquier parecido con personas reales es pura coincidencia. Gracias por jugar.",
+  button: "Entendido"
+};
+
 const STORY_PATCH_KEY = "eva_novela_story_v16";
 
 function editableStory() {
@@ -827,6 +833,7 @@ function editableStory() {
     schedule: EVA_SCHEDULE,
     roomActionTemplate: EVA_ROOM_ACTIONS,
     roomActions: HOUSE.locations.map((l) => ({ id: l.id, actions: l.actions || [] })),
+    aviso: AVISO,
     inventory: DEFAULT_INVENTORY
   }));
 }
@@ -879,6 +886,7 @@ function applyEditableStory(data) {
       if (loc && Array.isArray(src.actions)) loc.actions = src.actions;
     });
   }
+  if (data.aviso && typeof AVISO !== "undefined") Object.assign(AVISO, data.aviso);
   if (Array.isArray(data.inventory)) {
     DEFAULT_INVENTORY.length = 0;
     data.inventory.forEach((it) => DEFAULT_INVENTORY.push(it));

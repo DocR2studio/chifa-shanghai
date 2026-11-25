@@ -9,10 +9,10 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="screen-orientation" content="landscape">
   <title>Título del juego</title>
-  <link rel="manifest" href="manifest.json?v=19">
+  <link rel="manifest" href="manifest.json?v=20">
   <link rel="icon" href="assets/logo-eva.jpg">
   <link rel="apple-touch-icon" href="assets/logo-eva.jpg">
-  <link rel="stylesheet" href="style.css?v=19">
+  <link rel="stylesheet" href="style.css?v=20">
 </head>
 <body>
 
@@ -47,9 +47,9 @@
         <p class="kicker">Potenciado por</p>
         <div class="brand-row">
           <div class="brand-card">
-            <img src="assets/logo-eva.jpg?v=19" alt="Eva_D2studio" class="brand-logo" width="900" height="900">
+            <img src="assets/logo-eva.jpg?v=20" alt="Eva_D2studio" class="brand-logo" width="900" height="900">
           </div>
-          <img src="assets/verificado.png?v=19" alt="Verificado" class="brand-check">
+          <img src="assets/verificado.png?v=20" alt="Verificado" class="brand-check">
         </div>
         <p class="brand-name">Eva_D2studio</p>
       </div>
@@ -69,18 +69,34 @@
       </div>
     </section>
 
+
+    <section id="screen-aviso" class="screen" aria-label="Aviso">
+      <div class="aviso-inner">
+        <div class="aviso-mark" aria-hidden="true">
+          <svg viewBox="0 0 64 64" width="72" height="72" focusable="false">
+            <circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" stroke-width="2.2"/>
+            <rect x="29.4" y="14.5" width="5.2" height="23.5" rx="2.6" fill="currentColor"/>
+            <circle cx="32" cy="46.5" r="3.15" fill="currentColor"/>
+          </svg>
+        </div>
+        <h2 class="aviso-title" id="aviso-title">Aviso</h2>
+        <p class="aviso-text" id="aviso-text">Unknown Love es una obra de ficción. Todos los personajes, lugares y hechos son inventados, y todos los personajes son mayores de edad. Cualquier parecido con personas reales es pura coincidencia. Gracias por jugar.</p>
+        <button type="button" id="btn-aviso" class="btn btn-primary aviso-btn">Entendido</button>
+      </div>
+    </section>
+
     <section id="screen-title" class="screen" aria-label="Pantalla de inicio">
       <div class="title-bg-pink" aria-hidden="true"></div>
       <div class="title-stage-wrap">
         <div class="title-stage" id="title-stage">
           <h1 class="title-logo-wrap">
-            <img class="title-logo" src="assets/title/logo.png?v=19" alt="Unknown Love" width="475" height="263">
+            <img class="title-logo" src="assets/title/logo.png?v=20" alt="Unknown Love" width="475" height="263">
           </h1>
           <div class="title-eyes">
-            <img class="title-eyes-top" src="assets/title/ojos-enojada.png?v=19" alt="" width="430" height="215">
-            <img class="title-eyes-bot" src="assets/title/ojos-enamorada.png?v=19" alt="" width="430" height="215">
+            <img class="title-eyes-top" src="assets/title/ojos-enojada.png?v=20" alt="" width="430" height="215">
+            <img class="title-eyes-bot" src="assets/title/ojos-enamorada.png?v=20" alt="" width="430" height="215">
           </div>
-          <img class="title-eva" src="assets/title/eva.png?v=19" alt="" width="214" height="705">
+          <img class="title-eva" src="assets/title/eva.png?v=20" alt="" width="214" height="705">
           <div class="title-actions">
             <button type="button" id="btn-jugar" class="title-btn">Jugar</button>
             <button type="button" id="btn-title-cargar" class="title-btn" disabled>Cargar</button>
@@ -314,9 +330,9 @@
           </div>
           <div id="phone-home" class="phone-body phone-home">
             <div class="phone-apps">
-              <button type="button" class="phone-app" data-app="contacts"><img class="phone-app-icon" src="assets/phone/app-contactos.png?v=19" alt=""><span>Contactos</span></button>
-              <button type="button" class="phone-app" data-app="camera"><img class="phone-app-icon" src="assets/phone/app-camara.png?v=19" alt=""><span>Cámara</span></button>
-              <button type="button" class="phone-app" data-app="info"><img class="phone-app-icon" src="assets/phone/app-info.png?v=19" alt=""><span>Info</span></button>
+              <button type="button" class="phone-app" data-app="contacts"><img class="phone-app-icon" src="assets/phone/app-contactos.png?v=20" alt=""><span>Contactos</span></button>
+              <button type="button" class="phone-app" data-app="camera"><img class="phone-app-icon" src="assets/phone/app-camara.png?v=20" alt=""><span>Cámara</span></button>
+              <button type="button" class="phone-app" data-app="info"><img class="phone-app-icon" src="assets/phone/app-info.png?v=20" alt=""><span>Info</span></button>
             </div>
           </div>
           <div id="phone-app" class="phone-body phone-app-screen" hidden>
@@ -357,9 +373,9 @@
 
 
   </div>
-  <script src="vendor/jszip.min.js?v=19"></script>
-  <script src="story.js?v=19"></script>
-  <script src="media.js?v=19"></script>
-  <script src="engine.js?v=19"></script>
+  <script src="vendor/jszip.min.js?v=20"></script>
+  <script src="story.js?v=20"></script>
+  <script src="media.js?v=20"></script>
+  <script src="engine.js?v=20"></script>
 </body>
 </html>
