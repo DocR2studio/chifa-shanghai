@@ -3568,3 +3568,76 @@ body { min-height: 100dvh; }
 @media (max-width: 900px) {
   .editor-accion-card .accion-nums { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+#event-stage.event-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  background: #050508;
+  opacity: 1;
+  transition: opacity 0.7s ease;
+}
+#event-stage.event-stage[hidden] { display: none !important; }
+#event-stage.event-stage.is-leaving { opacity: 0; pointer-events: none; }
+.event-shot {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.7s ease;
+  overflow: hidden;
+}
+.event-shot.is-on { opacity: 1; }
+.event-blur {
+  position: absolute;
+  inset: -8%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(28px) brightness(0.55) saturate(0.85);
+  transform: scale(1.12);
+}
+.event-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  display: block;
+  z-index: 1;
+  transform-origin: 50% 50%;
+}
+.event-shot.fx-kb-in .event-img { animation: event-kb-in var(--event-dur, 18s) linear forwards; }
+.event-shot.fx-kb-out .event-img { animation: event-kb-out var(--event-dur, 18s) linear forwards; }
+.event-shot.fx-kb-left .event-img { animation: event-kb-left var(--event-dur, 18s) linear forwards; }
+.event-shot.fx-kb-right .event-img { animation: event-kb-right var(--event-dur, 18s) linear forwards; }
+@keyframes event-kb-in { from { transform: scale(1); } to { transform: scale(1.06); } }
+@keyframes event-kb-out { from { transform: scale(1.06); } to { transform: scale(1); } }
+@keyframes event-kb-left { from { transform: scale(1.03) translateX(0); } to { transform: scale(1.06) translateX(-2.2%); } }
+@keyframes event-kb-right { from { transform: scale(1.03) translateX(0); } to { transform: scale(1.06) translateX(2.2%); } }
+#screen-game.is-event-cine #hotspots,
+#screen-game.is-event-cine #eva-room,
+#screen-game.is-event-cine #action-bar,
+#screen-game.is-event-cine #sprite-layer,
+#screen-game.is-event-cine .sprite-prota-layer,
+#screen-game.is-event-cine #hud,
+#screen-game.is-event-cine #hud-mission,
+#screen-game.is-event-cine #loc-name {
+  visibility: hidden;
+  pointer-events: none;
+}
+#screen-game.is-event-cine #dialogue.dialogue {
+  left: 10%;
+  right: 10%;
+  bottom: calc(16px + var(--safe-bot));
+  background: rgba(8, 8, 12, 0.86);
+}
+#screen-game.is-event-cine #choices.choices {
+  left: 18%;
+  right: 18%;
+  bottom: calc(168px + var(--safe-bot));
+}
+@media (prefers-reduced-motion: reduce) {
+  .event-img { animation: none !important; }
+  .event-shot, #event-stage.event-stage { transition: none; }
+}

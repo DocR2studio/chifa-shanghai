@@ -68,7 +68,10 @@
   }
 
   function showScreen(id) {
-    if (id !== "game") stopIntroCine();
+    if (id !== "game") {
+      stopIntroCine();
+      stopEventSequence();
+    }
     document.querySelectorAll(".screen").forEach((s) => {
       const on = s.id === "screen-" + id;
       s.classList.toggle("is-on", on);
@@ -617,10 +620,15 @@
       renderHUD();
     }
     const cid = charIdFromName(who);
-    if (cid && !exprSeqActive()) showEvaSprite(true, lineExpr(line));
+    const eventCine = !!(state.eventCine || (document.getElementById("screen-game") || {}).classList.contains("is-event-cine"));
+    if (eventCine) {
+      showEvaSprite(false);
+      showProtaSprite(false);
+      setDuoLayout(null);
+    } else if (cid && !exprSeqActive()) showEvaSprite(true, lineExpr(line));
     else if (cid && exprSeqActive()) showEvaSprite(true, currentExpr || lineExpr(line));
     showDialogue(true);
-    setDuoLayout(cid === "eva" ? "eva" : (isProtaWho(who) ? "prota" : "none"));
+    if (!eventCine) setDuoLayout(cid === "eva" ? "eva" : (isProtaWho(who) ? "prota" : "none"));
     typeLine(fillName(line.text, state.name));
     bindLinePencil(line);
     if (state.phase === "intro") autosave();
@@ -888,7 +896,17 @@
       btn.textContent = fillName(c.text, state.name);
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
-        startNode(c.next);
+        if (typeof c.onPick === "function") c.onPick();
+        else if (c.afecto || c.rosa || c.morada || c.paciencia) {
+          const applied = applyStatDelta({
+            afecto: c.afecto,
+            rosa: c.rosa,
+            morada: c.morada,
+            paciencia: c.paciencia
+          });
+          if (applied) showStatDelta(applied);
+        }
+        if (c.next) startNode(c.next);
       });
       box.appendChild(btn);
     });
@@ -1856,11 +1874,18 @@
     setImg(custom.imageURL || loc.image || "");
   }
   function maybeTriggerEvent() {
-    if (state.phase !== "house" || state.talking || state.evaMeet || traveling) return false;
+    if (state.phase !== "house" || state.talking || state.evaMeet || traveling || state.eventCine) return false;
     const ev = storyEvents().find((e) => eventPending(e) && e.location === state.location);
-    if (!ev || !Array.isArray(ev.lines) || !ev.lines.length) return false;
-    playStoryEvent(ev);
-    return true;
+    if (!ev) return false;
+    if (Array.isArray(ev.shots) && ev.shots.length) {
+      playEventSequence(ev);
+      return true;
+    }
+    if (Array.isArray(ev.lines) && ev.lines.length) {
+      playStoryEvent(ev);
+      return true;
+    }
+    return false;
   }
   function playStoryEvent(ev) {
     closeEvaMeet(true);
@@ -1871,6 +1896,149 @@
       else { renderHotspots(); autosave(); }
     };
     startTalk(ev.lines);
+  }
+
+  let eventRun = 0;
+  let eventFront = "a";
+  function stopEventSequence() {
+    eventRun += 1;
+    state.eventCine = null;
+    const stage = $("event-stage");
+    if (stage) {
+      stage.hidden = true;
+      stage.classList.remove("is-leaving");
+      stage.querySelectorAll(".event-shot").forEach((el) => {
+        el.className = "event-shot";
+        const img = el.querySelector(".event-img");
+        const blur = el.querySelector(".event-blur");
+        if (img) img.removeAttribute("src");
+        if (blur) blur.style.backgroundImage = "";
+      });
+    }
+    const game = $("screen-game");
+    if (game) game.classList.remove("is-event-cine");
+  }
+  function eventSleep(ms) {
+    return new Promise((r) => setTimeout(r, ms));
+  }
+  function waitTalk(talk) {
+    return new Promise((resolve) => {
+      const conv = typeof normalizeTalk === "function" ? normalizeTalk(talk) : talk;
+      if (!conv) { resolve(); return; }
+      const nodes = conv.nodes || {};
+      const start = conv.start || "main";
+      const first = nodes[start];
+      const hasLines = first && Array.isArray(first.lines) && first.lines.length;
+      const hasChoices = first && Array.isArray(first.choices) && first.choices.length;
+      if (!hasLines && !hasChoices) { resolve(); return; }
+      talkDoneHook = resolve;
+      startTalk(conv);
+    });
+  }
+  function eventShow(shot) {
+    const a = $("event-shot-a");
+    const b = $("event-shot-b");
+    if (!a || !b || !shot || !shot.image) return Promise.resolve();
+    const next = eventFront === "a" ? b : a;
+    const prev = eventFront === "a" ? a : b;
+    const img = next.querySelector(".event-img");
+    const blur = next.querySelector(".event-blur");
+    const url = assetUrl(shot.image);
+    return new Promise((resolve) => {
+      let fired = false;
+      const go = () => {
+        if (fired) return;
+        fired = true;
+        next.className = "event-shot fx-" + (shot.fx || "kb-in");
+        next.style.setProperty("--event-dur", "18000ms");
+        if (blur) blur.style.backgroundImage = "url(\"" + url + "\")";
+        void next.offsetWidth;
+        next.classList.add("is-on");
+        prev.classList.remove("is-on");
+        prev.classList.add("is-out");
+        eventFront = eventFront === "a" ? "b" : "a";
+        resolve();
+      };
+      img.onload = go;
+      img.onerror = go;
+      img.alt = "";
+      img.src = url;
+      if (img.complete && img.naturalWidth) go();
+    });
+  }
+  function shotTalkConv(shot) {
+    const lines = (shot && shot.lines) || [];
+    const choices = (shot && shot.choices) || [];
+    if (!choices.length) return lines;
+    const nodes = { ask: { lines: lines, choices: [] } };
+    choices.forEach((ch) => {
+      const id = ch.id || ("c" + Math.random().toString(36).slice(2));
+      nodes.ask.choices.push({
+        text: ch.label || "…",
+        next: id,
+        afecto: ch.afecto,
+        rosa: ch.rosa,
+        morada: ch.morada,
+        paciencia: ch.paciencia,
+        onPick: undefined
+      });
+      nodes[id] = { lines: ch.lines || [] };
+    });
+    return { start: "ask", nodes: nodes };
+  }
+  async function playEventSequence(ev) {
+    if (!ev || !Array.isArray(ev.shots) || !ev.shots.length) {
+      playStoryEvent(ev);
+      return;
+    }
+    const run = ++eventRun;
+    closeEvaMeet(true);
+    showEvaSprite(false);
+    showProtaSprite(false);
+    setDuoLayout(null);
+    showRoomEva(false);
+    if ($("action-bar")) $("action-bar").hidden = true;
+    if ($("hotspots")) setSvgHidden($("hotspots"), true);
+    state.eventCine = ev.id;
+    eventFront = "a";
+    const game = $("screen-game");
+    if (game) game.classList.add("is-event-cine");
+    const stage = $("event-stage");
+    if (stage) {
+      stage.hidden = false;
+      stage.classList.remove("is-leaving");
+    }
+    for (let i = 0; i < ev.shots.length; i++) {
+      if (run !== eventRun) return;
+      const shot = ev.shots[i];
+      await eventShow(shot);
+      await eventSleep(i === 0 ? 500 : 700);
+      if (run !== eventRun) return;
+      await waitTalk(shotTalkConv(shot));
+      if (run !== eventRun) return;
+    }
+    if (Array.isArray(ev.close) && ev.close.length) {
+      await waitTalk(ev.close);
+      if (run !== eventRun) return;
+    }
+    if ((state.eventsDone || []).indexOf(ev.id) === -1) {
+      state.eventsDone = (state.eventsDone || []).concat([ev.id]);
+    }
+    if (ev.completes) completeMission(ev.completes);
+    else { renderHotspots(); autosave(); }
+    if (stage) stage.classList.add("is-leaving");
+    const fade = $("travel-fade");
+    if (fade) fade.classList.add("is-on");
+    await eventSleep(700);
+    if (run !== eventRun) return;
+    stopEventSequence();
+    const dest = ev.exitTo || "sala";
+    if (typeof locById === "function" && locById(dest)) enterHouse(dest);
+    else enterHouse(state.location);
+    if (fade) {
+      fade.offsetWidth;
+      fade.classList.remove("is-on");
+    }
   }
 
   /* Intro cinematográfica (solo partida nueva). */
@@ -2162,8 +2330,23 @@
       });
     }
     storyEvents().forEach((ev) => {
-      sub("Evento: " + ev.id);
+      sub("Evento: " + (ev.id || ""));
+      (ev.shots || []).forEach((shot, si) => {
+        (shot.lines || []).forEach((line, i) => {
+          addRow((si + 1) + ". " + (shot.id || "") + " · " + whoLabel(line.who), line.text, true, (v) => { line.text = v; });
+        });
+        (shot.choices || []).forEach((ch) => {
+          addRow("Opción · " + (ch.id || ""), ch.label || "", false, (v) => { ch.label = v; });
+          (ch.lines || []).forEach((line) => {
+            addRow((ch.label || ch.id || "Opción") + " · " + whoLabel(line.who), line.text, true, (v) => { line.text = v; });
+          });
+        });
+      });
+      (ev.close || []).forEach((line, i) => {
+        addRow("Cierre " + (i + 1) + " · " + whoLabel(line.who), line.text, true, (v) => { line.text = v; });
+      });
       (ev.lines || []).forEach((line, i) => {
+        if (ev.shots && ev.shots.length) return;
         addRow((i + 1) + ". " + whoLabel(line.who), line.text, true, (v) => { line.text = v; });
       });
     });
@@ -4640,7 +4823,7 @@
     });
   }
 
-  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, playTitleIntro, openBag, openSettings, openPhone, openChatThread, openTasks, travelTo, setPeek, getExpr: () => currentExpr, getState: () => state, openEvaMeet, closeEvaMeet, addAfecto, setAfecto, addEvaInfoBar, setEvaInfoBar, setEditorLive, ejectFromHouse, evaStatus: currentEvaStatus, weekdayName: (d) => weekdayName(d != null ? d : state.day), renderHUD, renderActions, showRoomEva, isEvaHere, isEvaCleaning, currentSceneVariant, isEvaSleeping, refreshRoomVisual, startIntroCine, skipIntroCine, startMission, completeMission, maybeTriggerEvent, renderHotspots, eventDoorTargets, pickElogiarTier, playAccionOption, findAccionOption, applyStatDelta, buildEvaMeetMenu };
+  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, playTitleIntro, openBag, openSettings, openPhone, openChatThread, openTasks, travelTo, setPeek, getExpr: () => currentExpr, getState: () => state, openEvaMeet, closeEvaMeet, addAfecto, setAfecto, addEvaInfoBar, setEvaInfoBar, setEditorLive, ejectFromHouse, evaStatus: currentEvaStatus, weekdayName: (d) => weekdayName(d != null ? d : state.day), renderHUD, renderActions, showRoomEva, isEvaHere, isEvaCleaning, currentSceneVariant, isEvaSleeping, refreshRoomVisual, startIntroCine, skipIntroCine, startMission, completeMission, maybeTriggerEvent, renderHotspots, eventDoorTargets, pickElogiarTier, playAccionOption, findAccionOption, applyStatDelta, buildEvaMeetMenu, playEventSequence, stopEventSequence };
 
   document.addEventListener("DOMContentLoaded", () => {
     bind();

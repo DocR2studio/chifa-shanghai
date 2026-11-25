@@ -1025,12 +1025,65 @@ const STORY_EVENTS = [
     location: "cocina",
     mission: "desayuno",
     completes: "desayuno",
-    lines: [
-      { who: "Eva", expr: "feliz", text: "Ahí estás. Siéntate, ya está servido." },
-      { who: "prota", text: "Huele muy bien..." },
-      { who: "Eva", expr: "sonrojada", text: "Come con calma. Si quieres más, hay de sobra." },
-      { who: "", text: "Por primera vez en mucho tiempo, comes algo caliente." },
-      { who: "prota", text: "Gracias... de verdad." }
+    exitTo: "sala",
+    shots: [
+      {
+        id: "espaldas",
+        image: "assets/evento-desayuno/01-cocina-espaldas.webp",
+        fx: "kb-in",
+        lines: [
+          { id: "hola", who: "prota", text: "Hola." },
+          { id: "un-segundo", who: "Eva", text: "¡Un segundo!" }
+        ]
+      },
+      {
+        id: "plato",
+        image: "assets/evento-desayuno/02-eva-plato.webp",
+        fx: "kb-out",
+        lines: [
+          { id: "listo", who: "Eva", text: "¡Listo! Huevitos y café calientito. Siéntate." }
+        ]
+      },
+      {
+        id: "sentados",
+        image: "assets/evento-desayuno/03-sentados.webp",
+        fx: "kb-left",
+        lines: [
+          { id: "bueno", who: "prota", text: "Está muy bueno. Gracias." },
+          { id: "alegra", who: "Eva", text: "Me alegra que te guste. Come tranquilo." }
+        ]
+      },
+      {
+        id: "conejito",
+        image: "assets/evento-desayuno/04-conejito.webp",
+        fx: "kb-in",
+        lines: [
+          { id: "ese-conejito", who: "prota", text: "¿Y ese conejito?" }
+        ],
+        choices: [
+          {
+            id: "agarrarlo",
+            label: "Agarrarlo",
+            skipBalance: true,
+            afecto: 2,
+            lines: [
+              { id: "se-rie", who: "", text: "Eva se ríe." },
+              { id: "le-caes-bien", who: "Eva", text: "¡Le caes bien!" }
+            ]
+          },
+          {
+            id: "dejarlo",
+            label: "Dejarlo",
+            skipBalance: true,
+            lines: [
+              { id: "timido", who: "Eva", text: "Es tímido, ya se acostumbrará a ti." }
+            ]
+          }
+        ]
+      }
+    ],
+    close: [
+      { id: "cierre", who: "Eva", text: "Espero que te haya gustado la comida." }
     ]
   }
 ];
@@ -1214,6 +1267,50 @@ function applyV26Story(data) {
   }
 }
 
+
+function mergeEventLines(dst, src) {
+  if (!Array.isArray(dst) || !Array.isArray(src)) return;
+  src.forEach((line) => {
+    if (!line || !line.id) return;
+    const hit = dst.find((x) => x && x.id === line.id);
+    if (!hit) return;
+    if (typeof line.text === "string") hit.text = line.text;
+    if (typeof line.who === "string") hit.who = line.who;
+  });
+}
+
+function applyV27Story(data) {
+  if (!data || typeof data !== "object") return;
+  if (!Array.isArray(data.storyEvents)) return;
+  data.storyEvents.forEach((src) => {
+    if (!src || !src.id) return;
+    const ev = (typeof STORY_EVENTS !== "undefined" ? STORY_EVENTS : []).find((x) => x && x.id === src.id);
+    if (!ev) return;
+    if (typeof src.exitTo === "string" && src.exitTo) ev.exitTo = src.exitTo;
+    if (Array.isArray(src.close) && Array.isArray(ev.close)) mergeEventLines(ev.close, src.close);
+    if (Array.isArray(src.shots) && Array.isArray(ev.shots)) {
+      src.shots.forEach((ss) => {
+        if (!ss || !ss.id) return;
+        const shot = ev.shots.find((x) => x && x.id === ss.id);
+        if (!shot) return;
+        if (typeof ss.image === "string") shot.image = ss.image;
+        if (typeof ss.fx === "string") shot.fx = ss.fx;
+        if (Array.isArray(ss.lines) && Array.isArray(shot.lines)) mergeEventLines(shot.lines, ss.lines);
+        if (Array.isArray(ss.choices) && Array.isArray(shot.choices)) {
+          ss.choices.forEach((cs) => {
+            if (!cs || !cs.id) return;
+            const ch = shot.choices.find((x) => x && x.id === cs.id);
+            if (!ch) return;
+            if (typeof cs.label === "string") ch.label = cs.label;
+            if (typeof cs.afecto === "number") ch.afecto = cs.afecto;
+            if (Array.isArray(cs.lines) && Array.isArray(ch.lines)) mergeEventLines(ch.lines, cs.lines);
+          });
+        }
+      });
+    }
+  });
+}
+
 const STORY_PATCH_KEY = "eva_novela_story_v16";
 
 function editableStory() {
@@ -1322,6 +1419,7 @@ function applyEditableStory(data) {
   ensureV24Balance(data);
   applyV25Story(data);
   applyV26Story(data);
+  applyV27Story(data);
 }
 
 function ensureV23RoomActions() {
