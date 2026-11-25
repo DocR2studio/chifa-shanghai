@@ -9,10 +9,10 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="screen-orientation" content="landscape">
   <title>Título del juego</title>
-  <link rel="manifest" href="manifest.json?v=15">
+  <link rel="manifest" href="manifest.json?v=16">
   <link rel="icon" href="assets/logo-eva.jpg">
   <link rel="apple-touch-icon" href="assets/logo-eva.jpg">
-  <link rel="stylesheet" href="style.css?v=15">
+  <link rel="stylesheet" href="style.css?v=16">
 </head>
 <body>
 
@@ -47,9 +47,9 @@
         <p class="kicker">Potenciado por</p>
         <div class="brand-row">
           <div class="brand-card">
-            <img src="assets/logo-eva.jpg?v=15" alt="Eva_D2studio" class="brand-logo" width="900" height="900">
+            <img src="assets/logo-eva.jpg?v=16" alt="Eva_D2studio" class="brand-logo" width="900" height="900">
           </div>
-          <img src="assets/verificado.png?v=15" alt="Verificado" class="brand-check">
+          <img src="assets/verificado.png?v=16" alt="Verificado" class="brand-check">
         </div>
         <p class="brand-name">Eva_D2studio</p>
       </div>
@@ -74,13 +74,13 @@
       <div class="title-stage-wrap">
         <div class="title-stage" id="title-stage">
           <h1 class="title-logo-wrap">
-            <img class="title-logo" src="assets/title/logo.png?v=15" alt="Unknown Love" width="475" height="263">
+            <img class="title-logo" src="assets/title/logo.png?v=16" alt="Unknown Love" width="475" height="263">
           </h1>
           <div class="title-eyes">
-            <img class="title-eyes-top" src="assets/title/ojos-enojada.png?v=15" alt="" width="430" height="215">
-            <img class="title-eyes-bot" src="assets/title/ojos-enamorada.png?v=15" alt="" width="430" height="215">
+            <img class="title-eyes-top" src="assets/title/ojos-enojada.png?v=16" alt="" width="430" height="215">
+            <img class="title-eyes-bot" src="assets/title/ojos-enamorada.png?v=16" alt="" width="430" height="215">
           </div>
-          <img class="title-eva" src="assets/title/eva.png?v=15" alt="" width="214" height="705">
+          <img class="title-eva" src="assets/title/eva.png?v=16" alt="" width="214" height="705">
           <div class="title-actions">
             <button type="button" id="btn-jugar" class="title-btn">Jugar</button>
             <button type="button" id="btn-title-cargar" class="title-btn" disabled>Cargar</button>
@@ -121,11 +121,15 @@
         <header class="editor-head">
           <p class="kicker" style="margin:0">Editor</p>
           <h2>Imágenes y videos</h2>
-          <p class="editor-note">Los cambios se guardan en este teléfono. Usa Exportar para armar el APK después.</p>
+          <p class="editor-note">Los cambios se guardan en este teléfono. Usa Exportar JSON para llevarlos al repositorio o al APK. En el juego, cada texto lleva un lápiz para editarlo.</p>
         </header>
         <div id="editor-list" class="editor-list"></div>
-        <div class="editor-foot">
-          <button type="button" id="btn-exportar" class="btn btn-primary">Exportar</button>
+        <div class="editor-foot editor-foot-row">
+          <button type="button" id="btn-exportar" class="btn btn-primary">Exportar JSON</button>
+          <label class="btn btn-ghost file-btn" id="lab-importar">Importar JSON
+            <input type="file" id="input-importar" accept="application/json,.json">
+          </label>
+          <button type="button" id="btn-editor-play" class="btn btn-primary">Jugar y editar</button>
           <button type="button" id="btn-editor-cerrar" class="btn btn-ghost">Cerrar</button>
         </div>
       </div>
@@ -151,9 +155,20 @@
       </div>
       <div id="eva-meet" class="eva-meet" hidden>
         <div class="eva-meet-dim" aria-hidden="true"></div>
+        <div id="eva-scene-slot" class="eva-scene-slot" hidden>
+          <div id="eva-scene-bg" class="eva-scene-bg"></div>
+          <label id="btn-agregar-foto" class="btn-agregar-foto" hidden>Agregar foto
+            <input type="file" id="input-scene-foto" accept="image/*">
+          </label>
+        </div>
         <img id="eva-meet-close" class="eva-meet-close" alt="Eva">
         <div id="eva-meet-stats" class="eva-meet-stats" hidden></div>
         <div id="eva-meet-menu" class="eva-meet-menu"></div>
+      </div>
+      <div id="editor-live-bar" class="editor-live-bar" hidden>
+        <span>Modo editor</span>
+        <button type="button" id="btn-ed-medios" class="btn-ed-mini">Medios</button>
+        <button type="button" id="btn-ed-salir" class="btn-ed-mini">Salir</button>
       </div>
       <div id="hud" class="hud" hidden>
         <div class="hud-panel">
@@ -299,9 +314,9 @@
           </div>
           <div id="phone-home" class="phone-body phone-home">
             <div class="phone-apps">
-              <button type="button" class="phone-app" data-app="contacts"><img class="phone-app-icon" src="assets/phone/app-contactos.png?v=15" alt=""><span>Contactos</span></button>
-              <button type="button" class="phone-app" data-app="camera"><img class="phone-app-icon" src="assets/phone/app-camara.png?v=15" alt=""><span>Cámara</span></button>
-              <button type="button" class="phone-app" data-app="info"><img class="phone-app-icon" src="assets/phone/app-info.png?v=15" alt=""><span>Info</span></button>
+              <button type="button" class="phone-app" data-app="contacts"><img class="phone-app-icon" src="assets/phone/app-contactos.png?v=16" alt=""><span>Contactos</span></button>
+              <button type="button" class="phone-app" data-app="camera"><img class="phone-app-icon" src="assets/phone/app-camara.png?v=16" alt=""><span>Cámara</span></button>
+              <button type="button" class="phone-app" data-app="info"><img class="phone-app-icon" src="assets/phone/app-info.png?v=16" alt=""><span>Info</span></button>
             </div>
           </div>
           <div id="phone-app" class="phone-body phone-app-screen" hidden>
@@ -319,13 +334,32 @@
       </div>
     </div>
 
+    <div id="eva-eject" class="eva-eject" hidden>
+      <div class="eva-eject-card">
+        <h2 id="eva-eject-title">Eva te echó de la casa</h2>
+        <p id="eva-eject-note"></p>
+        <button type="button" id="btn-eject-title" class="btn btn-primary">Volver al título</button>
+      </div>
+    </div>
+
+    <div id="modal-edit" class="modal" hidden>
+      <div class="modal-panel edit-panel">
+        <p class="modal-title" id="edit-title">Editar</p>
+        <textarea id="input-edit" rows="4"></textarea>
+        <div class="edit-actions">
+          <button type="button" id="btn-edit-ok" class="btn btn-primary">Guardar</button>
+          <button type="button" id="btn-edit-cancel" class="btn btn-ghost">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
     <div id="toast" class="toast" hidden></div>
 
 
   </div>
-  <script src="vendor/jszip.min.js?v=15"></script>
-  <script src="story.js?v=15"></script>
-  <script src="media.js?v=15"></script>
-  <script src="engine.js?v=15"></script>
+  <script src="vendor/jszip.min.js?v=16"></script>
+  <script src="story.js?v=16"></script>
+  <script src="media.js?v=16"></script>
+  <script src="engine.js?v=16"></script>
 </body>
 </html>

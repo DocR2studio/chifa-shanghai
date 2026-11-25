@@ -5,6 +5,7 @@
   const TYPE_MS = 26;
   const TZ = "America/Lima";
   const $ = (id) => document.getElementById(id);
+  if (typeof loadStoryPatch === "function") loadStoryPatch();
 
   const state = {
     phase: null,
@@ -32,8 +33,16 @@
     peek: false,
     evaMeet: false,
     evaInfo: defaultEvaInfo(),
+    ejected: false,
+    pendingKick: false,
+    meetSub: null,
     settings: { music: 70, sfx: 70, textSpeed: "normal" }
   };
+  let editorLive = false;
+  try { editorLive = sessionStorage.getItem("eva_novela_editor_live") === "1"; } catch (e) { /* ignore */ }
+  let editSaveFn = null;
+  let meetSceneId = null;
+  const PENCIL_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17.3V20h2.7L18.2 8.5l-2.7-2.7L4 17.3zM16.2 4.5l2.7 2.7 1.4-1.4c.5-.5.5-1.3 0-1.8l-.9-.9c-.5-.5-1.3-.5-1.8 0L16.2 4.5z"/></svg>';
 
   function wait(ms) {
     return new Promise((r) => setTimeout(r, ms));
@@ -62,6 +71,7 @@
       s.setAttribute("aria-hidden", on ? "false" : "true");
     });
     if (id === "title") playTitleIntro();
+    refreshEditorLiveBar();
   }
 
   let titleTimer = null;
@@ -83,7 +93,7 @@
     titleTimer = setTimeout(() => el.classList.add("title-ready"), 2200);
   }
   function hideModals() {
-    ["modal-menu", "modal-saves", "modal-confirm", "modal-map", "modal-tasks", "modal-bag", "modal-settings", "modal-phone"].forEach((id) => {
+    ["modal-menu", "modal-saves", "modal-confirm", "modal-map", "modal-tasks", "modal-bag", "modal-settings", "modal-phone", "modal-edit"].forEach((id) => {
       if ($(id)) $(id).hidden = true;
     });
   }
@@ -133,7 +143,8 @@
       unlockedScenes: (state.unlockedScenes || []).slice(),
       tasksDone: (state.tasksDone || []).slice(),
       chats: cloneChats(state.chats),
-      evaInfo: cloneEvaInfo(state.evaInfo)
+      evaInfo: cloneEvaInfo(state.evaInfo),
+      ejected: !!state.ejected
     };
   }
   function autosave() {
@@ -480,6 +491,7 @@
     if (cid) showEvaSprite(true, lineExpr(line));
     showDialogue(true);
     typeLine(fillName(line.text, state.name));
+    bindLinePencil(line);
     if (state.phase === "intro") autosave();
   }
 
@@ -500,8 +512,11 @@
     state.chats = seedChatHistory(emptyChatState());
     state.evaInfo = defaultEvaInfo();
     state.evaMeet = false;
+    state.ejected = false;
+    state.pendingKick = false;
     setPeek(false);
     hideModals();
+    if ($("eva-eject")) $("eva-eject").hidden = true;
     showScreen("game");
     showHudChrome(true);
     $("action-bar").hidden = true;
@@ -647,10 +662,17 @@
     $("choices").hidden = true;
     $("choices").innerHTML = "";
     showDialogue(false);
+    clearLinePencil();
+    if (state.pendingKick || (ensureEvaInfo().bars.roja || 0) >= kickLimit()) {
+      ejectFromHouse();
+      return;
+    }
     if (state.evaMeet) {
       showEvaSprite(false);
       const meet = $("eva-meet");
       if (meet) meet.classList.remove("is-talking");
+      if (!state.meetSub) showMeetScene(null);
+      buildEvaMeetMenu();
       renderEvaMeetStats();
       autosave();
       return;
@@ -666,7 +688,8 @@
   function advance() {
     if (!$("screen-game").classList.contains("is-on")) return;
     if (state.peek) return;
-    if (["modal-menu", "modal-saves", "modal-confirm", "modal-map", "modal-tasks", "modal-bag", "modal-settings", "modal-phone"].some((id) => $(id) && !$(id).hidden)) return;
+    if (["modal-menu", "modal-saves", "modal-confirm", "modal-map", "modal-tasks", "modal-bag", "modal-settings", "modal-phone", "modal-edit"].some((id) => $(id) && !$(id).hidden)) return;
+    if ($("eva-eject") && !$("eva-eject").hidden) return;
     if (!$("end-card").hidden) return;
     if ($("dialogue").hidden) return;
     if (!$("choices").hidden) return;
@@ -754,7 +777,9 @@
   function addAfecto(n) {
     const info = typeof EVA_INFO !== "undefined" ? EVA_INFO : {};
     const ev = ensureEvaInfo();
-    ev.afecto = clampInfoVal((ev.afecto || 0) + (Number(n) || 0), info.afectoMax || 100);
+    const add = Number(n) || 0;
+    ev.afecto = clampInfoVal((ev.afecto || 0) + add, info.afectoMax || 100);
+    if (add > 0) ev.bars.rosa = clampInfoVal((ev.bars.rosa || 0) + Math.max(1, Math.round(add * 1.5)), evaInfoBarMax("rosa"));
     autosave();
     refreshEvaInfoUI();
     return ev.afecto;
@@ -800,11 +825,32 @@
     fill.style.width = (max ? Math.max(0, Math.min(100, (v / max) * 100)) : 0) + "%";
     fill.style.background = col;
     track.appendChild(fill);
+    const head = document.createElement("div");
+    head.className = "phone-eva-bar-head";
+    const name = document.createElement("span");
+    name.className = "phone-eva-bar-name";
+    name.textContent = b.name || "";
+    if (editorLive) {
+      const wrap = document.createElement("span");
+      wrap.className = "ed-wrap";
+      wrap.appendChild(name);
+      wrap.appendChild(makePencil(() => {
+        openEditModal("Nombre de la barra", b.name || "", (v) => {
+          b.name = v;
+          saveStoryPatch();
+          refreshEvaInfoUI();
+        });
+      }, "Editar nombre"));
+      head.appendChild(wrap);
+    } else {
+      head.appendChild(name);
+    }
     const lab = document.createElement("span");
     lab.className = "phone-eva-bar-val";
     lab.textContent = v + "/" + max;
+    head.appendChild(lab);
+    row.appendChild(head);
     row.appendChild(track);
-    row.appendChild(lab);
     parent.appendChild(row);
   }
   function renderEvaInfoSheet() {
@@ -923,26 +969,118 @@
     const box = $("eva-meet-menu");
     if (!box) return;
     box.innerHTML = "";
-    const opts = (typeof EVA_MENU !== "undefined" && EVA_MENU.options) || [];
-    opts.forEach((opt) => {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "eva-meet-opt";
-      b.textContent = opt.label;
-      b.addEventListener("click", (e) => {
-        e.stopPropagation();
-        onEvaMeetOption(opt.id);
+    const sub = state.meetSub;
+    if (sub === "hablar") {
+      const opts = (typeof EVA_HABLAR !== "undefined" && EVA_HABLAR.options) || [];
+      opts.forEach((opt, i) => {
+        appendMeetOption(box, opt.label, () => openHablarGroup(opt.id), () => {
+          openEditModal("Opción de Hablar", opt.label, (v) => { opt.label = v; saveStoryPatch(); buildEvaMeetMenu(); });
+        }, () => {
+          opts.splice(i, 1);
+          saveStoryPatch();
+          buildEvaMeetMenu();
+        });
       });
-      box.appendChild(b);
+      if (editorLive) appendAddButton(box, "Añadir opción", () => {
+        opts.push({ id: "h" + Date.now(), label: "Nueva opción" });
+        saveStoryPatch();
+        buildEvaMeetMenu();
+      });
+      appendMeetOption(box, (EVA_HABLAR && EVA_HABLAR.backLabel) || "Volver", () => {
+        state.meetSub = null;
+        showMeetScene(null);
+        buildEvaMeetMenu();
+        renderEvaMeetStats();
+      }, () => {
+        openEditModal("Volver", EVA_HABLAR.backLabel || "Volver", (v) => { EVA_HABLAR.backLabel = v; saveStoryPatch(); buildEvaMeetMenu(); });
+      });
+      return;
+    }
+    if (sub === "elogiar" || sub === "charlar") {
+      const list = (EVA_HABLAR && EVA_HABLAR[sub]) || [];
+      list.forEach((topic, i) => {
+        appendMeetOption(box, topic.label || "Tema", () => playHablarTopic(sub, topic), () => {
+          openEditModal("Tema", topic.label || "", (v) => { topic.label = v; saveStoryPatch(); buildEvaMeetMenu(); });
+        }, () => {
+          list.splice(i, 1);
+          saveStoryPatch();
+          buildEvaMeetMenu();
+        });
+      });
+      if (editorLive) appendAddButton(box, "Añadir tema", () => {
+        list.push({
+          id: "t" + Date.now(),
+          label: "Nuevo tema",
+          player: "…",
+          reactions: [
+            { maxAfecto: 29, expr: "molesta", eva: "Prefiero no hablar de eso ahora.", paciencia: 8 },
+            { maxAfecto: 100, expr: "feliz", eva: "Me agrada oírte.", vinculo: 4, afecto: 1 }
+          ]
+        });
+        saveStoryPatch();
+        buildEvaMeetMenu();
+      });
+      appendMeetOption(box, (EVA_HABLAR && EVA_HABLAR.backLabel) || "Volver", () => {
+        state.meetSub = "hablar";
+        buildEvaMeetMenu();
+      });
+      return;
+    }
+    if (sub === "peticion" || sub === "accion") {
+      const data = (typeof EVA_MENU !== "undefined" && EVA_MENU[sub]) || { options: [] };
+      const list = data.options || [];
+      list.forEach((opt, i) => {
+        appendMeetOption(box, opt.label || "Opción", () => playUnlockable(opt, opt.ok, opt.locked), () => {
+          openEditModal("Opción", opt.label || "", (v) => { opt.label = v; saveStoryPatch(); buildEvaMeetMenu(); });
+        }, () => {
+          list.splice(i, 1);
+          saveStoryPatch();
+          buildEvaMeetMenu();
+        });
+      });
+      if (editorLive) appendAddButton(box, "Añadir recuadro", () => {
+        list.push({ id: "o" + Date.now(), label: "Nueva opción", need: 0, ok: { expr: "neutral", eva: "De acuerdo.", vinculo: 2 } });
+        saveStoryPatch();
+        buildEvaMeetMenu();
+      });
+      appendMeetOption(box, (EVA_HABLAR && EVA_HABLAR.backLabel) || "Volver", () => {
+        state.meetSub = null;
+        showMeetScene(null);
+        buildEvaMeetMenu();
+        renderEvaMeetStats();
+      });
+      return;
+    }
+    const opts = (typeof EVA_MENU !== "undefined" && EVA_MENU.options) || [];
+    opts.forEach((opt, i) => {
+      appendMeetOption(box, opt.label, () => onEvaMeetOption(opt.id), () => {
+        openEditModal("Botón del menú", opt.label, (v) => { opt.label = v; saveStoryPatch(); buildEvaMeetMenu(); });
+      }, editorLive && opt.id !== "olvidalo" && opt.id !== "hablar" ? () => {
+        opts.splice(i, 1);
+        saveStoryPatch();
+        buildEvaMeetMenu();
+      } : null);
+    });
+    if (editorLive) appendAddButton(box, "Añadir botón", () => {
+      opts.splice(Math.max(0, opts.length - 1), 0, { id: "extra" + Date.now(), label: "Nuevo" });
+      saveStoryPatch();
+      buildEvaMeetMenu();
     });
   }
   function openEvaMeet() {
+    if (state.ejected || (ensureEvaInfo().bars.roja || 0) >= kickLimit()) {
+      ejectFromHouse();
+      return;
+    }
     state.evaMeet = true;
+    state.meetSub = null;
+    showMeetScene(null);
     const meet = $("eva-meet");
     const img = $("eva-meet-close");
     if (img) {
       img.alt = "Eva";
-      const closeSrc = (typeof EVA_MENU !== "undefined" && EVA_MENU.closeImage) || exprAsset("eva", "neutral") || "assets/eva-close.png";
+      const expr = evaPacienciaExpr();
+      const closeSrc = exprAsset("eva", expr) || (typeof EVA_MENU !== "undefined" && EVA_MENU.closeImage) || "assets/eva-close.png";
       loadExprImage(img, closeSrc, (typeof EVA_EXPR_FALLBACK !== "undefined" && EVA_EXPR_FALLBACK) || "assets/eva-close.png");
     }
     buildEvaMeetMenu();
@@ -958,9 +1096,17 @@
     if (game) game.classList.add("is-eva-meet");
     if ($("action-bar")) $("action-bar").hidden = true;
     showRoomEva(false);
+    refreshEditorLiveBar();
+    const p = ensureEvaInfo().bars.roja || 0;
+    if (p >= warningAt() && p < kickLimit()) {
+      const w = (typeof EVA_RULES !== "undefined" && EVA_RULES.warning) || {};
+      beginMeetTalk([{ who: "Eva", expr: w.expr || "molesta", text: w.text || "Estoy perdiendo la paciencia." }], null, { countsAsActivity: false });
+    }
   }
   function closeEvaMeet(instant) {
     state.evaMeet = false;
+    state.meetSub = null;
+    showMeetScene(null);
     evaMeetBusy = false;
     const meet = $("eva-meet");
     hideEvaMeetStats();
@@ -998,8 +1144,8 @@
       sayNoGift();
       return;
     }
-    const line = (typeof EVA_MENU !== "undefined" && EVA_MENU.giftOk) || { expr: "feliz", text: "Gracias, {nombre}. Lo voy a guardar." };
-    beginMeetTalk([{ who: "Eva", expr: line.expr || "feliz", text: line.text }], null, { countsAsActivity: false });
+    $("modal-bag").hidden = true;
+    playUnlockable(it, it.ok || (typeof EVA_MENU !== "undefined" && EVA_MENU.giftOk && { expr: EVA_MENU.giftOk.expr, eva: EVA_MENU.giftOk.text }), it.locked);
   }
   function onEvaMeetOption(id) {
     hideEvaMeetStats();
@@ -1008,15 +1154,12 @@
       return;
     }
     if (id === "hablar") {
-      const talk = EVA.talk[state.location];
-      if (!talk) {
-        beginMeetTalk([{ who: "Eva", expr: "neutral", text: "Ahora no se me ocurre qué decir." }], null, { countsAsActivity: false });
-        return;
-      }
-      beginMeetTalk(talk, null, { countsAsActivity: true });
+      state.meetSub = "hablar";
+      buildEvaMeetMenu();
       return;
     }
     if (id === "regalar") {
+      showMeetScene((typeof EDITOR_SCENES !== "undefined" && EDITOR_SCENES.find((s) => s.id === "eva-regalo") && "eva-regalo") || "eva-regalo");
       const items = state.inventory || [];
       if (!items.length) {
         sayNoGift();
@@ -1026,8 +1169,10 @@
       return;
     }
     if (id === "peticion" || id === "accion") {
-      const data = (typeof EVA_MENU !== "undefined" && EVA_MENU[id]) || { lines: [{ who: "Eva", expr: "neutral", text: "Próximamente." }] };
-      beginMeetTalk({ start: "main", nodes: { main: { lines: data.lines || [{ who: "Eva", expr: "neutral", text: "Próximamente." }] } } }, "main", { countsAsActivity: false });
+      const data = (typeof EVA_MENU !== "undefined" && EVA_MENU[id]) || {};
+      state.meetSub = id;
+      showMeetScene(data.scene || ("eva-" + id));
+      buildEvaMeetMenu();
     }
   }
   async function onRoomEvaClick(e) {
@@ -1138,8 +1283,15 @@
     state.tasksDone = Array.isArray(snap.tasksDone) ? snap.tasksDone.slice() : [];
     state.chats = normalizeChats(snap.chats);
     state.evaInfo = mergeEvaInfo(snap.evaInfo);
+    state.ejected = !!snap.ejected;
+    state.pendingKick = false;
     setPeek(false);
     hideModals();
+    if (state.ejected) {
+      showScreen("game");
+      ejectFromHouse();
+      return;
+    }
     if (state.phase === "intro") {
       startIntroStory();
       state.lineIndex = Math.min(snap.lineIndex || 0, INTRO.lines.length - 1);
@@ -1716,6 +1868,273 @@
     }
   }
 
+
+  /* ---------- v16: Paciencia, Hablar, editor en vivo ---------- */
+  function warningAt() {
+    return (typeof EVA_RULES !== "undefined" && EVA_RULES.warningAt != null) ? EVA_RULES.warningAt : 80;
+  }
+  function kickLimit() {
+    return (typeof EVA_RULES !== "undefined" && EVA_RULES.kickAt != null) ? EVA_RULES.kickAt : 100;
+  }
+  function evaPacienciaExpr() {
+    const ev = ensureEvaInfo();
+    const p = ev.bars.roja || 0;
+    const a = ev.afecto || 0;
+    if (p >= 85) return "triste";
+    if (p >= 30) return "molesta";
+    if (a >= 30) return "feliz";
+    return "neutral";
+  }
+  function setEditorLive(on) {
+    editorLive = !!on;
+    try { sessionStorage.setItem("eva_novela_editor_live", editorLive ? "1" : "0"); } catch (e) { /* ignore */ }
+    refreshEditorLiveBar();
+  }
+  function refreshEditorLiveBar() {
+    const bar = $("editor-live-bar");
+    if (!bar) return;
+    const game = $("screen-game");
+    const gameOn = game && game.classList.contains("is-on");
+    if (game) game.classList.toggle("is-editor-live", !!editorLive);
+    const ejecting = $("eva-eject") && !$("eva-eject").hidden;
+    bar.hidden = !editorLive || !gameOn || ejecting;
+  }
+  function makePencil(onClick, label) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "ed-pencil";
+    b.setAttribute("aria-label", label || "Editar");
+    b.innerHTML = PENCIL_SVG;
+    b.addEventListener("click", (e) => { e.stopPropagation(); e.preventDefault(); onClick(); });
+    return b;
+  }
+  function openEditModal(title, value, onSave) {
+    editSaveFn = onSave;
+    if ($("edit-title")) $("edit-title").textContent = title || "Editar";
+    if ($("input-edit")) $("input-edit").value = value == null ? "" : String(value);
+    if ($("modal-edit")) $("modal-edit").hidden = false;
+    setTimeout(() => { if ($("input-edit")) $("input-edit").focus(); }, 50);
+  }
+  function closeEditModal() {
+    editSaveFn = null;
+    if ($("modal-edit")) $("modal-edit").hidden = true;
+  }
+  function confirmEditModal() {
+    const v = $("input-edit") ? $("input-edit").value : "";
+    const fn = editSaveFn;
+    closeEditModal();
+    if (fn) fn(v);
+  }
+  function clearLinePencil() {
+    const box = $("dialogue");
+    if (!box) return;
+    const p = box.querySelector(".ed-pencil");
+    if (p) p.remove();
+  }
+  function bindLinePencil(line) {
+    const box = $("dialogue");
+    if (!box) return;
+    clearLinePencil();
+    if (!editorLive || !line) return;
+    box.appendChild(makePencil(() => {
+      openEditModal("Editar línea", line.text || "", (v) => {
+        line.text = v;
+        if (typeof line._onEdit === "function") line._onEdit(v);
+        saveStoryPatch();
+        const filled = fillName(v, state.name);
+        state.typedFull = filled;
+        if ($("line")) $("line").textContent = filled;
+      });
+    }, "Editar línea"));
+  }
+  function appendMeetOption(box, label, onClick, onEdit, onRemove) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "eva-meet-opt";
+    b.textContent = fillName(label || "", state.name);
+    b.addEventListener("click", (e) => { e.stopPropagation(); onClick(); });
+    if (editorLive && onEdit) {
+      const wrap = document.createElement("div");
+      wrap.className = "ed-row";
+      wrap.appendChild(b);
+      wrap.appendChild(makePencil(onEdit));
+      if (onRemove) {
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "ed-del";
+        del.textContent = "Quitar";
+        del.addEventListener("click", (e) => { e.stopPropagation(); onRemove(); });
+        wrap.appendChild(del);
+      }
+      box.appendChild(wrap);
+    } else {
+      box.appendChild(b);
+    }
+  }
+  function appendAddButton(box, label, onClick) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "ed-add";
+    b.textContent = label;
+    b.addEventListener("click", (e) => { e.stopPropagation(); onClick(); });
+    box.appendChild(b);
+  }
+  function openHablarGroup(id) {
+    if (id === "elogiar" || id === "charlar") {
+      state.meetSub = id;
+      buildEvaMeetMenu();
+      return;
+    }
+    const opt = ((EVA_HABLAR && EVA_HABLAR.options) || []).find((o) => o.id === id);
+    if (opt && Array.isArray(EVA_HABLAR[id])) {
+      state.meetSub = id;
+      buildEvaMeetMenu();
+      return;
+    }
+    toast("Todavía no hay temas en esta opción.");
+  }
+  function pickReaction(list, afecto) {
+    const arr = (list || []).slice().sort((a, b) => (a.maxAfecto == null ? 100 : a.maxAfecto) - (b.maxAfecto == null ? 100 : b.maxAfecto));
+    for (let i = 0; i < arr.length; i++) {
+      const cap = arr[i].maxAfecto == null ? 100 : arr[i].maxAfecto;
+      if (afecto <= cap) return arr[i];
+    }
+    return arr[arr.length - 1] || { expr: "neutral", eva: "…" };
+  }
+  function applyReaction(r) {
+    if (!r) return;
+    if (r.afecto) addAfecto(r.afecto);
+    if (r.vinculo) addEvaInfoBar("rosa", r.vinculo);
+    if (r.confianza) addEvaInfoBar("morada", r.confianza);
+    if (r.paciencia) addEvaInfoBar("roja", r.paciencia);
+    if ((ensureEvaInfo().bars.roja || 0) >= kickLimit()) state.pendingKick = true;
+  }
+  function confianzaNow() {
+    return ensureEvaInfo().bars.morada || 0;
+  }
+  function playHablarTopic(group, topic) {
+    hideEvaMeetStats();
+    const ev = ensureEvaInfo();
+    const reaction = pickReaction(topic.reactions, ev.afecto || 0);
+    applyReaction(reaction);
+    const lines = [];
+    if (topic.player) {
+      lines.push({
+        who: state.name || "Tú",
+        text: topic.player,
+        _onEdit: (v) => { topic.player = v; }
+      });
+    }
+    lines.push({
+      who: "Eva",
+      expr: reaction.expr || "neutral",
+      text: reaction.eva || "…",
+      _onEdit: (v) => { reaction.eva = v; }
+    });
+    const p = ensureEvaInfo().bars.roja || 0;
+    if (p >= warningAt() && p < kickLimit() && !state.pendingKick) {
+      const w = (typeof EVA_RULES !== "undefined" && EVA_RULES.warning) || {};
+      lines.push({ who: "Eva", expr: w.expr || "molesta", text: w.text || "Estoy perdiendo la paciencia." });
+    }
+    beginMeetTalk(lines, null, { countsAsActivity: true });
+  }
+  function playUnlockable(item, ok, locked) {
+    hideEvaMeetStats();
+    const need = item && item.need != null ? item.need : 0;
+    const allowed = confianzaNow() >= need;
+    const r = allowed ? (ok || {}) : (locked || { expr: "molesta", eva: "Todavía no, {nombre}.", paciencia: 8 });
+    const use = {
+      expr: r.expr || (allowed ? "feliz" : "molesta"),
+      eva: r.eva || r.text || (allowed ? "De acuerdo." : "Todavía no."),
+      afecto: r.afecto,
+      vinculo: r.vinculo,
+      confianza: r.confianza,
+      paciencia: r.paciencia
+    };
+    applyReaction(use);
+    beginMeetTalk([{
+      who: "Eva",
+      expr: use.expr,
+      text: use.eva,
+      _onEdit: (v) => {
+        if (allowed && ok) ok.eva = v;
+        else if (!allowed && locked) locked.eva = v;
+      }
+    }], null, { countsAsActivity: false });
+  }
+  async function showMeetScene(sceneId) {
+    meetSceneId = sceneId || null;
+    const slot = $("eva-scene-slot");
+    const meet = $("eva-meet");
+    if (!slot) return;
+    if (!sceneId) {
+      slot.hidden = true;
+      if (meet) meet.classList.remove("has-scene");
+      if ($("btn-agregar-foto")) $("btn-agregar-foto").hidden = true;
+      if ($("eva-scene-bg")) $("eva-scene-bg").style.backgroundImage = "";
+      return;
+    }
+    let media = { imageURL: null };
+    try { media = await MediaStore.mediaFor(sceneId); } catch (e) { /* ignore */ }
+    const has = !!(media && media.imageURL);
+    if (!has && !editorLive) {
+      slot.hidden = true;
+      if (meet) meet.classList.remove("has-scene");
+      if ($("btn-agregar-foto")) $("btn-agregar-foto").hidden = true;
+      return;
+    }
+    slot.hidden = false;
+    slot.classList.toggle("is-empty", !has);
+    if (meet) meet.classList.add("has-scene");
+    if ($("eva-scene-bg")) $("eva-scene-bg").style.backgroundImage = has ? "url('" + media.imageURL + "')" : "";
+    if ($("btn-agregar-foto")) $("btn-agregar-foto").hidden = !editorLive;
+  }
+  function ejectFromHouse() {
+    state.ejected = true;
+    state.pendingKick = false;
+    state.talking = null;
+    state.evaMeet = false;
+    closeEvaMeet(true);
+    showEvaSprite(false);
+    hideModals();
+    showDialogue(false);
+    const rules = (typeof EVA_RULES !== "undefined" && EVA_RULES.kick) || {};
+    if ($("eva-eject-title")) $("eva-eject-title").textContent = rules.title || "Eva te echó de la casa";
+    if ($("eva-eject-note")) $("eva-eject-note").textContent = rules.note || "";
+    if ($("btn-eject-title")) $("btn-eject-title").textContent = rules.button || "Volver al título";
+    if ($("eva-eject")) $("eva-eject").hidden = false;
+    refreshEditorLiveBar();
+    const game = $("screen-game");
+    if (game) {
+      game.classList.add("is-on");
+      showScreen("game");
+    }
+    autosave();
+  }
+  function leaveEjectToTitle() {
+    if ($("eva-eject")) $("eva-eject").hidden = true;
+    hideModals();
+    refreshTitleButtons();
+    showScreen("title");
+  }
+  function blobToDataURL(blob) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = () => reject(r.error);
+      r.readAsDataURL(blob);
+    });
+  }
+  function dataURLToBlob(dataUrl) {
+    const m = String(dataUrl || "").match(/^data:([^;,]+)?(;base64)?,(.*)$/);
+    if (!m) return null;
+    const mime = m[1] || "application/octet-stream";
+    const bin = atob(m[3]);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    return new Blob([arr], { type: mime });
+  }
+
   /* ---------- Editor ---------- */
   function openPin() {
     $("input-pin").value = "";
@@ -1727,6 +2146,7 @@
     const v = $("input-pin").value.trim();
     if (v === EDITOR_PIN) {
       $("pin-error").hidden = true;
+      setEditorLive(true);
       openEditor();
     } else {
       $("pin-error").hidden = false;
@@ -1795,8 +2215,15 @@
     const img = document.createElement("img");
     img.className = "prev" + (item.kind === "sprite" || item.kind === "expression" ? " prev-sprite" : "");
     img.alt = "";
-    img.src = media.imageURL || item.defaultImage;
-    pre.appendChild(img);
+    if (media.imageURL || item.defaultImage) {
+      img.src = media.imageURL || item.defaultImage;
+      pre.appendChild(img);
+    } else {
+      const empty = document.createElement("div");
+      empty.className = "editor-slot-empty";
+      empty.textContent = "Agregar foto";
+      pre.appendChild(empty);
+    }
     if (media.videoURL) {
       const vid = document.createElement("video");
       vid.className = "prev";
@@ -1808,11 +2235,11 @@
     card.appendChild(pre);
     const actions = document.createElement("div");
     actions.className = "editor-actions";
-    actions.appendChild(fileButton("Agregar imagen", "image/*", async (f) => {
+    actions.appendChild(fileButton(item.kind === "scene" || !item.defaultImage ? "Agregar foto" : "Agregar imagen", "image/*", async (f) => {
       await MediaStore.put(item.id, "image", f, f.name);
       await renderEditor();
     }));
-    actions.appendChild(fileButton("Agregar video", "video/*", async (f) => {
+    if (item.kind !== "scene") actions.appendChild(fileButton("Agregar video", "video/*", async (f) => {
       await MediaStore.put(item.id, "video", f, f.name);
       await renderEditor();
     }));
@@ -1834,6 +2261,10 @@
   async function renderEditor() {
     const list = $("editor-list");
     list.innerHTML = "";
+    list.appendChild(renderBarsEditorCard());
+    for (const item of EDITOR_ITEMS.filter((i) => i.kind === "scene")) {
+      list.appendChild(await renderMediaCard(item));
+    }
     const intro = EDITOR_ITEMS.find((i) => i.kind === "intro");
     if (intro) list.appendChild(await renderMediaCard(intro));
 
@@ -1862,6 +2293,124 @@
       list.appendChild(await renderMediaCard(item));
     }
   }
+  function renderBarsEditorCard() {
+    const card = document.createElement("article");
+    card.className = "editor-card editor-bars-card";
+    const h = document.createElement("h3");
+    h.textContent = "Nombres de las barras";
+    card.appendChild(h);
+    const fields = document.createElement("div");
+    fields.className = "bar-fields";
+    (EVA_INFO.bars || []).forEach((b) => {
+      const row = document.createElement("div");
+      row.className = "bar-name-row";
+      const lab = document.createElement("label");
+      lab.textContent = b.id === "rosa" ? "Rosa" : b.id === "morada" ? "Morada" : b.id === "roja" ? "Roja" : b.id;
+      const sw = document.createElement("span");
+      sw.className = "bar-swatch";
+      sw.style.background = b.color || "#888";
+      sw.title = lab.textContent;
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.value = b.name || "";
+      inp.maxLength = 16;
+      inp.addEventListener("change", () => {
+        b.name = inp.value.trim();
+        saveStoryPatch();
+      });
+      row.appendChild(lab);
+      row.appendChild(sw);
+      row.appendChild(inp);
+      row.appendChild(makePencil(() => {
+        openEditModal("Nombre de la barra", b.name || "", (v) => {
+          b.name = v;
+          inp.value = v;
+          saveStoryPatch();
+        });
+      }));
+      fields.appendChild(row);
+    });
+    card.appendChild(fields);
+    const note = document.createElement("p");
+    note.className = "editor-note";
+    note.textContent = "Estos nombres se ven en Info y en el panel junto a Eva. Puedes cambiarlos cuando quieras.";
+    card.appendChild(note);
+    return card;
+  }
+  async function exportEditorPack() {
+    toast("Preparando archivo…");
+    try {
+      const media = [];
+      const rows = await MediaStore.getAll();
+      for (const rec of rows) {
+        if (!rec.blob) continue;
+        media.push({
+          id: rec.id,
+          kind: rec.kind,
+          name: rec.name,
+          type: rec.type,
+          data: await blobToDataURL(rec.blob)
+        });
+      }
+      const pack = {
+        kind: "eva-novela-editor",
+        title: STORY.title,
+        version: STORY.version,
+        exportedAt: new Date().toISOString(),
+        story: editableStory(),
+        media: media
+      };
+      const blob = new Blob([JSON.stringify(pack, null, 2)], { type: "application/json" });
+      MediaStore.downloadBlob(blob, "novela-editor.json");
+      toast("Descarga lista.");
+    } catch (err) {
+      console.error(err);
+      toast("No se pudo exportar.");
+    }
+  }
+  async function importEditorPack(file) {
+    try {
+      const text = await file.text();
+      const pack = JSON.parse(text);
+      if (!pack || (pack.kind !== "eva-novela-editor" && !pack.story && !pack.media)) {
+        toast("El archivo no es un export del editor.");
+        return;
+      }
+      if (pack.story) {
+        applyEditableStory(pack.story);
+        saveStoryPatch();
+      }
+      if (Array.isArray(pack.media)) {
+        for (const rec of pack.media) {
+          if (!rec || !rec.data || !rec.id) continue;
+          const blob = dataURLToBlob(rec.data);
+          if (blob) await MediaStore.put(rec.id, rec.kind || "image", blob, rec.name || "foto");
+        }
+      }
+      await renderEditor();
+      toast("Importado.");
+    } catch (err) {
+      console.error(err);
+      toast("No se pudo importar.");
+    }
+  }
+  function playFromEditor() {
+    setEditorLive(true);
+    if (state.ejected) {
+      leaveEjectToTitle();
+      return;
+    }
+    if (state.phase === "house" || state.phase === "intro") {
+      showScreen("game");
+      refreshEditorLiveBar();
+      if (state.phase === "house") {
+        enterHouse(state.location || HOUSE.start);
+      }
+      return;
+    }
+    refreshTitleButtons();
+    showScreen("title");
+  }
   async function exportMedia() {
     toast("Preparando archivo…");
     try {
@@ -1884,8 +2433,19 @@
     if (demo === "title") { showScreen("title"); refreshTitleButtons(); return; }
     if (demo === "closed") { showScreen("closed"); return; }
     if (demo === "name") { openName(); return; }
-    if (demo === "editor") { openEditor(); return; }
-    if (demo === "house" || demo === "map" || demo === "talk" || demo === "enojada" || demo === "enamorada" || demo === "triste" || demo === "peek" || demo === "bag" || demo === "settings" || demo === "phone" || demo === "info" || demo === "tasks" || demo === "pasillo" || demo === "sala" || demo === "cuarto_eva" || demo === "fade" || demo === "chats" || demo === "chat" || demo === "cocina" || demo === "eva" || demo === "eva-menu" || demo === "eva-hablar") {
+    if (demo === "editor" || demo === "agregar-foto") { setEditorLive(true); openEditor(); return; }
+    if (demo === "eject") {
+      state.name = "Doc";
+      state.bars = { ...HOUSE.startBars };
+      state.day = 1;
+      state.moment = "mañana";
+      state.evaInfo = defaultEvaInfo();
+      setEvaInfoBar("roja", 100);
+      showScreen("game");
+      ejectFromHouse();
+      return;
+    }
+    if (demo === "house" || demo === "map" || demo === "talk" || demo === "enojada" || demo === "enamorada" || demo === "triste" || demo === "peek" || demo === "bag" || demo === "settings" || demo === "phone" || demo === "info" || demo === "tasks" || demo === "pasillo" || demo === "sala" || demo === "cuarto_eva" || demo === "fade" || demo === "chats" || demo === "chat" || demo === "cocina" || demo === "eva" || demo === "eva-menu" || demo === "eva-hablar" || demo === "hablar" || demo === "reaccion" || demo === "paciencia" || demo === "editor-live") {
       state.name = "Doc";
       state.bars = { ...HOUSE.startBars };
       state.day = 1;
@@ -1907,10 +2467,21 @@
           playLine();
         }
       } else {
-        const startLoc = (demo === "pasillo" || demo === "fade") ? "pasillo" : (demo === "sala" ? "sala" : (demo === "cuarto_eva" ? "cuarto_eva" : ((demo === "cocina" || demo === "eva" || demo === "eva-menu" || demo === "eva-hablar") ? "cocina" : "cuarto")));
+        const startLoc = (demo === "pasillo" || demo === "fade") ? "pasillo" : (demo === "sala" ? "sala" : (demo === "cuarto_eva" ? "cuarto_eva" : ((demo === "cocina" || demo === "eva" || demo === "eva-menu" || demo === "eva-hablar" || demo === "hablar" || demo === "reaccion" || demo === "paciencia" || demo === "editor-live") ? "cocina" : "cuarto")));
         enterHouse(startLoc);
-        if (demo === "eva-menu" || demo === "eva-hablar") openEvaMeet();
-        if (demo === "eva-hablar") beginMeetTalk(EVA.talk.cocina, null, { countsAsActivity: true });
+        if (demo === "editor-live") setEditorLive(true);
+        if (demo === "eva-menu" || demo === "eva-hablar" || demo === "hablar" || demo === "reaccion" || demo === "paciencia" || demo === "editor-live") {
+          if (demo === "paciencia") setEvaInfoBar("roja", 80);
+          openEvaMeet();
+        }
+        if (demo === "hablar" || demo === "eva-hablar") {
+          state.meetSub = "hablar";
+          buildEvaMeetMenu();
+        }
+        if (demo === "reaccion") {
+          const topic = EVA_HABLAR.elogiar.find((t) => t.id === "sonrisa") || EVA_HABLAR.elogiar[0];
+          playHablarTopic("elogiar", topic);
+        }
         if (demo === "map") openMap();
         if (demo === "peek") setPeek(true);
         if (demo === "bag") openBag();
@@ -2018,8 +2589,27 @@
     $("btn-pin").addEventListener("click", tryPin);
     $("input-pin").addEventListener("keydown", (e) => { if (e.key === "Enter") tryPin(); });
     $("btn-pin-atras").addEventListener("click", () => { refreshTitleButtons(); showScreen("title"); });
-    $("btn-editor-cerrar").addEventListener("click", () => { refreshTitleButtons(); showScreen("title"); });
-    $("btn-exportar").addEventListener("click", exportMedia);
+    $("btn-editor-cerrar").addEventListener("click", () => { refreshTitleButtons(); showScreen("title"); refreshEditorLiveBar(); });
+    $("btn-exportar").addEventListener("click", exportEditorPack);
+    if ($("btn-editor-play")) $("btn-editor-play").addEventListener("click", playFromEditor);
+    if ($("input-importar")) $("input-importar").addEventListener("change", async (e) => {
+      const f = e.target.files && e.target.files[0];
+      e.target.value = "";
+      if (f) await importEditorPack(f);
+    });
+    if ($("btn-edit-ok")) $("btn-edit-ok").addEventListener("click", (e) => { e.stopPropagation(); confirmEditModal(); });
+    if ($("btn-edit-cancel")) $("btn-edit-cancel").addEventListener("click", (e) => { e.stopPropagation(); closeEditModal(); });
+    if ($("modal-edit")) $("modal-edit").addEventListener("click", (e) => { if (e.target === $("modal-edit")) closeEditModal(); });
+    if ($("btn-eject-title")) $("btn-eject-title").addEventListener("click", (e) => { e.stopPropagation(); leaveEjectToTitle(); });
+    if ($("btn-ed-medios")) $("btn-ed-medios").addEventListener("click", (e) => { e.stopPropagation(); openEditor(); });
+    if ($("btn-ed-salir")) $("btn-ed-salir").addEventListener("click", (e) => { e.stopPropagation(); setEditorLive(false); });
+    if ($("input-scene-foto")) $("input-scene-foto").addEventListener("change", async (e) => {
+      const f = e.target.files && e.target.files[0];
+      e.target.value = "";
+      if (!f || !meetSceneId) return;
+      await MediaStore.put(meetSceneId, "image", f, f.name);
+      await showMeetScene(meetSceneId);
+    });
 
     $("btn-saltar").addEventListener("click", (e) => {
       e.stopPropagation();
@@ -2098,7 +2688,7 @@
       $("eva-room-hit").addEventListener("click", (e) => { e.stopPropagation(); onRoomEvaClick(e); });
     }
     $("screen-game").addEventListener("pointerup", (e) => {
-      if (e.target.closest("button, .action-bar, .modal, .end-card, .menu-btn, .hud, .hud-icons, .chip, .phone-shell, .hud-panel, .hotspots, .travel-fade, .eva-meet, .eva-room")) return;
+      if (e.target.closest("button, .action-bar, .modal, .end-card, .menu-btn, .hud, .hud-icons, .chip, .phone-shell, .hud-panel, .hotspots, .travel-fade, .eva-meet, .eva-room, .eva-eject, .editor-live-bar, .ed-pencil, .eva-scene-slot")) return;
       if (state.evaMeet && !state.talking) return;
       if (state.peek) {
         setPeek(false);
@@ -2126,7 +2716,7 @@
     });
   }
 
-  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, playTitleIntro, openBag, openSettings, openPhone, openChatThread, openTasks, travelTo, setPeek, getExpr: () => currentExpr, getState: () => state, openEvaMeet, closeEvaMeet, addAfecto, setAfecto, addEvaInfoBar, setEvaInfoBar };
+  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, playTitleIntro, openBag, openSettings, openPhone, openChatThread, openTasks, travelTo, setPeek, getExpr: () => currentExpr, getState: () => state, openEvaMeet, closeEvaMeet, addAfecto, setAfecto, addEvaInfoBar, setEvaInfoBar, setEditorLive, ejectFromHouse };
 
   document.addEventListener("DOMContentLoaded", () => {
     bind();

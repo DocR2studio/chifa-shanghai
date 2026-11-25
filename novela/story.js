@@ -329,17 +329,30 @@ const EVA_MENU = {
     { id: "accion", label: "Acción" },
     { id: "olvidalo", label: "Olvídalo" }
   ],
-  /* Placeholders — editar estas líneas cuando haya contenido. */
   peticion: {
-    placeholder: true,
-    lines: [
-      { who: "Eva", expr: "neutral", text: "Próximamente." }
+    scene: "eva-peticion",
+    options: [
+      { id: "agua", label: "¿Me alcanzas un vaso de agua?", need: 0,
+        ok: { expr: "neutral", eva: "Claro. Espera un momento.", vinculo: 2 } },
+      { id: "compania", label: "¿Puedo quedarme un rato más?", need: 30,
+        ok: { expr: "feliz", eva: "Sí. No me molesta.", vinculo: 6, afecto: 2 },
+        locked: { expr: "molesta", eva: "Todavía no te conozco tanto, {nombre}. No insistas.", paciencia: 8 } },
+      { id: "personal", label: "¿Puedo preguntarte algo personal?", need: 80,
+        ok: { expr: "nerviosa", eva: "Depende de la pregunta. Pero… está bien, pregunta.", vinculo: 8, confianza: 4 },
+        locked: { expr: "triste", eva: "Eso es demasiado pronto. No estoy lista para esa conversación.", paciencia: 10 } }
     ]
   },
   accion: {
-    placeholder: true,
-    lines: [
-      { who: "Eva", expr: "neutral", text: "Próximamente." }
+    scene: "eva-accion",
+    options: [
+      { id: "ayudar", label: "Ayudar un poco en la casa", need: 0,
+        ok: { expr: "feliz", eva: "Si quieres, puedes recoger esas tazas. Se agradece.", vinculo: 5, afecto: 1 } },
+      { id: "acercarte", label: "Acercarte un poco más", need: 50,
+        ok: { expr: "sonrojada", eva: "Está bien… no te vayas más lejos, entonces.", vinculo: 8, afecto: 3 },
+        locked: { expr: "molesta", eva: "¿Qué haces? Dame un poco de espacio.", paciencia: 12 } },
+      { id: "mano", label: "Ofrecerle la mano", need: 90,
+        ok: { expr: "sonrojada", eva: "…Está bien. Solo un momento.", vinculo: 12, afecto: 5, confianza: 6 },
+        locked: { expr: "triste", eva: "No. Eso no, {nombre}. Todavía no.", paciencia: 14 } }
     ]
   },
   noGift: {
@@ -370,7 +383,33 @@ const SETTINGS_KEY = "eva_novela_settings";
 
 const DEFAULT_INVENTORY = [
   { id: "llaves", name: "Llaves", example: true, desc: "Objeto de ejemplo. Todavía no se usa." },
-  { id: "cuaderno", name: "Cuaderno", example: true, desc: "Objeto de ejemplo. Todavía no se usa." }
+  { id: "cuaderno", name: "Cuaderno", example: true, desc: "Objeto de ejemplo. Todavía no se usa." },
+  {
+    id: "te",
+    name: "Una caja de té",
+    gift: true,
+    need: 0,
+    desc: "Un detalle sencillo, siempre se puede ofrecer.",
+    ok: { expr: "feliz", eva: "Qué detalle. Lo voy a preparar después.", vinculo: 6, afecto: 2 }
+  },
+  {
+    id: "flores",
+    name: "Flores del jardín",
+    gift: true,
+    need: 40,
+    desc: "Un ramo improvisado. Se desbloquea con más Confianzas.",
+    ok: { expr: "feliz", eva: "Están bonitas. Gracias, {nombre}.", vinculo: 10, afecto: 4, confianza: 3 },
+    locked: { expr: "nerviosa", eva: "No hacía falta. Me tomas por sorpresa… y no sé si ya es momento.", paciencia: 6 }
+  },
+  {
+    id: "carta",
+    name: "Una nota",
+    gift: true,
+    need: 80,
+    desc: "Unas líneas escritas a mano. Pide más Confianzas.",
+    ok: { expr: "sonrojada", eva: "La voy a leer con calma. Gracias por tomarte el tiempo.", vinculo: 14, afecto: 6, confianza: 6 },
+    locked: { expr: "triste", eva: "Guárdala. Todavía no estoy lista para algo así.", paciencia: 8 }
+  }
 ];
 
 
@@ -384,11 +423,11 @@ const EVA_INFO = {
     { label: "Hijas", value: "1" },
     { label: "Estado", value: "Casada" }
   ],
-  /* Barras sin nombre por ahora. color, id y max se editan aquí; los valores viven en la partida. */
+  /* Nombres editables aquí y en el editor (lápiz). Vinculo y Confianzas son placeholders. */
   bars: [
-    { id: "rosa", color: "#e56b9a", max: 150 },
-    { id: "morada", color: "#8a5cf6", max: 150 },
-    { id: "roja", color: "#e23b3b", max: 100 }
+    { id: "rosa", color: "#e56b9a", max: 150, name: "Vinculo" },
+    { id: "morada", color: "#8a5cf6", max: 150, name: "Confianzas" },
+    { id: "roja", color: "#e23b3b", max: 100, name: "Paciencia" }
   ],
   startBars: { rosa: 0, morada: 0, roja: 0 },
   startAfecto: 10,
@@ -496,6 +535,158 @@ function fillName(text, name) {
   return String(text || "").replace(/\{nombre\}/g, name || "tú");
 }
 
+/* Hablar: Elogiar y Charlar. reactions se eligen por el corazón (afecto). */
+const EVA_HABLAR = {
+  options: [
+    { id: "elogiar", label: "Elogiar" },
+    { id: "charlar", label: "Charlar" }
+  ],
+  backLabel: "Volver",
+  elogiar: [
+    {
+      id: "sonrisa",
+      label: "Tu sonrisa",
+      player: "Hoy se te ve muy bien, Eva. Esa sonrisa le cambia la cara a la casa.",
+      reactions: [
+        { maxAfecto: 29, expr: "molesta", eva: "No hace falta que me digas eso. Se siente forzado, {nombre}.", paciencia: 12 },
+        { maxAfecto: 54, expr: "nerviosa", eva: "Ah… gracias. No sé muy bien qué responder.", vinculo: 5, afecto: 2 },
+        { maxAfecto: 100, expr: "feliz", eva: "Qué amable. Me alegra que lo notes.", vinculo: 10, afecto: 4 }
+      ]
+    },
+    {
+      id: "cocina",
+      label: "Tu cocina",
+      player: "Se nota que cuidas mucho esta cocina. Se siente cálida.",
+      reactions: [
+        { maxAfecto: 24, expr: "triste", eva: "Es solo un lugar para cocinar. No le des más vueltas.", vinculo: 1 },
+        { maxAfecto: 100, expr: "feliz", eva: "Me gusta oírlo. Paso aquí una buena parte del día.", vinculo: 8, afecto: 3 }
+      ]
+    },
+    {
+      id: "calma",
+      label: "Tu calma",
+      player: "Tienes una calma que da gusto. Se está bien cerca de ti.",
+      reactions: [
+        { maxAfecto: 34, expr: "nerviosa", eva: "No digas eso tan de pronto. Me pones un poco nerviosa.", paciencia: 6, afecto: 1 },
+        { maxAfecto: 100, expr: "sonrojada", eva: "…Gracias. No estoy acostumbrada a que me lo digan así.", vinculo: 12, afecto: 5 }
+      ]
+    }
+  ],
+  charlar: [
+    {
+      id: "dia",
+      label: "El día",
+      player: "¿Cómo va tu día, Eva?",
+      reactions: [
+        { maxAfecto: 19, expr: "triste", eva: "Igual que siempre. No hay mucho que contar.", vinculo: 1 },
+        { maxAfecto: 100, expr: "feliz", eva: "Tranquilo, la verdad. Me viene bien tener compañía un rato.", vinculo: 6, afecto: 2 }
+      ]
+    },
+    {
+      id: "casa",
+      label: "La casa",
+      player: "Esta casa tiene un aire particular. ¿Hace mucho que vives aquí?",
+      reactions: [
+        { maxAfecto: 29, expr: "molesta", eva: "No voy a hablar de eso ahora, {nombre}. No te metas tanto.", paciencia: 10 },
+        { maxAfecto: 59, expr: "nerviosa", eva: "Hace un tiempo, sí. Mejor lo dejamos para otro día.", vinculo: 3 },
+        { maxAfecto: 100, expr: "neutral", eva: "Sí, ya lleva años. A veces siento que me conoce mejor de lo que yo la conozco.", vinculo: 8, afecto: 2 }
+      ]
+    },
+    {
+      id: "silencio",
+      label: "El silencio",
+      player: "Cuando se hace de noche, el silencio aquí se siente distinto.",
+      reactions: [
+        { maxAfecto: 39, expr: "triste", eva: "Lo sé. Por eso a veces dejo una luz encendida.", vinculo: 2, afecto: 1 },
+        { maxAfecto: 100, expr: "feliz", eva: "Sí… aunque contigo se nota menos. Gracias por quedarte un rato.", vinculo: 9, afecto: 3 }
+      ]
+    }
+  ]
+};
+
+const EVA_RULES = {
+  warningAt: 80,
+  kickAt: 100,
+  warning: {
+    expr: "molesta",
+    text: "Estoy perdiendo la paciencia, {nombre}. Si sigues así, voy a pedirte que te vayas de la casa."
+  },
+  kick: {
+    title: "Eva te echó de la casa",
+    note: "Se acabó la paciencia. Por ahora, no puedes quedarte aquí.",
+    button: "Volver al título"
+  }
+};
+
+/* Escenas sin imagen por defecto: en el editor aparecen en negro con «Agregar foto». */
+const EDITOR_SCENES = [
+  { id: "eva-peticion", name: "Eva Petición", kind: "scene" },
+  { id: "eva-accion", name: "Eva Acción", kind: "scene" },
+  { id: "eva-regalo", name: "Regalo", kind: "scene" }
+];
+
+const STORY_PATCH_KEY = "eva_novela_story_v16";
+
+function editableStory() {
+  return JSON.parse(JSON.stringify({
+    bars: (EVA_INFO.bars || []).map((b) => ({ id: b.id, name: b.name || "", color: b.color, max: b.max })),
+    fields: EVA_INFO.fields || [],
+    menuOptions: EVA_MENU.options || [],
+    hablar: {
+      options: EVA_HABLAR.options || [],
+      backLabel: EVA_HABLAR.backLabel || "Volver",
+      elogiar: EVA_HABLAR.elogiar || [],
+      charlar: EVA_HABLAR.charlar || []
+    },
+    peticion: EVA_MENU.peticion,
+    accion: EVA_MENU.accion,
+    noGift: EVA_MENU.noGift,
+    giftOk: EVA_MENU.giftOk,
+    rules: EVA_RULES,
+    inventory: DEFAULT_INVENTORY
+  }));
+}
+
+function applyEditableStory(data) {
+  if (!data || typeof data !== "object") return;
+  if (Array.isArray(data.bars)) {
+    data.bars.forEach((src) => {
+      const b = (EVA_INFO.bars || []).find((x) => x.id === src.id);
+      if (b && src.name != null) b.name = String(src.name);
+    });
+  }
+  if (Array.isArray(data.fields)) EVA_INFO.fields = data.fields;
+  if (Array.isArray(data.menuOptions)) EVA_MENU.options = data.menuOptions;
+  if (data.hablar) {
+    if (Array.isArray(data.hablar.options)) EVA_HABLAR.options = data.hablar.options;
+    if (data.hablar.backLabel) EVA_HABLAR.backLabel = data.hablar.backLabel;
+    if (Array.isArray(data.hablar.elogiar)) EVA_HABLAR.elogiar = data.hablar.elogiar;
+    if (Array.isArray(data.hablar.charlar)) EVA_HABLAR.charlar = data.hablar.charlar;
+  }
+  if (data.peticion) EVA_MENU.peticion = data.peticion;
+  if (data.accion) EVA_MENU.accion = data.accion;
+  if (data.noGift) EVA_MENU.noGift = data.noGift;
+  if (data.giftOk) EVA_MENU.giftOk = data.giftOk;
+  if (data.rules) Object.assign(EVA_RULES, data.rules);
+  if (Array.isArray(data.inventory)) {
+    DEFAULT_INVENTORY.length = 0;
+    data.inventory.forEach((it) => DEFAULT_INVENTORY.push(it));
+  }
+}
+
+function loadStoryPatch() {
+  try {
+    const raw = localStorage.getItem(STORY_PATCH_KEY);
+    if (raw) applyEditableStory(JSON.parse(raw));
+  } catch (e) { /* ignore */ }
+}
+
+function saveStoryPatch() {
+  try {
+    localStorage.setItem(STORY_PATCH_KEY, JSON.stringify(editableStory()));
+  } catch (e) { /* ignore */ }
+}
+
 const EDITOR_ITEMS = [
   { id: "intro", name: "Introducción", kind: "intro", defaultImage: INTRO.image },
   ...EXPRESSIONS.map((expr) => ({
@@ -505,6 +696,12 @@ const EDITOR_ITEMS = [
     character: "eva",
     expr,
     defaultImage: exprAsset("eva", expr)
+  })),
+  ...EDITOR_SCENES.map((s) => ({
+    id: s.id,
+    name: s.name,
+    kind: "scene",
+    defaultImage: ""
   })),
   ...HOUSE.locations.map((l) => ({
     id: l.id,
