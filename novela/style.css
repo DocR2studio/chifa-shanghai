@@ -2231,55 +2231,30 @@ body { min-height: 100dvh; }
   overflow: hidden;
 }
 .hotspots[hidden] { display: none !important; }
-.hotspot-glow {
-  pointer-events: none;
-  fill: rgba(255, 255, 255, 0.08);
-  stroke: rgba(255, 255, 255, 0.55);
-  stroke-width: 10;
-  stroke-linejoin: round;
-  filter: blur(2.5px);
-  animation: hotspot-glow-pulse 2.4s ease-in-out infinite;
-}
 .hotspot {
-  pointer-events: auto;
-  fill: rgba(255, 255, 255, 0.08);
-  stroke: #fff;
-  stroke-width: 5;
-  stroke-linejoin: round;
+  pointer-events: all;
+  fill: rgba(255, 255, 255, 0);
+  stroke: none;
   cursor: pointer;
-  filter: drop-shadow(0 0 6px #fff) drop-shadow(0 0 1px #000);
-  animation: hotspot-pulse 2.4s ease-in-out infinite;
+  outline: none;
+  filter: none;
 }
-.hotspot.is-closed {
-  stroke: rgba(255, 255, 255, 0.7);
-  fill: rgba(255, 255, 255, 0.05);
-}
-.hotspot:hover, .hotspot:focus-visible {
-  fill: rgba(255, 255, 255, 0.20);
-  stroke: #fff;
-  stroke-width: 7;
-  animation: none;
-  filter: drop-shadow(0 0 10px #fff) drop-shadow(0 0 2px #000);
+.hotspot:hover, .hotspot:focus-visible, .hotspot.is-closed {
+  fill: rgba(255, 255, 255, 0);
+  stroke: none;
+  filter: none;
   outline: none;
 }
-@keyframes hotspot-pulse {
-  0%, 100% { fill: rgba(255,255,255,0.06); stroke: rgba(255,255,255,0.82); }
-  50% { fill: rgba(255,255,255,0.14); stroke: #fff; }
+.hotspot.is-flash {
+  fill: rgba(255, 255, 255, 0.48);
+  stroke: none;
+  filter: drop-shadow(0 0 14px rgba(255,255,255,0.95));
+  animation: hotspot-flash 0.3s ease-out forwards;
 }
-@keyframes hotspot-glow-pulse {
-  0%, 100% { stroke: rgba(255,255,255,0.35); }
-  50% { stroke: rgba(255,255,255,0.7); }
-}
-
-.hotspot-arrow {
-  pointer-events: none;
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.95);
-  stroke-width: 6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  filter: drop-shadow(0 0 0.8px #fff);
-  animation: hotspot-pulse 2.6s ease-in-out infinite;
+@keyframes hotspot-flash {
+  0% { fill: rgba(255,255,255,0.15); }
+  35% { fill: rgba(255,255,255,0.52); }
+  100% { fill: rgba(255,255,255,0.22); }
 }
 
 .travel-fade {

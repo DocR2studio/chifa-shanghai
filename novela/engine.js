@@ -895,35 +895,28 @@
       el.setAttribute("tabindex", "0");
       el.setAttribute("role", "button");
       el.setAttribute("aria-label", d.label || "");
-      const go = (ev) => { ev.preventDefault(); ev.stopPropagation(); onDoor(d); };
+      const go = (ev) => { ev.preventDefault(); ev.stopPropagation(); onDoor(d, el); };
       el.addEventListener("click", go);
       el.addEventListener("keydown", (ev) => {
         if (ev.key === "Enter" || ev.key === " ") go(ev);
       });
-      const glow = el.cloneNode();
-      glow.setAttribute("class", "hotspot-glow");
-      glow.removeAttribute("tabindex");
-      glow.removeAttribute("role");
-      svg.appendChild(glow);
       svg.appendChild(el);
-      if (d.kind === "back") {
-        const xs = pts.map((pt) => pt[0]);
-        const ys = pts.map((pt) => pt[1]);
-        const cx = ((Math.min.apply(null, xs) + Math.max.apply(null, xs)) / 2) * 1280;
-        const cy = ((Math.min.apply(null, ys) + Math.max.apply(null, ys)) / 2) * 720;
-        const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        arrow.setAttribute("class", "hotspot-arrow");
-        arrow.setAttribute("d", "M " + (cx - 28) + " " + (cy + 12) + " L " + cx + " " + (cy - 16) + " L " + (cx + 28) + " " + (cy + 12));
-        svg.appendChild(arrow);
-      }
     });
   }
-  function onDoor(d) {
+  async function onDoor(d, el) {
     if (traveling) return;
+    traveling = true;
+    if (el) {
+      el.classList.add("is-flash");
+      await wait(300);
+    }
     if (d.closed || !d.to) {
+      if (el) el.classList.remove("is-flash");
+      traveling = false;
       toast(d.label || "Cerrado por ahora.");
       return;
     }
+    traveling = false;
     travelTo(d.to);
   }
   let traveling = false;

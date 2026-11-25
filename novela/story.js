@@ -101,8 +101,7 @@ const HOUSE = {
       name: "Lavandería",
       floor: 1,
       image: "assets/locs/lavanderia.jpg",
-      placeholder: true,
-      look: "Todavía no hay una foto definitiva de este lugar. Las toallas esperan dobladas en la cesta.",
+      look: "Las dos máquinas descansan junto al tanque. En el estante están el detergente y un balde; las cajas quedan apiladas a un lado.",
       actions: [
         { id: "ordenar", label: "Ordenar", text: "Doblas lo que había suelto. No es mucho, pero queda mejor." }
       ]
@@ -190,7 +189,7 @@ const DOORS = {
     { id: "sala", to: "sala", label: "Volver a la sala", kind: "back", points: [[0.2797, 0.8597], [0.7203, 0.8597], [0.7203, 0.9944], [0.2797, 0.9944]] }
   ],
   lavanderia: [
-    { id: "escaleras", to: "escaleras", label: "Escaleras", points: [[0.4938, 0.0611], [0.6031, 0.0611], [0.6031, 0.6694], [0.4938, 0.6694]] }
+    { id: "escaleras", to: "escaleras", label: "Escaleras", kind: "back", points: [[0.12, 0.80], [0.88, 0.80], [0.88, 0.905], [0.12, 0.905]] }
   ]
 };
 const TASKS = [
