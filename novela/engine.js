@@ -291,7 +291,7 @@
     if (id === "ayudar-eva") return ayudarEvaAction();
     if (id === "broma") {
       const src = findActionById("broma");
-      return src ? Object.assign({}, src) : { id: "broma", label: "Hacer una broma", paciencia: -15, scene: "broma" };
+      return src ? Object.assign({}, src) : { id: "broma", label: "Hacer una broma", paciencia: -9, scene: "broma" };
     }
     const src = findActionById(id);
     return src ? Object.assign({}, src) : null;
@@ -689,7 +689,7 @@
   }
   function ayudarEvaAction() {
     const src = (typeof EVA_ROOM_ACTIONS !== "undefined" && EVA_ROOM_ACTIONS.ayudarEva) || {
-      id: "ayudar-eva", label: "Ayudar a Eva", recover: "ayudar", energia: -5, vinculo: 2,
+      id: "ayudar-eva", label: "Ayudar a Eva", recover: "ayudar", energia: -5, vinculo: 1,
       text: "Echas una mano con la limpieza. Eva lo agradece."
     };
     return Object.assign({}, src);
@@ -1072,7 +1072,7 @@
     const ev = ensureEvaInfo();
     const add = Number(n) || 0;
     ev.afecto = clampAfecto((ev.afecto || 0) + add);
-    if (add > 0) ev.bars.rosa = clampBarVal("rosa", (ev.bars.rosa || 0) + Math.max(1, Math.round(add * 1.5)));
+    if (add > 0) ev.bars.rosa = clampBarVal("rosa", (ev.bars.rosa || 0) + Math.max(1, Math.round(add * 0.75)));
     autosave();
     refreshEvaInfoUI();
     return ev.afecto;
@@ -1220,6 +1220,34 @@
     const scale = Math.max(vw / iw, vh / ih);
     return { w: iw * scale, h: ih * scale, x: (vw - iw * scale) / 2, y: (vh - ih * scale) / 2 };
   }
+
+  function setEvaSceneSil(variant) {
+    const svg = $("eva-scene-sil");
+    if (!svg) return;
+    svg.innerHTML = "";
+    const sleeping = !variant || variant.talk === false || variant.when === "sleeping" || variant.id === "cuarto-eva-durmiendo";
+    if (sleeping) {
+      svg.hidden = true;
+      svg.setAttribute("hidden", "");
+      return;
+    }
+    const map = (typeof EVA_SCENE_SILS !== "undefined" && EVA_SCENE_SILS) || {};
+    const d = map[variant.id];
+    if (!d) {
+      svg.hidden = true;
+      svg.setAttribute("hidden", "");
+      return;
+    }
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", d);
+    path.setAttribute("class", "hotspot");
+    path.setAttribute("fill-rule", "evenodd");
+    path.setAttribute("pointer-events", "none");
+    path.setAttribute("id", "eva-sil-path");
+    svg.appendChild(path);
+    svg.hidden = false;
+    svg.removeAttribute("hidden");
+  }
   function placeRoomEva() {
     const layer = $("eva-room");
     const hit = $("eva-room-hit");
@@ -1253,6 +1281,7 @@
     if (!on || state.evaMeet) {
       layer.hidden = true;
       layer.classList.remove("is-scene");
+      setEvaSceneSil(null);
       return;
     }
     const variant = currentSceneVariant();
@@ -1264,10 +1293,12 @@
         hit.hidden = false;
         hit.setAttribute("aria-label", "Eva");
       }
+      setEvaSceneSil(variant);
       placeRoomEva();
       return;
     }
     layer.classList.remove("is-scene");
+    setEvaSceneSil(null);
     if (img) img.hidden = false;
     const src = assetUrl((typeof EVA_MENU !== "undefined" && EVA_MENU.fullImage) || "assets/eva-full.png");
     if (img) {
@@ -1336,8 +1367,8 @@
           label: "Nuevo tema",
           player: "…",
           reactions: [
-            { maxAfecto: 29, expr: "molesta", eva: "Prefiero no hablar de eso ahora.", paciencia: -8 },
-            { maxAfecto: 100, expr: "feliz", eva: "Me agrada oírte.", vinculo: 4, afecto: 1 }
+            { maxAfecto: 29, expr: "molesta", eva: "Prefiero no hablar de eso ahora.", paciencia: -5 },
+            { maxAfecto: 100, expr: "feliz", eva: "Me agrada oírte.", vinculo: 2, afecto: 1 }
           ]
         });
         saveStoryPatch();
@@ -1363,7 +1394,7 @@
         });
       });
       if (editorLive) appendAddButton(box, "Añadir recuadro", () => {
-        list.push({ id: "o" + Date.now(), label: "Nueva opción", need: 0, ok: { expr: "neutral", eva: "De acuerdo.", vinculo: 2 } });
+        list.push({ id: "o" + Date.now(), label: "Nueva opción", need: 0, ok: { expr: "neutral", eva: "De acuerdo.", vinculo: 1 } });
         saveStoryPatch();
         buildEvaMeetMenu();
       });
@@ -1509,8 +1540,14 @@
     const variant = currentSceneVariant();
     if (variant && variant.talk === false) return;
     evaMeetBusy = true;
+    const sil = $("eva-sil-path");
     const hit = $("eva-room-hit");
-    if (hit) {
+    const scene = $("eva-room") && $("eva-room").classList.contains("is-scene");
+    if (sil) {
+      sil.classList.add("is-flash");
+      await wait(300);
+      sil.classList.remove("is-flash");
+    } else if (hit && !scene) {
       hit.classList.add("is-flash");
       await wait(300);
       hit.classList.remove("is-flash");
@@ -2695,7 +2732,7 @@
     hideEvaMeetStats();
     const need = item && item.need != null ? item.need : 0;
     const allowed = confianzaNow() >= need;
-    const r = allowed ? (ok || {}) : (locked || { expr: "molesta", eva: "Todavía no, {nombre}.", paciencia: -8 });
+    const r = allowed ? (ok || {}) : (locked || { expr: "molesta", eva: "Todavía no, {nombre}.", paciencia: -5 });
     const use = {
       expr: r.expr || (allowed ? "feliz" : "molesta"),
       eva: r.eva || r.text || (allowed ? "De acuerdo." : "Todavía no."),

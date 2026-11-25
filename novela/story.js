@@ -967,7 +967,8 @@ function editableStory() {
     evaScenes: typeof EVA_SCENES !== "undefined" ? EVA_SCENES : [],
     sceneLines: typeof EVA_SCENE_LINES !== "undefined" ? EVA_SCENE_LINES : {},
     aviso: AVISO,
-    inventory: DEFAULT_INVENTORY
+    inventory: DEFAULT_INVENTORY,
+    balanceVersion: 24
   }));
 }
 
@@ -1037,6 +1038,7 @@ function applyEditableStory(data) {
     data.inventory.forEach((it) => DEFAULT_INVENTORY.push(it));
   }
   ensureV23RoomActions();
+  ensureV24Balance(data);
 }
 
 function ensureV23RoomActions() {
@@ -1063,6 +1065,107 @@ function ensureV23RoomActions() {
       sala.actions.push(Object.assign({}, src));
     }
   }
+}
+
+
+const BALANCE_VERSION = 24;
+
+function scaleRosaGain(n) {
+  const v = Number(n);
+  if (!(v > 0)) return v;
+  return Math.max(1, Math.round(v / 2));
+}
+
+function scalePacienciaPenalty(n) {
+  const v = Number(n);
+  if (!(v < 0)) return v;
+  const s = Math.round(v * 0.6);
+  return s === 0 ? -1 : s;
+}
+
+function scaleEffectFields(obj, path, changes) {
+  if (!obj || typeof obj !== "object") return;
+  if (typeof obj.rosa === "number" && obj.rosa > 0) {
+    const before = obj.rosa;
+    const after = scaleRosaGain(before);
+    if (after !== before) {
+      obj.rosa = after;
+      changes.push({ path: path + ".rosa", before: before, after: after });
+    }
+  }
+  if (typeof obj.vinculo === "number" && obj.vinculo > 0) {
+    const before = obj.vinculo;
+    const after = scaleRosaGain(before);
+    if (after !== before) {
+      obj.vinculo = after;
+      changes.push({ path: path + ".vinculo", before: before, after: after });
+    }
+  }
+  if (typeof obj.paciencia === "number" && obj.paciencia < 0) {
+    const before = obj.paciencia;
+    const after = scalePacienciaPenalty(before);
+    if (after !== before) {
+      obj.paciencia = after;
+      changes.push({ path: path + ".paciencia", before: before, after: after });
+    }
+  }
+}
+
+function ensureV24Balance(data) {
+  const ver = (data && Number(data.balanceVersion)) || 0;
+  if (ver >= BALANCE_VERSION) return [];
+  const changes = [];
+  const hablar = (typeof EVA_HABLAR !== "undefined" && EVA_HABLAR) || {};
+  (hablar.elogiar || []).forEach((opt) => {
+    if (!opt || !opt.effects) return;
+    Object.keys(opt.effects).forEach((tier) => {
+      scaleEffectFields(opt.effects[tier], "elogiar." + opt.id + ".effects." + tier, changes);
+    });
+  });
+  (hablar.charlar || []).forEach((opt) => {
+    if (!opt) return;
+    (opt.reactions || []).forEach((r, i) => {
+      scaleEffectFields(r, "charlar." + opt.id + ".reactions." + i, changes);
+    });
+  });
+  const locs = (typeof HOUSE !== "undefined" && HOUSE.locations) || [];
+  locs.forEach((loc) => {
+    if (!loc) return;
+    (loc.actions || []).forEach((act) => {
+      if (!act) return;
+      scaleEffectFields(act, "house." + loc.id + ".actions." + (act.id || "?"), changes);
+      (act.options || []).forEach((opt) => {
+        if (!opt) return;
+        scaleEffectFields(opt, "house." + loc.id + ".actions." + (act.id || "?") + ".options." + (opt.id || "?"), changes);
+      });
+    });
+  });
+  if (typeof EVA_ROOM_ACTIONS !== "undefined" && EVA_ROOM_ACTIONS) {
+    Object.keys(EVA_ROOM_ACTIONS).forEach((k) => {
+      const a = EVA_ROOM_ACTIONS[k];
+      if (a && typeof a === "object") scaleEffectFields(a, "roomActionTemplate." + (a.id || k), changes);
+    });
+  }
+  (typeof DEFAULT_INVENTORY !== "undefined" && DEFAULT_INVENTORY || []).forEach((it) => {
+    if (!it) return;
+    if (it.ok) scaleEffectFields(it.ok, "inventory." + it.id + ".ok", changes);
+    if (it.locked) scaleEffectFields(it.locked, "inventory." + it.id + ".locked", changes);
+  });
+  const menu = (typeof EVA_MENU !== "undefined" && EVA_MENU) || {};
+  ["peticion", "accion"].forEach((key) => {
+    const block = menu[key];
+    ((block && block.options) || []).forEach((opt) => {
+      if (!opt) return;
+      const base = "menu." + key + "." + (opt.id || "?");
+      if (opt.ok) scaleEffectFields(opt.ok, base + ".ok", changes);
+      if (opt.locked) scaleEffectFields(opt.locked, base + ".locked", changes);
+      scaleEffectFields(opt, base, changes);
+    });
+  });
+  if (menu.giftOk) scaleEffectFields(menu.giftOk, "menu.giftOk", changes);
+  if (menu.noGift) scaleEffectFields(menu.noGift, "menu.noGift", changes);
+  if (data && typeof data === "object") data.balanceVersion = BALANCE_VERSION;
+  return changes;
 }
 
 function loadStoryPatch() {
