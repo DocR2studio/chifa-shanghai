@@ -27,6 +27,7 @@
     activityCount: 0,
     inventory: [],
     unlockedScenes: [],
+    chats: {},
     peek: false,
     settings: { music: 70, sfx: 70, textSpeed: "normal" }
   };
@@ -126,7 +127,8 @@
       moment: state.moment,
       activityCount: state.activityCount,
       inventory: (state.inventory || []).map((it) => Object.assign({}, it)),
-      unlockedScenes: (state.unlockedScenes || []).slice()
+      unlockedScenes: (state.unlockedScenes || []).slice(),
+      chats: cloneChats(state.chats)
     };
   }
   function autosave() {
@@ -390,6 +392,8 @@
   }
   function showDialogue(on) {
     $("dialogue").hidden = !on;
+    const game = $("screen-game");
+    if (game) game.classList.toggle("has-dialogue", !!on);
   }
   function showFullLine() {
     stopTyping();
@@ -457,6 +461,7 @@
     state.activityCount = 0;
     state.inventory = exampleInventory();
     state.unlockedScenes = [];
+    state.chats = seedChatHistory(emptyChatState());
     setPeek(false);
     hideModals();
     showScreen("game");
@@ -735,6 +740,7 @@
     state.activityCount = snap.activityCount || 0;
     state.inventory = Array.isArray(snap.inventory) ? snap.inventory.map((it) => Object.assign({}, it)) : exampleInventory();
     state.unlockedScenes = Array.isArray(snap.unlockedScenes) ? snap.unlockedScenes.slice() : [];
+    state.chats = normalizeChats(snap.chats);
     setPeek(false);
     hideModals();
     if (state.phase === "intro") {
@@ -893,37 +899,142 @@
     }
     setTimeout(syncSettingsForm, 300);
   }
+  let phoneScreen = "home";
+  let phoneChatId = null;
+
+  function cloneChats(chats) {
+    const src = chats || {};
+    const out = {};
+    Object.keys(src).forEach((id) => {
+      const c = src[id] || {};
+      out[id] = {
+        node: c.node,
+        started: !!c.started,
+        history: (c.history || []).map((m) => ({ who: m.who, text: m.text, at: m.at }))
+      };
+    });
+    return out;
+  }
+  function normalizeChats(raw) {
+    const base = emptyChatState();
+    if (raw && typeof raw === "object") {
+      Object.keys(raw).forEach((id) => {
+        const c = raw[id] || {};
+        base[id] = {
+          node: c.node || (chatById(id) || {}).start || "saludo",
+          started: !!c.started,
+          history: Array.isArray(c.history)
+            ? c.history.filter((m) => m && m.text).map((m) => ({ who: m.who, text: m.text, at: m.at }))
+            : [],
+          draft: -1
+        };
+      });
+    }
+    return seedChatHistory(base);
+  }
+  function seedChatHistory(chats) {
+    const next = chats || emptyChatState();
+    (CHATS || []).forEach((c) => {
+      if (!next[c.id]) next[c.id] = { node: c.start, history: [], started: false, draft: -1 };
+      const st = next[c.id];
+      if (!st.started) {
+        const node = (c.nodes && (c.nodes[st.node] || c.nodes[c.start])) || {};
+        const now = Date.now();
+        (node.incoming || []).forEach((text, i) => {
+          st.history.push({ who: c.id, text, at: now + i });
+        });
+        st.started = true;
+        if (!st.node) st.node = c.start;
+      }
+      if (st.draft == null) st.draft = -1;
+    });
+    return next;
+  }
+  function ensureChat(id) {
+    if (!state.chats) state.chats = seedChatHistory(emptyChatState());
+    if (!state.chats[id]) {
+      const def = chatById(id);
+      state.chats[id] = { node: def ? def.start : "saludo", history: [], started: false, draft: -1 };
+      seedChatHistory(state.chats);
+    }
+    return state.chats[id];
+  }
+  function phoneClockText() {
+    try {
+      return new Intl.DateTimeFormat("es-PE", {
+        timeZone: TZ,
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+      }).format(new Date());
+    } catch (err) {
+      const d = new Date();
+      return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+    }
+  }
+  function formatChatTime(ts) {
+    if (!ts) return "";
+    try {
+      return new Intl.DateTimeFormat("es-PE", {
+        timeZone: TZ,
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+      }).format(new Date(ts));
+    } catch (err) {
+      const d = new Date(ts);
+      return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+    }
+  }
+  function setPhoneClock() {
+    if ($("phone-clock")) $("phone-clock").textContent = phoneClockText();
+  }
+  function setPhoneTitle(title, avatar) {
+    $("phone-app-title").textContent = title || "App";
+    const img = $("phone-app-avatar");
+    if (!img) return;
+    if (avatar) {
+      img.src = avatar;
+      img.hidden = false;
+    } else {
+      img.removeAttribute("src");
+      img.hidden = true;
+    }
+  }
   function openPhone(app) {
     hideModals();
-    $("phone-home").hidden = !!app;
-    $("phone-app").hidden = !app;
-    if ($("phone-clock")) {
-      $("phone-clock").textContent = timeLabel();
-    }
+    setPhoneClock();
     if (app) openPhoneApp(app);
+    else phoneHome();
     $("modal-phone").hidden = false;
   }
   function phoneHome() {
+    phoneScreen = "home";
+    phoneChatId = null;
     $("phone-home").hidden = false;
     $("phone-app").hidden = true;
     $("phone-app-body").innerHTML = "";
-    if ($("phone-clock")) $("phone-clock").textContent = timeLabel();
+    setPhoneTitle("App");
+    setPhoneClock();
+  }
+  function phoneBack() {
+    if (phoneScreen === "chat") {
+      openPhoneApp("contacts");
+      return;
+    }
+    phoneHome();
   }
   function openPhoneApp(app) {
+    phoneScreen = app || "home";
+    phoneChatId = null;
     $("phone-home").hidden = true;
     $("phone-app").hidden = false;
-    const titles = { contacts: "Contactos", camera: "Cámara", info: "Info" };
-    $("phone-app-title").textContent = titles[app] || "App";
+    const titles = { contacts: "Chats", camera: "Cámara", info: "Info" };
+    setPhoneTitle(titles[app] || "App");
     const body = $("phone-app-body");
     body.innerHTML = "";
     if (app === "contacts") {
-      const card = document.createElement("button");
-      card.type = "button";
-      card.className = "phone-contact";
-      card.innerHTML = "<strong></strong><span></span>";
-      card.querySelector("strong").textContent = "Eva";
-      card.querySelector("span").textContent = "En " + ((locById(evaAt(state.moment, state.phase)) || {}).name || "la casa");
-      body.appendChild(card);
+      renderChatList(body);
     } else if (app === "camera") {
       const shot = document.createElement("div");
       shot.className = "phone-camera";
@@ -946,12 +1057,176 @@
         card.className = "phone-codex";
         const h = document.createElement("h3");
         h.textContent = fillName(entry.name || id, state.name);
-        const t = document.createElement("p");
-        t.textContent = fillName(entry.text || "", state.name);
+        const p = document.createElement("p");
+        p.textContent = fillName(entry.text || "", state.name);
         card.appendChild(h);
-        card.appendChild(t);
+        card.appendChild(p);
         body.appendChild(card);
       });
+    }
+  }
+  function lastChatPreview(id) {
+    const st = ensureChat(id);
+    const hist = st.history || [];
+    if (!hist.length) return { text: "Sin mensajes", at: 0 };
+    const last = hist[hist.length - 1];
+    const prefix = last.who === "player" ? "Tú: " : "";
+    return { text: prefix + last.text, at: last.at };
+  }
+  function renderChatList(body) {
+    const list = document.createElement("div");
+    list.className = "chat-list";
+    (CHATS || []).forEach((c) => {
+      const preview = lastChatPreview(c.id);
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "chat-row";
+      row.setAttribute("data-chat-id", c.id);
+      const av = document.createElement("img");
+      av.className = "chat-avatar";
+      av.src = c.avatar;
+      av.alt = "";
+      const name = document.createElement("span");
+      name.className = "chat-row-name";
+      name.textContent = c.name;
+      const last = document.createElement("span");
+      last.className = "chat-row-last";
+      last.textContent = preview.text;
+      const time = document.createElement("span");
+      time.className = "chat-row-time";
+      time.textContent = formatChatTime(preview.at);
+      row.appendChild(av);
+      row.appendChild(name);
+      row.appendChild(time);
+      row.appendChild(last);
+      list.appendChild(row);
+    });
+    body.appendChild(list);
+  }
+  function currentChatNode(def, st) {
+    if (!def || !def.nodes) return null;
+    return def.nodes[st.node] || def.nodes[def.start] || null;
+  }
+  function openChatThread(id) {
+    const def = chatById(id);
+    if (!def) return;
+    phoneScreen = "chat";
+    phoneChatId = id;
+    ensureChat(id);
+    $("phone-home").hidden = true;
+    $("phone-app").hidden = false;
+    setPhoneTitle(def.name, def.avatar);
+    renderChatThread(id);
+  }
+  function renderChatThread(id) {
+    const def = chatById(id);
+    const st = ensureChat(id);
+    const body = $("phone-app-body");
+    body.innerHTML = "";
+    const thread = document.createElement("div");
+    thread.className = "chat-thread";
+    const log = document.createElement("div");
+    log.className = "chat-log";
+    (st.history || []).forEach((m) => {
+      const b = document.createElement("div");
+      b.className = "chat-bubble " + (m.who === "player" ? "chat-bubble-player" : "chat-bubble-eva");
+      b.appendChild(document.createTextNode(m.text));
+      const tm = document.createElement("span");
+      tm.className = "chat-bubble-time";
+      tm.textContent = formatChatTime(m.at);
+      b.appendChild(tm);
+      log.appendChild(b);
+    });
+    thread.appendChild(log);
+    const node = currentChatNode(def, st);
+    const replies = (node && node.replies) || [];
+    if (replies.length) {
+      const box = document.createElement("div");
+      box.className = "chat-replies";
+      replies.forEach((r, i) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chat-reply" + (st.draft === i ? " is-selected" : "");
+        btn.setAttribute("data-reply", String(i));
+        btn.textContent = r.text;
+        box.appendChild(btn);
+      });
+      thread.appendChild(box);
+    }
+    const compose = document.createElement("div");
+    compose.className = "chat-compose";
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "chat-input";
+    input.id = "chat-input";
+    input.readOnly = true;
+    input.tabIndex = -1;
+    if (st.draft >= 0 && replies[st.draft]) {
+      input.value = replies[st.draft].text;
+    } else if (!replies.length) {
+      input.placeholder = "No hay más respuestas";
+    } else {
+      input.placeholder = "Elige una respuesta";
+    }
+    const send = document.createElement("button");
+    send.type = "button";
+    send.className = "chat-send";
+    send.id = "chat-send";
+    send.setAttribute("aria-label", "Enviar");
+    send.disabled = !(st.draft >= 0 && replies[st.draft]);
+    send.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.2 12 L20.5 4.4 15.2 20.2 12.2 13.2 Z"/></svg>';
+    compose.appendChild(input);
+    compose.appendChild(send);
+    thread.appendChild(compose);
+    body.appendChild(thread);
+    log.scrollTop = log.scrollHeight;
+  }
+  function selectChatReply(index) {
+    if (!phoneChatId) return;
+    const def = chatById(phoneChatId);
+    const st = ensureChat(phoneChatId);
+    const node = currentChatNode(def, st);
+    const replies = (node && node.replies) || [];
+    const i = Number(index);
+    if (!replies[i]) return;
+    st.draft = i;
+    renderChatThread(phoneChatId);
+  }
+  function sendChatReply() {
+    if (!phoneChatId) return;
+    const def = chatById(phoneChatId);
+    const st = ensureChat(phoneChatId);
+    const node = currentChatNode(def, st);
+    const replies = (node && node.replies) || [];
+    if (st.draft < 0 || !replies[st.draft]) return;
+    const choice = replies[st.draft];
+    const now = Date.now();
+    st.history.push({ who: "player", text: choice.text, at: now });
+    st.draft = -1;
+    st.node = choice.next;
+    const next = currentChatNode(def, st);
+    (next && next.incoming ? next.incoming : []).forEach((text, i) => {
+      st.history.push({ who: def.id, text, at: now + 1 + i });
+    });
+    autosave();
+    renderChatThread(phoneChatId);
+  }
+  function onPhoneBodyClick(e) {
+    const row = e.target.closest("[data-chat-id]");
+    if (row) {
+      e.stopPropagation();
+      openChatThread(row.getAttribute("data-chat-id"));
+      return;
+    }
+    const reply = e.target.closest("[data-reply]");
+    if (reply) {
+      e.stopPropagation();
+      selectChatReply(reply.getAttribute("data-reply"));
+      return;
+    }
+    if (e.target.closest("#chat-send")) {
+      e.stopPropagation();
+      sendChatReply();
     }
   }
 
@@ -1124,7 +1399,7 @@
     if (demo === "closed") { showScreen("closed"); return; }
     if (demo === "name") { openName(); return; }
     if (demo === "editor") { openEditor(); return; }
-    if (demo === "house" || demo === "map" || demo === "talk" || demo === "enojada" || demo === "enamorada" || demo === "triste" || demo === "peek" || demo === "bag" || demo === "settings" || demo === "phone" || demo === "info" || demo === "gallery") {
+    if (demo === "house" || demo === "map" || demo === "talk" || demo === "enojada" || demo === "enamorada" || demo === "triste" || demo === "peek" || demo === "bag" || demo === "settings" || demo === "phone" || demo === "info" || demo === "gallery" || demo === "chats" || demo === "chat") {
       state.name = "Doc";
       state.bars = { ...HOUSE.startBars };
       state.day = 1;
@@ -1132,6 +1407,7 @@
       state.activityCount = 0;
       state.inventory = exampleInventory();
       state.unlockedScenes = [];
+      state.chats = seedChatHistory(emptyChatState());
       if (demo === "talk" || demo === "enojada" || demo === "enamorada" || demo === "triste") {
         enterHouse("cocina");
         if (demo === "enojada") startTalk(EVA.talk.cocina, "enojo");
@@ -1149,6 +1425,8 @@
         if (demo === "settings") openSettings();
         if (demo === "phone") openPhone();
         if (demo === "info") openPhone("info");
+        if (demo === "chats") openPhone("contacts");
+        if (demo === "chat") { openPhone("contacts"); openChatThread("eva"); }
         if (demo === "gallery") openGallery();
       }
       return;
@@ -1274,7 +1552,8 @@
     $("btn-cerrar-bag").addEventListener("click", () => { $("modal-bag").hidden = true; });
     $("btn-cerrar-settings").addEventListener("click", () => { $("modal-settings").hidden = true; });
     $("btn-cerrar-phone").addEventListener("click", () => { $("modal-phone").hidden = true; phoneHome(); });
-    $("phone-back").addEventListener("click", (e) => { e.stopPropagation(); phoneHome(); });
+    $("phone-back").addEventListener("click", (e) => { e.stopPropagation(); phoneBack(); });
+    $("phone-app-body").addEventListener("click", onPhoneBodyClick);
     document.querySelectorAll(".phone-app").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -1346,7 +1625,7 @@
     });
   }
 
-  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, playTitleIntro, openBag, openSettings, openPhone, openGallery, setPeek, getExpr: () => currentExpr, getState: () => state };
+  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, playTitleIntro, openBag, openSettings, openPhone, openChatThread, openGallery, setPeek, getExpr: () => currentExpr, getState: () => state };
 
   document.addEventListener("DOMContentLoaded", () => {
     bind();

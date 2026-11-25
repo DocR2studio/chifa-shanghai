@@ -271,6 +271,76 @@ const CODEX = {
 
 const SCENES = [];
 
+
+const CHATS = [
+  {
+    id: "eva",
+    name: "Eva",
+    avatar: "assets/eva/avatar.png",
+    start: "saludo",
+    nodes: {
+      saludo: {
+        incoming: [
+          "¿Ya te acomodaste en el cuarto?",
+          "Si necesitas algo, avísame. Estoy por la casa."
+        ],
+        replies: [
+          { text: "Sí, gracias. El cuarto está bien.", next: "agrado" },
+          { text: "Todavía estoy mirando un poco la casa.", next: "explorar" },
+          { text: "¿Dónde estás ahora?", next: "donde" }
+        ]
+      },
+      agrado: {
+        incoming: [
+          "Me alegra. Si quieres, más tarde te preparo algo sencillo."
+        ],
+        replies: [
+          { text: "Suena bien, gracias.", next: "cierre_ok" },
+          { text: "No te preocupes, yo me organizo.", next: "cierre_solo" }
+        ]
+      },
+      explorar: {
+        incoming: [
+          "Tómate el tiempo que quieras. La casa es un poco grande al principio."
+        ],
+        replies: [
+          { text: "Voy a recorrerla con calma.", next: "cierre_ok" },
+          { text: "Si me pierdo, te aviso.", next: "cierre_ok" }
+        ]
+      },
+      donde: {
+        incoming: [
+          "En la cocina, por ahora. Cuando quieras pasar, la puerta está abierta."
+        ],
+        replies: [
+          { text: "En un rato te busco.", next: "cierre_ok" },
+          { text: "Gracias, después te escribo.", next: "cierre_solo" }
+        ]
+      },
+      cierre_ok: {
+        incoming: ["De acuerdo. Aquí estaré."],
+        replies: []
+      },
+      cierre_solo: {
+        incoming: ["Como prefieras. Cualquier cosa, escríbeme."],
+        replies: []
+      }
+    }
+  }
+];
+
+function chatById(id) {
+  return (CHATS || []).find((c) => c.id === id) || null;
+}
+
+function emptyChatState() {
+  const out = {};
+  (CHATS || []).forEach((c) => {
+    out[c.id] = { node: c.start, history: [], started: false, draft: -1 };
+  });
+  return out;
+}
+
 function exampleInventory() {
   return DEFAULT_INVENTORY.map((it) => Object.assign({}, it));
 }
