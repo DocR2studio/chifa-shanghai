@@ -488,7 +488,8 @@
       renderHUD();
     }
     const cid = charIdFromName(who);
-    if (cid) showEvaSprite(true, lineExpr(line));
+    if (cid && !exprSeqActive()) showEvaSprite(true, lineExpr(line));
+    else if (cid && exprSeqActive()) showEvaSprite(true, currentExpr || lineExpr(line));
     showDialogue(true);
     typeLine(fillName(line.text, state.name));
     bindLinePencil(line);
@@ -663,7 +664,8 @@
     $("choices").innerHTML = "";
     showDialogue(false);
     clearLinePencil();
-    if (state.pendingKick || (ensureEvaInfo().bars.roja || 0) >= kickLimit()) {
+    stopExprSeq();
+    if (state.pendingKick || isPacienciaKick()) {
       ejectFromHouse();
       return;
     }
@@ -724,13 +726,43 @@
     if (!m) return path;
     return path + (path.indexOf("?") >= 0 ? "&" : "?") + "v=" + m[1];
   }
-  function evaInfoBarMax(id) {
+  function evaInfoBarRange(id) {
     const info = typeof EVA_INFO !== "undefined" ? EVA_INFO : {};
-    const found = (info.bars || []).find((b) => b.id === id);
-    if (found && found.max != null) return found.max;
-    if (id === "rosa" || id === "morada") return 150;
-    if (id === "roja") return 100;
-    return 100;
+    const found = (info.bars || []).find((b) => b.id === id) || {};
+    let max = found.max;
+    let min = found.min;
+    if (max == null) max = (id === "rosa" || id === "morada") ? 250 : (id === "roja" ? 0 : 100);
+    if (min == null) min = id === "roja" ? -100 : 0;
+    return { min: min, max: max };
+  }
+  function evaInfoBarMax(id) {
+    return evaInfoBarRange(id).max;
+  }
+  function evaInfoBarMin(id) {
+    return evaInfoBarRange(id).min;
+  }
+  function clampInfoVal(n, max, min) {
+    const lo = min == null ? 0 : min;
+    const hi = max == null ? 100 : max;
+    const a = Math.min(lo, hi);
+    const b = Math.max(lo, hi);
+    return Math.max(a, Math.min(b, Math.round(Number(n) || 0)));
+  }
+  function clampBarVal(id, n) {
+    const r = evaInfoBarRange(id);
+    return clampInfoVal(n, r.max, r.min);
+  }
+  function clampAfecto(n) {
+    const info = typeof EVA_INFO !== "undefined" ? EVA_INFO : {};
+    const max = info.afectoMax != null ? info.afectoMax : 200;
+    const min = info.afectoMin != null ? info.afectoMin : -50;
+    return clampInfoVal(n, max, min);
+  }
+  function migrateBarRaw(id, raw) {
+    let v = raw;
+    /* Partidas viejas: Paciencia subía de 0 a 100. Ahora va de 0 a -100. */
+    if (id === "roja" && v > 0) v = -v;
+    return clampBarVal(id, v);
   }
   function defaultEvaInfo() {
     const info = typeof EVA_INFO !== "undefined" ? EVA_INFO : {};
@@ -738,11 +770,11 @@
     const start = info.startBars || { rosa: 0, morada: 0, roja: 0 };
     (info.bars || [{ id: "rosa" }, { id: "morada" }, { id: "roja" }]).forEach((b) => {
       const raw = start[b.id] != null ? start[b.id] : 0;
-      bars[b.id] = clampInfoVal(raw, evaInfoBarMax(b.id));
+      bars[b.id] = migrateBarRaw(b.id, raw);
     });
     return {
       bars: bars,
-      afecto: clampInfoVal(info.startAfecto != null ? info.startAfecto : 10, info.afectoMax || 100)
+      afecto: clampAfecto(info.startAfecto != null ? info.startAfecto : 10)
     };
   }
   function cloneEvaInfo(src) {
@@ -752,23 +784,18 @@
     const ids = new Set(Object.keys(bars).concat(src.bars ? Object.keys(src.bars) : []));
     ids.forEach((k) => {
       const raw = src.bars && src.bars[k] != null ? src.bars[k] : bars[k];
-      bars[k] = clampInfoVal(raw, evaInfoBarMax(k));
+      bars[k] = migrateBarRaw(k, raw);
     });
-    const info = typeof EVA_INFO !== "undefined" ? EVA_INFO : {};
-    const afecto = clampInfoVal(src.afecto != null ? src.afecto : base.afecto, info.afectoMax || 100);
+    const afecto = clampAfecto(src.afecto != null ? src.afecto : base.afecto);
     return { bars: bars, afecto: afecto };
   }
   function mergeEvaInfo(src) {
-    /* Partidas viejas: se clampa cada barra a su máximo (rosa/morada 150, roja 100) y el afecto a 100. */
+    /* Partidas viejas: Paciencia positiva se invierte; rosa/morada se abren a 250; afecto a -50..200. */
     return cloneEvaInfo(src);
   }
   function ensureEvaInfo() {
     state.evaInfo = cloneEvaInfo(state.evaInfo);
     return state.evaInfo;
-  }
-  function clampInfoVal(n, max) {
-    const m = max == null ? 100 : max;
-    return Math.max(0, Math.min(m, Math.round(Number(n) || 0)));
   }
   function refreshEvaInfoUI() {
     if (phoneScreen === "info" && $("modal-phone") && !$("modal-phone").hidden) openPhoneApp("info");
@@ -778,8 +805,8 @@
     const info = typeof EVA_INFO !== "undefined" ? EVA_INFO : {};
     const ev = ensureEvaInfo();
     const add = Number(n) || 0;
-    ev.afecto = clampInfoVal((ev.afecto || 0) + add, info.afectoMax || 100);
-    if (add > 0) ev.bars.rosa = clampInfoVal((ev.bars.rosa || 0) + Math.max(1, Math.round(add * 1.5)), evaInfoBarMax("rosa"));
+    ev.afecto = clampAfecto((ev.afecto || 0) + add);
+    if (add > 0) ev.bars.rosa = clampBarVal("rosa", (ev.bars.rosa || 0) + Math.max(1, Math.round(add * 1.5)));
     autosave();
     refreshEvaInfoUI();
     return ev.afecto;
@@ -787,21 +814,21 @@
   function setAfecto(n) {
     const info = typeof EVA_INFO !== "undefined" ? EVA_INFO : {};
     const ev = ensureEvaInfo();
-    ev.afecto = clampInfoVal(n, info.afectoMax || 100);
+    ev.afecto = clampAfecto(n);
     autosave();
     refreshEvaInfoUI();
     return ev.afecto;
   }
   function addEvaInfoBar(id, n) {
     const ev = ensureEvaInfo();
-    ev.bars[id] = clampInfoVal((ev.bars[id] || 0) + (Number(n) || 0), evaInfoBarMax(id));
+    ev.bars[id] = clampBarVal(id, (ev.bars[id] || 0) + (Number(n) || 0));
     autosave();
     refreshEvaInfoUI();
     return ev.bars[id];
   }
   function setEvaInfoBar(id, n) {
     const ev = ensureEvaInfo();
-    ev.bars[id] = clampInfoVal(n, evaInfoBarMax(id));
+    ev.bars[id] = clampBarVal(id, n);
     autosave();
     refreshEvaInfoUI();
     return ev.bars[id];
@@ -819,10 +846,18 @@
       const r = parseInt(hx.slice(0, 2), 16), g = parseInt(hx.slice(2, 4), 16), bl = parseInt(hx.slice(4, 6), 16);
       track.style.background = "rgba(" + r + "," + g + "," + bl + ",0.28)";
     }
-    const max = evaInfoBarMax(b.id);
+    const range = evaInfoBarRange(b.id);
     const v = ev.bars[b.id] != null ? ev.bars[b.id] : 0;
     const fill = document.createElement("span");
-    fill.style.width = (max ? Math.max(0, Math.min(100, (v / max) * 100)) : 0) + "%";
+    let frac = 0;
+    if (range.min < 0 && range.max <= 0) {
+      const span = Math.abs(range.min - range.max) || 1;
+      frac = Math.abs(Math.min(0, v) - range.max) / span;
+    } else {
+      const span = (range.max - range.min) || 1;
+      frac = (v - range.min) / span;
+    }
+    fill.style.width = (Math.max(0, Math.min(100, frac * 100))) + "%";
     fill.style.background = col;
     track.appendChild(fill);
     const head = document.createElement("div");
@@ -847,7 +882,7 @@
     }
     const lab = document.createElement("span");
     lab.className = "phone-eva-bar-val";
-    lab.textContent = v + "/" + max;
+    lab.textContent = v + "/" + (range.min < 0 ? range.min : range.max);
     head.appendChild(lab);
     row.appendChild(head);
     row.appendChild(track);
@@ -863,14 +898,8 @@
     const barsBox = document.createElement("div");
     barsBox.className = "phone-eva-bars";
     (cfg.bars || []).forEach((b) => appendEvaBarRow(barsBox, b, ev));
-    const heart = document.createElement("div");
-    heart.className = "phone-eva-heart";
-    heart.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.4 S3.2 14.2 3.2 8.8 A4.6 4.6 0 0 1 12 6.7 A4.6 4.6 0 0 1 20.8 8.8 C20.8 14.2 12 20.4 12 20.4 Z"/></svg>';
-    const pct = document.createElement("b");
-    pct.textContent = String(ev.afecto != null ? ev.afecto : 10) + "%";
-    heart.appendChild(pct);
     top.appendChild(barsBox);
-    top.appendChild(heart);
+    top.appendChild(renderEvaHeart(ev.afecto, "info"));
     sheet.appendChild(top);
     const img = document.createElement("img");
     img.className = "phone-eva-photo";
@@ -910,14 +939,8 @@
     const barsBox = document.createElement("div");
     barsBox.className = "eva-meet-stats-bars";
     (cfg.bars || []).forEach((b) => appendEvaBarRow(barsBox, b, ev));
-    const heart = document.createElement("div");
-    heart.className = "phone-eva-heart eva-meet-stats-heart";
-    heart.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.4 S3.2 14.2 3.2 8.8 A4.6 4.6 0 0 1 12 6.7 A4.6 4.6 0 0 1 20.8 8.8 C20.8 14.2 12 20.4 12 20.4 Z"/></svg>';
-    const pct = document.createElement("b");
-    pct.textContent = String(ev.afecto != null ? ev.afecto : 10) + "%";
-    heart.appendChild(pct);
     top.appendChild(barsBox);
-    top.appendChild(heart);
+    top.appendChild(renderEvaHeart(ev.afecto, "meet"));
     box.appendChild(top);
     box.hidden = false;
   }
@@ -965,10 +988,16 @@
     if (hit) hit.hidden = false;
     placeRoomEva();
   }
+  function finishMeetMenu(box) {
+    if (!box) return;
+    const n = box.querySelectorAll(".eva-meet-opt").length;
+    box.classList.toggle("is-long", n >= 6);
+  }
   function buildEvaMeetMenu() {
     const box = $("eva-meet-menu");
     if (!box) return;
     box.innerHTML = "";
+    box.classList.remove("is-long");
     const sub = state.meetSub;
     if (sub === "hablar") {
       const opts = (typeof EVA_HABLAR !== "undefined" && EVA_HABLAR.options) || [];
@@ -994,6 +1023,7 @@
       }, () => {
         openEditModal("Volver", EVA_HABLAR.backLabel || "Volver", (v) => { EVA_HABLAR.backLabel = v; saveStoryPatch(); buildEvaMeetMenu(); });
       });
+      finishMeetMenu(box);
       return;
     }
     if (sub === "elogiar" || sub === "charlar") {
@@ -1013,7 +1043,7 @@
           label: "Nuevo tema",
           player: "…",
           reactions: [
-            { maxAfecto: 29, expr: "molesta", eva: "Prefiero no hablar de eso ahora.", paciencia: 8 },
+            { maxAfecto: 29, expr: "molesta", eva: "Prefiero no hablar de eso ahora.", paciencia: -8 },
             { maxAfecto: 100, expr: "feliz", eva: "Me agrada oírte.", vinculo: 4, afecto: 1 }
           ]
         });
@@ -1024,6 +1054,7 @@
         state.meetSub = "hablar";
         buildEvaMeetMenu();
       });
+      finishMeetMenu(box);
       return;
     }
     if (sub === "peticion" || sub === "accion") {
@@ -1049,6 +1080,7 @@
         buildEvaMeetMenu();
         renderEvaMeetStats();
       });
+      finishMeetMenu(box);
       return;
     }
     const opts = (typeof EVA_MENU !== "undefined" && EVA_MENU.options) || [];
@@ -1066,9 +1098,10 @@
       saveStoryPatch();
       buildEvaMeetMenu();
     });
+    finishMeetMenu(box);
   }
   function openEvaMeet() {
-    if (state.ejected || (ensureEvaInfo().bars.roja || 0) >= kickLimit()) {
+    if (state.ejected || isPacienciaKick()) {
       ejectFromHouse();
       return;
     }
@@ -1079,7 +1112,7 @@
     const img = $("eva-meet-close");
     if (img) {
       img.alt = "Eva";
-      const expr = evaPacienciaExpr();
+      const expr = evaMoodExpr();
       const closeSrc = exprAsset("eva", expr) || (typeof EVA_MENU !== "undefined" && EVA_MENU.closeImage) || "assets/eva-close.png";
       loadExprImage(img, closeSrc, (typeof EVA_EXPR_FALLBACK !== "undefined" && EVA_EXPR_FALLBACK) || "assets/eva-close.png");
     }
@@ -1098,7 +1131,7 @@
     showRoomEva(false);
     refreshEditorLiveBar();
     const p = ensureEvaInfo().bars.roja || 0;
-    if (p >= warningAt() && p < kickLimit()) {
+    if (isPacienciaWarn(p)) {
       const w = (typeof EVA_RULES !== "undefined" && EVA_RULES.warning) || {};
       beginMeetTalk([{ who: "Eva", expr: w.expr || "molesta", text: w.text || "Estoy perdiendo la paciencia." }], null, { countsAsActivity: false });
     }
@@ -1107,6 +1140,7 @@
     state.evaMeet = false;
     state.meetSub = null;
     showMeetScene(null);
+    stopExprSeq();
     evaMeetBusy = false;
     const meet = $("eva-meet");
     hideEvaMeetStats();
@@ -1871,19 +1905,154 @@
 
   /* ---------- v16: Paciencia, Hablar, editor en vivo ---------- */
   function warningAt() {
-    return (typeof EVA_RULES !== "undefined" && EVA_RULES.warningAt != null) ? EVA_RULES.warningAt : 80;
+    return (typeof EVA_RULES !== "undefined" && EVA_RULES.warningAt != null) ? EVA_RULES.warningAt : -80;
   }
   function kickLimit() {
-    return (typeof EVA_RULES !== "undefined" && EVA_RULES.kickAt != null) ? EVA_RULES.kickAt : 100;
+    return (typeof EVA_RULES !== "undefined" && EVA_RULES.kickAt != null) ? EVA_RULES.kickAt : -100;
   }
-  function evaPacienciaExpr() {
-    const ev = ensureEvaInfo();
-    const p = ev.bars.roja || 0;
+  function isPacienciaKick(p) {
+    const v = p == null ? (ensureEvaInfo().bars.roja || 0) : p;
+    return v <= kickLimit();
+  }
+  function isPacienciaWarn(p) {
+    const v = p == null ? (ensureEvaInfo().bars.roja || 0) : p;
+    return v <= warningAt() && v > kickLimit();
+  }
+  function pickElogiarTier(ev) {
+    const list = (typeof EVA_ELOGIAR_TIERS !== "undefined" && EVA_ELOGIAR_TIERS) || [{ id: "BASE" }];
     const a = ev.afecto || 0;
-    if (p >= 85) return "triste";
-    if (p >= 30) return "molesta";
+    const rosa = ev.bars.rosa || 0;
+    const morada = ev.bars.morada || 0;
+    for (let i = 0; i < list.length; i++) {
+      const t = list[i];
+      if (!t || t.id === "BASE") return t || { id: "BASE" };
+      const okC = t.corazon == null || a >= t.corazon;
+      const okR = t.rosa == null || rosa >= t.rosa;
+      const okM = t.morada == null || morada >= t.morada;
+      if (okC && okR && okM) return t;
+    }
+    return { id: "BASE" };
+  }
+  function evaMoodExpr(topic, gain) {
+    const ev = ensureEvaInfo();
+    const a = ev.afecto || 0;
+    const rosa = ev.bars.rosa || 0;
+    const morada = ev.bars.morada || 0;
+    const pAbs = Math.abs(ev.bars.roja || 0);
+    const rules = (typeof EVA_EXPR_RULES !== "undefined" && EVA_EXPR_RULES) || {};
+    const half = rules.halfBars != null ? rules.halfBars : 125;
+    const full = rules.fullBars != null ? rules.fullBars : 250;
+    const bothFull = rosa >= full && morada >= full;
+    const bothMid = rosa >= half && morada >= half;
+    const pAbsNeed = rules.pacienciaAbs != null ? rules.pacienciaAbs : 80;
+    if (a < 0) {
+      if (bothFull) {
+        const from = (rules.full && rules.full.tristeFrom != null) ? rules.full.tristeFrom : -1;
+        if (a <= from) return "triste";
+      } else if (bothMid) {
+        const mid = rules.mid || {};
+        if (a <= (mid.molestaAt != null ? mid.molestaAt : -40)) return "molesta";
+        if (a <= (mid.tristeAt != null ? mid.tristeAt : -30)) return "triste";
+      } else {
+        const low = rules.low || {};
+        if (a <= (low.molestaAt != null ? low.molestaAt : -40)) return "molesta";
+        if (a <= (low.tristeAt != null ? low.tristeAt : -20)) return "triste";
+      }
+    }
+    if (pAbs >= pAbsNeed && !bothFull) return "molesta";
+    if (topic && topic.posExpr) return topic.posExpr;
+    if (gain && gain >= 8) return "feliz";
+    if (a >= 80) return "feliz";
     if (a >= 30) return "feliz";
     return "neutral";
+  }
+  function evaPacienciaExpr() {
+    return evaMoodExpr();
+  }
+  let heartClipSeq = 0;
+  function renderEvaHeart(afecto, key) {
+    const a = clampAfecto(afecto != null ? afecto : 10);
+    const wrap = document.createElement("div");
+    wrap.className = "phone-eva-heart" + (key === "meet" ? " eva-meet-stats-heart" : "") + (a < 0 ? " is-broken" : "");
+    const id = "eva-hclip-" + (key || "x") + "-" + (++heartClipSeq);
+    const info = typeof EVA_INFO !== "undefined" ? EVA_INFO : {};
+    const posMax = info.afectoMax != null ? info.afectoMax : 200;
+    const negMin = info.afectoMin != null ? info.afectoMin : -50;
+    let frac = 0;
+    if (a >= 0) frac = posMax ? Math.max(0, Math.min(1, a / posMax)) : 0;
+    else frac = negMin ? Math.max(0, Math.min(1, Math.abs(a) / Math.abs(negMin))) : 0;
+    const top = (24 * (1 - frac)).toFixed(2);
+    const h = (24 * frac).toFixed(2);
+    const intact = "M12 20.4 S3.2 14.2 3.2 8.8 A4.6 4.6 0 0 1 12 6.7 A4.6 4.6 0 0 1 20.8 8.8 C20.8 14.2 12 20.4 12 20.4 Z";
+    const left = "M11.35 20.4 C11.35 20.4 3 14 3 8.8 A4.55 4.55 0 0 1 11.2 6.85 L11.15 7.6 10.35 9.1 11.4 10.5 10.2 12.1 11.45 13.7 10.15 15.4 11.4 17.2 10.55 18.6 11.35 20.4 Z";
+    const right = "M12.65 20.4 C12.65 20.4 21 14 21 8.8 A4.55 4.55 0 0 0 12.8 6.85 L12.85 7.6 13.65 9.1 12.6 10.5 13.8 12.1 12.55 13.7 13.85 15.4 12.6 17.2 13.45 18.6 12.65 20.4 Z";
+    const crack = "M12 6.85 L11.15 7.6 10.35 9.1 11.4 10.5 10.2 12.1 11.45 13.7 10.15 15.4 11.4 17.2 10.55 18.6 11.35 20.4";
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("aria-hidden", "true");
+    const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+    const clip = document.createElementNS("http://www.w3.org/2000/svg", "clipPath");
+    clip.setAttribute("id", id);
+    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute("x", "0");
+    rect.setAttribute("y", String(top));
+    rect.setAttribute("width", "24");
+    rect.setAttribute("height", String(h));
+    clip.appendChild(rect);
+    defs.appendChild(clip);
+    svg.appendChild(defs);
+    function path(d, cls) {
+      const el = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      el.setAttribute("d", d);
+      el.setAttribute("class", cls);
+      return el;
+    }
+    if (a < 0) {
+      svg.appendChild(path(left, "eva-heart-track"));
+      svg.appendChild(path(right, "eva-heart-track"));
+      const fl = path(left, "eva-heart-fill eva-heart-broken-fill");
+      const fr = path(right, "eva-heart-fill eva-heart-broken-fill");
+      fl.setAttribute("clip-path", "url(#" + id + ")");
+      fr.setAttribute("clip-path", "url(#" + id + ")");
+      svg.appendChild(fl);
+      svg.appendChild(fr);
+      svg.appendChild(path(crack, "eva-heart-crack"));
+    } else {
+      svg.appendChild(path(intact, "eva-heart-track"));
+      const fill = path(intact, "eva-heart-fill");
+      fill.setAttribute("clip-path", "url(#" + id + ")");
+      svg.appendChild(fill);
+    }
+    wrap.appendChild(svg);
+    const pct = document.createElement("b");
+    pct.textContent = a + "%";
+    wrap.appendChild(pct);
+    return wrap;
+  }
+  function fmtDelta(n) {
+    const v = Math.round(Number(n) || 0);
+    return (v > 0 ? "+" : "") + v;
+  }
+  function showStatDelta(delta) {
+    const host = $("eva-meet") || $("screen-game");
+    if (!host || !delta) return;
+    host.querySelectorAll(".eva-delta").forEach((el) => el.remove());
+    const labels = (typeof EVA_DELTA_LABELS !== "undefined" && EVA_DELTA_LABELS) || {
+      afecto: "Corazón", paciencia: "Paciencia", rosa: "Rosa", morada: "Morada"
+    };
+    const order = [["afecto", labels.afecto], ["paciencia", labels.paciencia], ["rosa", labels.rosa], ["morada", labels.morada]];
+    const parts = [];
+    order.forEach((pair) => {
+      const v = delta[pair[0]];
+      if (!v) return;
+      parts.push(pair[1] + " " + fmtDelta(v));
+    });
+    if (!parts.length) return;
+    const el = document.createElement("div");
+    el.className = "eva-delta";
+    el.textContent = parts.join("   ");
+    host.appendChild(el);
+    setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 3200);
   }
   function setEditorLive(on) {
     editorLive = !!on;
@@ -2007,16 +2176,84 @@
     if (r.vinculo) addEvaInfoBar("rosa", r.vinculo);
     if (r.confianza) addEvaInfoBar("morada", r.confianza);
     if (r.paciencia) addEvaInfoBar("roja", r.paciencia);
-    if ((ensureEvaInfo().bars.roja || 0) >= kickLimit()) state.pendingKick = true;
+    if (isPacienciaKick()) state.pendingKick = true;
   }
   function confianzaNow() {
     return ensureEvaInfo().bars.morada || 0;
   }
+  function applyStatDelta(d) {
+    if (!d) return { afecto: 0, paciencia: 0, rosa: 0, morada: 0 };
+    const ev = ensureEvaInfo();
+    const beforeA = ev.afecto || 0;
+    const beforeR = ev.bars.rosa || 0;
+    const beforeM = ev.bars.morada || 0;
+    const beforeP = ev.bars.roja || 0;
+    if (d.afecto) ev.afecto = clampAfecto(beforeA + (Number(d.afecto) || 0));
+    if (d.rosa) ev.bars.rosa = clampBarVal("rosa", beforeR + (Number(d.rosa) || 0));
+    if (d.morada) ev.bars.morada = clampBarVal("morada", beforeM + (Number(d.morada) || 0));
+    if (d.vinculo) ev.bars.rosa = clampBarVal("rosa", ev.bars.rosa + (Number(d.vinculo) || 0));
+    if (d.confianza) ev.bars.morada = clampBarVal("morada", ev.bars.morada + (Number(d.confianza) || 0));
+    if (d.paciencia) ev.bars.roja = clampBarVal("roja", beforeP + (Number(d.paciencia) || 0));
+    if (isPacienciaKick()) state.pendingKick = true;
+    autosave();
+    refreshEvaInfoUI();
+    return {
+      afecto: ev.afecto - beforeA,
+      rosa: ev.bars.rosa - beforeR,
+      morada: ev.bars.morada - beforeM,
+      paciencia: ev.bars.roja - beforeP
+    };
+  }
+  let exprSeqTicket = 0;
+  function exprSeqActive() {
+    return !!state.exprSeq;
+  }
+  function stopExprSeq() {
+    exprSeqTicket += 1;
+    state.exprSeq = null;
+  }
+  function playExprSeq(seq) {
+    const steps = (seq || []).filter(Boolean);
+    if (!steps.length) return;
+    const ticket = ++exprSeqTicket;
+    const cfg = (typeof EVA_ELOGIAR_SEQ !== "undefined" && EVA_ELOGIAR_SEQ) || {};
+    const waitMs = [cfg.firstMs != null ? cfg.firstMs : 1200, cfg.secondMs != null ? cfg.secondMs : 1200];
+    state.exprSeq = { steps: steps, i: 0 };
+    (async function run() {
+      for (let i = 0; i < steps.length; i++) {
+        if (ticket !== exprSeqTicket) return;
+        state.exprSeq.i = i;
+        await setExpression("eva", steps[i], { instant: i === 0 });
+        if (i < steps.length - 1) {
+          await wait(waitMs[i] != null ? waitMs[i] : 1200);
+        }
+      }
+      if (ticket === exprSeqTicket) state.exprSeq = { steps: steps, i: steps.length - 1, done: true };
+    })();
+  }
   function playHablarTopic(group, topic) {
     hideEvaMeetStats();
     const ev = ensureEvaInfo();
-    const reaction = pickReaction(topic.reactions, ev.afecto || 0);
-    applyReaction(reaction);
+    let expr = "neutral";
+    let evaText = topic.eva || "…";
+    let onEditEva = (v) => { topic.eva = v; };
+    let gain = 0;
+    let seq = null;
+    if (topic.effects) {
+      const tier = pickElogiarTier(ev);
+      const pack = topic.effects[tier.id] || topic.effects.BASE || {};
+      const applied = applyStatDelta(pack);
+      gain = applied.afecto || 0;
+      seq = pack.seq || null;
+      expr = (seq && seq[0]) || evaMoodExpr(topic, gain);
+      showStatDelta(applied);
+    } else {
+      const reaction = pickReaction(topic.reactions, ev.afecto || 0);
+      applyReaction(reaction);
+      expr = reaction.expr || evaMoodExpr(topic);
+      evaText = reaction.eva || topic.eva || "…";
+      onEditEva = (v) => { if (reaction) reaction.eva = v; else topic.eva = v; };
+    }
     const lines = [];
     if (topic.player) {
       lines.push({
@@ -2027,22 +2264,23 @@
     }
     lines.push({
       who: "Eva",
-      expr: reaction.expr || "neutral",
-      text: reaction.eva || "…",
-      _onEdit: (v) => { reaction.eva = v; }
+      expr: expr,
+      text: evaText,
+      _onEdit: onEditEva
     });
     const p = ensureEvaInfo().bars.roja || 0;
-    if (p >= warningAt() && p < kickLimit() && !state.pendingKick) {
+    if (isPacienciaWarn(p) && !state.pendingKick) {
       const w = (typeof EVA_RULES !== "undefined" && EVA_RULES.warning) || {};
-      lines.push({ who: "Eva", expr: w.expr || "molesta", text: w.text || "Estoy perdiendo la paciencia." });
+      lines.push({ who: "Eva", expr: (seq && seq[seq.length - 1]) || evaMoodExpr(topic, gain), text: w.text || "Estoy perdiendo la paciencia." });
     }
     beginMeetTalk(lines, null, { countsAsActivity: true });
+    if (seq) playExprSeq(seq);
   }
   function playUnlockable(item, ok, locked) {
     hideEvaMeetStats();
     const need = item && item.need != null ? item.need : 0;
     const allowed = confianzaNow() >= need;
-    const r = allowed ? (ok || {}) : (locked || { expr: "molesta", eva: "Todavía no, {nombre}.", paciencia: 8 });
+    const r = allowed ? (ok || {}) : (locked || { expr: "molesta", eva: "Todavía no, {nombre}.", paciencia: -8 });
     const use = {
       expr: r.expr || (allowed ? "feliz" : "molesta"),
       eva: r.eva || r.text || (allowed ? "De acuerdo." : "Todavía no."),
@@ -2262,6 +2500,7 @@
     const list = $("editor-list");
     list.innerHTML = "";
     list.appendChild(renderBarsEditorCard());
+    list.appendChild(renderElogiarSeqCard());
     for (const item of EDITOR_ITEMS.filter((i) => i.kind === "scene")) {
       list.appendChild(await renderMediaCard(item));
     }
@@ -2292,6 +2531,78 @@
     for (const item of EDITOR_ITEMS.filter((i) => i.kind === "location")) {
       list.appendChild(await renderMediaCard(item));
     }
+  }
+
+  function parseExprSeq(text) {
+    return String(text || "").split(",").map((s) => s.trim()).filter(Boolean).slice(0, 3);
+  }
+  function renderElogiarSeqCard() {
+    const card = document.createElement("article");
+    card.className = "editor-card editor-seq-card";
+    const h = document.createElement("h3");
+    h.textContent = "Reacciones de Elogiar";
+    card.appendChild(h);
+    const note = document.createElement("p");
+    note.className = "editor-note";
+    note.textContent = "Tres expresiones por nivel: primera, segunda y resto. Separa con comas (por ejemplo: feliz, sonrojada, neutral). La primera y la segunda duran 1.2 s.";
+    card.appendChild(note);
+    const times = document.createElement("div");
+    times.className = "seq-times";
+    const cfg = (typeof EVA_ELOGIAR_SEQ !== "undefined" && EVA_ELOGIAR_SEQ) || { firstMs: 1200, secondMs: 1200 };
+    [["firstMs", "Primera (ms)"], ["secondMs", "Segunda (ms)"]].forEach((pair) => {
+      const lab = document.createElement("label");
+      lab.textContent = pair[1];
+      const inp = document.createElement("input");
+      inp.type = "number";
+      inp.min = "200";
+      inp.step = "100";
+      inp.value = cfg[pair[0]] != null ? cfg[pair[0]] : 1200;
+      inp.addEventListener("change", () => {
+        if (typeof EVA_ELOGIAR_SEQ === "undefined") return;
+        EVA_ELOGIAR_SEQ[pair[0]] = Math.max(200, Number(inp.value) || 1200);
+        saveStoryPatch();
+      });
+      lab.appendChild(inp);
+      times.appendChild(lab);
+    });
+    card.appendChild(times);
+    const tiers = ["BASE", "T50", "T100", "MAX"];
+    const list = (typeof EVA_HABLAR !== "undefined" && EVA_HABLAR.elogiar) || [];
+    list.forEach((opt) => {
+      const block = document.createElement("div");
+      block.className = "seq-opt";
+      const title = document.createElement("h4");
+      title.textContent = opt.label || opt.id;
+      block.appendChild(title);
+      if (!opt.effects) opt.effects = {};
+      tiers.forEach((tier) => {
+        if (!opt.effects[tier]) opt.effects[tier] = { afecto: 0, paciencia: 0, rosa: 0, morada: 0, seq: ["neutral", "neutral", "neutral"] };
+        const row = document.createElement("div");
+        row.className = "seq-row";
+        const lab = document.createElement("label");
+        lab.textContent = tier;
+        const inp = document.createElement("input");
+        inp.type = "text";
+        inp.value = (opt.effects[tier].seq || []).join(", ");
+        const save = () => {
+          opt.effects[tier].seq = parseExprSeq(inp.value);
+          inp.value = opt.effects[tier].seq.join(", ");
+          saveStoryPatch();
+        };
+        inp.addEventListener("change", save);
+        row.appendChild(lab);
+        row.appendChild(inp);
+        row.appendChild(makePencil(() => {
+          openEditModal((opt.label || opt.id) + " · " + tier, inp.value, (v) => {
+            inp.value = v;
+            save();
+          });
+        }, "Editar reacción"));
+        block.appendChild(row);
+      });
+      card.appendChild(block);
+    });
+    return card;
   }
   function renderBarsEditorCard() {
     const card = document.createElement("article");
@@ -2440,12 +2751,12 @@
       state.day = 1;
       state.moment = "mañana";
       state.evaInfo = defaultEvaInfo();
-      setEvaInfoBar("roja", 100);
+      setEvaInfoBar("roja", -100);
       showScreen("game");
       ejectFromHouse();
       return;
     }
-    if (demo === "house" || demo === "map" || demo === "talk" || demo === "enojada" || demo === "enamorada" || demo === "triste" || demo === "peek" || demo === "bag" || demo === "settings" || demo === "phone" || demo === "info" || demo === "tasks" || demo === "pasillo" || demo === "sala" || demo === "cuarto_eva" || demo === "fade" || demo === "chats" || demo === "chat" || demo === "cocina" || demo === "eva" || demo === "eva-menu" || demo === "eva-hablar" || demo === "hablar" || demo === "reaccion" || demo === "paciencia" || demo === "editor-live") {
+    if (demo === "house" || demo === "map" || demo === "talk" || demo === "enojada" || demo === "enamorada" || demo === "triste" || demo === "peek" || demo === "bag" || demo === "settings" || demo === "phone" || demo === "info" || demo === "tasks" || demo === "pasillo" || demo === "sala" || demo === "cuarto_eva" || demo === "fade" || demo === "chats" || demo === "chat" || demo === "cocina" || demo === "eva" || demo === "eva-menu" || demo === "eva-hablar" || demo === "hablar" || demo === "reaccion" || demo === "paciencia" || demo === "editor-live" || demo === "elogiar" || demo === "heart-100" || demo === "heart-neg") {
       state.name = "Doc";
       state.bars = { ...HOUSE.startBars };
       state.day = 1;
@@ -2467,15 +2778,21 @@
           playLine();
         }
       } else {
-        const startLoc = (demo === "pasillo" || demo === "fade") ? "pasillo" : (demo === "sala" ? "sala" : (demo === "cuarto_eva" ? "cuarto_eva" : ((demo === "cocina" || demo === "eva" || demo === "eva-menu" || demo === "eva-hablar" || demo === "hablar" || demo === "reaccion" || demo === "paciencia" || demo === "editor-live") ? "cocina" : "cuarto")));
+        const startLoc = (demo === "pasillo" || demo === "fade") ? "pasillo" : (demo === "sala" ? "sala" : (demo === "cuarto_eva" ? "cuarto_eva" : ((demo === "cocina" || demo === "eva" || demo === "eva-menu" || demo === "eva-hablar" || demo === "hablar" || demo === "reaccion" || demo === "paciencia" || demo === "editor-live" || demo === "elogiar" || demo === "heart-100" || demo === "heart-neg") ? "cocina" : "cuarto")));
         enterHouse(startLoc);
         if (demo === "editor-live") setEditorLive(true);
-        if (demo === "eva-menu" || demo === "eva-hablar" || demo === "hablar" || demo === "reaccion" || demo === "paciencia" || demo === "editor-live") {
-          if (demo === "paciencia") setEvaInfoBar("roja", 80);
+        if (demo === "eva-menu" || demo === "eva-hablar" || demo === "hablar" || demo === "reaccion" || demo === "paciencia" || demo === "editor-live" || demo === "elogiar" || demo === "heart-100" || demo === "heart-neg") {
+          if (demo === "paciencia") setEvaInfoBar("roja", -80);
+          if (demo === "heart-100") setAfecto(100);
+          if (demo === "heart-neg") setAfecto(-50);
           openEvaMeet();
         }
         if (demo === "hablar" || demo === "eva-hablar") {
           state.meetSub = "hablar";
+          buildEvaMeetMenu();
+        }
+        if (demo === "elogiar") {
+          state.meetSub = "elogiar";
           buildEvaMeetMenu();
         }
         if (demo === "reaccion") {

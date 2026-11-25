@@ -2478,13 +2478,31 @@ body { min-height: 100dvh; }
   color: #f07189;
 }
 .phone-eva-heart svg {
-  width: 20px;
-  height: 20px;
+  width: 26px;
+  height: 26px;
   display: block;
   margin: 0 auto 1px;
-  fill: #e25575;
+  overflow: visible;
+  fill: none;
+  stroke: none;
+}
+.eva-heart-track {
+  fill: rgba(226, 85, 117, 0.22);
   stroke: #ff9aab;
-  stroke-width: 0.8;
+  stroke-width: 0.85;
+}
+.eva-heart-fill { fill: #e25575; stroke: none; }
+.phone-eva-heart.is-broken .eva-heart-track {
+  fill: rgba(130, 48, 70, 0.2);
+  stroke: #c07088;
+}
+.eva-heart-broken-fill { fill: #a33b55; }
+.eva-heart-crack {
+  fill: none;
+  stroke: #2a1018;
+  stroke-width: 1.15;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .phone-eva-heart b {
   display: block;
@@ -2574,11 +2592,11 @@ body { min-height: 100dvh; }
 .eva-meet-stats .phone-eva-bar { height: 8px; }
 .eva-meet-stats-heart {
   flex: 0 0 auto;
-  width: 44px;
+  width: 54px;
 }
 .eva-meet-stats-heart svg {
-  width: 22px;
-  height: 22px;
+  width: 36px;
+  height: 36px;
 }
 .eva-meet-stats .phone-eva-bar-val {
   font-size: 0.66rem;
@@ -2876,3 +2894,95 @@ body { min-height: 100dvh; }
 }
 .file-btn input { display: none; }
 #lab-importar { text-align: center; }
+
+.eva-delta {
+  position: absolute;
+  left: 50%;
+  top: 16%;
+  transform: translateX(-50%);
+  z-index: 20;
+  padding: 7px 12px;
+  background: rgba(8, 10, 16, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 6px;
+  color: #f3efe6;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+  animation: eva-delta-in 2.8s ease both;
+}
+@keyframes eva-delta-in {
+  0% { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  12% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.phone-eva-heart.is-broken b { color: #e8a0b0; }
+
+.eva-meet-menu.is-long {
+  top: auto;
+  bottom: calc(12px + var(--safe-bot, 0px));
+  transform: none;
+  max-height: calc(100% - 64px);
+  overflow-y: auto;
+}
+.eva-meet.is-in .eva-meet-menu.is-long {
+  animation: eva-menu-in-long 0.4s ease 0.08s both;
+}
+@keyframes eva-menu-in-long {
+  from { opacity: 0; transform: translateX(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+.editor-list .editor-seq-card { grid-column: 1 / -1; }
+.editor-seq-card h4 {
+  margin: 0.55rem 0 0.3rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.editor-seq-card .seq-times {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 0 0 0.5rem;
+}
+.editor-seq-card .seq-times label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.editor-seq-card .seq-times input {
+  width: 5.5rem;
+  font: inherit;
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: rgba(0,0,0,0.3);
+  color: var(--paper);
+}
+.editor-seq-card .seq-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 4px;
+}
+.editor-seq-card .seq-row label {
+  flex: 0 0 3.2rem;
+  font-size: 0.74rem;
+  color: var(--muted);
+}
+.editor-seq-card .seq-row input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: rgba(0,0,0,0.3);
+  color: var(--paper);
+}

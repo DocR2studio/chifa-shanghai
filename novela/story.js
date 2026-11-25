@@ -336,10 +336,10 @@ const EVA_MENU = {
         ok: { expr: "neutral", eva: "Claro. Espera un momento.", vinculo: 2 } },
       { id: "compania", label: "¿Puedo quedarme un rato más?", need: 30,
         ok: { expr: "feliz", eva: "Sí. No me molesta.", vinculo: 6, afecto: 2 },
-        locked: { expr: "molesta", eva: "Todavía no te conozco tanto, {nombre}. No insistas.", paciencia: 8 } },
+        locked: { expr: "molesta", eva: "Todavía no te conozco tanto, {nombre}. No insistas.", paciencia: -8 } },
       { id: "personal", label: "¿Puedo preguntarte algo personal?", need: 80,
         ok: { expr: "nerviosa", eva: "Depende de la pregunta. Pero… está bien, pregunta.", vinculo: 8, confianza: 4 },
-        locked: { expr: "triste", eva: "Eso es demasiado pronto. No estoy lista para esa conversación.", paciencia: 10 } }
+        locked: { expr: "triste", eva: "Eso es demasiado pronto. No estoy lista para esa conversación.", paciencia: -10 } }
     ]
   },
   accion: {
@@ -349,10 +349,10 @@ const EVA_MENU = {
         ok: { expr: "feliz", eva: "Si quieres, puedes recoger esas tazas. Se agradece.", vinculo: 5, afecto: 1 } },
       { id: "acercarte", label: "Acercarte un poco más", need: 50,
         ok: { expr: "sonrojada", eva: "Está bien… no te vayas más lejos, entonces.", vinculo: 8, afecto: 3 },
-        locked: { expr: "molesta", eva: "¿Qué haces? Dame un poco de espacio.", paciencia: 12 } },
+        locked: { expr: "molesta", eva: "¿Qué haces? Dame un poco de espacio.", paciencia: -12 } },
       { id: "mano", label: "Ofrecerle la mano", need: 90,
         ok: { expr: "sonrojada", eva: "…Está bien. Solo un momento.", vinculo: 12, afecto: 5, confianza: 6 },
-        locked: { expr: "triste", eva: "No. Eso no, {nombre}. Todavía no.", paciencia: 14 } }
+        locked: { expr: "triste", eva: "No. Eso no, {nombre}. Todavía no.", paciencia: -14 } }
     ]
   },
   noGift: {
@@ -399,7 +399,7 @@ const DEFAULT_INVENTORY = [
     need: 40,
     desc: "Un ramo improvisado. Se desbloquea con más Confianzas.",
     ok: { expr: "feliz", eva: "Están bonitas. Gracias, {nombre}.", vinculo: 10, afecto: 4, confianza: 3 },
-    locked: { expr: "nerviosa", eva: "No hacía falta. Me tomas por sorpresa… y no sé si ya es momento.", paciencia: 6 }
+    locked: { expr: "nerviosa", eva: "No hacía falta. Me tomas por sorpresa… y no sé si ya es momento.", paciencia: -6 }
   },
   {
     id: "carta",
@@ -408,7 +408,7 @@ const DEFAULT_INVENTORY = [
     need: 80,
     desc: "Unas líneas escritas a mano. Pide más Confianzas.",
     ok: { expr: "sonrojada", eva: "La voy a leer con calma. Gracias por tomarte el tiempo.", vinculo: 14, afecto: 6, confianza: 6 },
-    locked: { expr: "triste", eva: "Guárdala. Todavía no estoy lista para algo así.", paciencia: 8 }
+    locked: { expr: "triste", eva: "Guárdala. Todavía no estoy lista para algo así.", paciencia: -8 }
   }
 ];
 
@@ -425,13 +425,14 @@ const EVA_INFO = {
   ],
   /* Nombres editables aquí y en el editor (lápiz). Vinculo y Confianzas son placeholders. */
   bars: [
-    { id: "rosa", color: "#e56b9a", max: 150, name: "Vinculo" },
-    { id: "morada", color: "#8a5cf6", max: 150, name: "Confianzas" },
-    { id: "roja", color: "#e23b3b", max: 100, name: "Paciencia" }
+    { id: "rosa", color: "#e56b9a", min: 0, max: 250, name: "Vinculo" },
+    { id: "morada", color: "#8a5cf6", min: 0, max: 250, name: "Confianzas" },
+    { id: "roja", color: "#e23b3b", min: -100, max: 0, name: "Paciencia" }
   ],
   startBars: { rosa: 0, morada: 0, roja: 0 },
   startAfecto: 10,
-  afectoMax: 100
+  afectoMin: -50,
+  afectoMax: 200
 };
 
 const CODEX = {
@@ -544,32 +545,69 @@ const EVA_HABLAR = {
   backLabel: "Volver",
   elogiar: [
     {
-      id: "sonrisa",
-      label: "Tu sonrisa",
-      player: "Hoy se te ve muy bien, Eva. Esa sonrisa le cambia la cara a la casa.",
-      reactions: [
-        { maxAfecto: 29, expr: "molesta", eva: "No hace falta que me digas eso. Se siente forzado, {nombre}.", paciencia: 12 },
-        { maxAfecto: 54, expr: "nerviosa", eva: "Ah… gracias. No sé muy bien qué responder.", vinculo: 5, afecto: 2 },
-        { maxAfecto: 100, expr: "feliz", eva: "Qué amable. Me alegra que lo notes.", vinculo: 10, afecto: 4 }
-      ]
+      id: "o1",
+      label: "Eres hermosa",
+      player: "Eres hermosa.",
+      eva: "Gracias… no hace falta que lo repitas tanto, {nombre}.",
+      posExpr: "feliz",
+      effects: {
+        BASE: { afecto: 4, paciencia: -15, rosa: 6, morada: 0, seq: ["feliz", "sonrojada", "neutral"] },
+        T50: { afecto: 6, paciencia: -10, rosa: 8, morada: 0, seq: ["feliz", "sonrojada", "feliz"] },
+        T100: { afecto: 8, paciencia: -5, rosa: 10, morada: 0, seq: ["feliz", "sonrojada", "feliz"] },
+        MAX: { afecto: 10, paciencia: -3, rosa: 12, morada: 2, seq: ["feliz", "sonrojada", "feliz"] }
+      }
     },
     {
-      id: "cocina",
-      label: "Tu cocina",
-      player: "Se nota que cuidas mucho esta cocina. Se siente cálida.",
-      reactions: [
-        { maxAfecto: 24, expr: "triste", eva: "Es solo un lugar para cocinar. No le des más vueltas.", vinculo: 1 },
-        { maxAfecto: 100, expr: "feliz", eva: "Me gusta oírlo. Paso aquí una buena parte del día.", vinculo: 8, afecto: 3 }
-      ]
+      id: "o2",
+      label: "Quisiera una esposa como tú",
+      player: "Quisiera una esposa como tú.",
+      eva: "No digas eso a la ligera, {nombre}.",
+      posExpr: "sonrojada",
+      effects: {
+        BASE: { afecto: 8, paciencia: -22, rosa: 10, morada: 0, seq: ["sonrojada", "feliz", "neutral"] },
+        T50: { afecto: 12, paciencia: -15, rosa: 12, morada: 2, seq: ["sonrojada", "feliz", "feliz"] },
+        T100: { afecto: 15, paciencia: -8, rosa: 14, morada: 4, seq: ["feliz", "sonrojada", "feliz"] },
+        MAX: { afecto: 18, paciencia: -5, rosa: 16, morada: 6, seq: ["feliz", "sonrojada", "feliz"] }
+      }
     },
     {
-      id: "calma",
-      label: "Tu calma",
-      player: "Tienes una calma que da gusto. Se está bien cerca de ti.",
-      reactions: [
-        { maxAfecto: 34, expr: "nerviosa", eva: "No digas eso tan de pronto. Me pones un poco nerviosa.", paciencia: 6, afecto: 1 },
-        { maxAfecto: 100, expr: "sonrojada", eva: "…Gracias. No estoy acostumbrada a que me lo digan así.", vinculo: 12, afecto: 5 }
-      ]
+      id: "o3",
+      label: "Opción 3 (21 letras).",
+      player: "Opción 3 (21 letras).",
+      eva: "No sé muy bien qué quieres decir con eso.",
+      posExpr: "neutral",
+      effects: {
+        BASE: { afecto: -8, paciencia: -35, rosa: 4, morada: 8, seq: ["nerviosa", "triste", "neutral"] },
+        T50: { afecto: -2, paciencia: -25, rosa: 6, morada: 12, seq: ["nerviosa", "sonrojada", "neutral"] },
+        T100: { afecto: 5, paciencia: -15, rosa: 8, morada: 15, seq: ["sonrojada", "feliz", "feliz"] },
+        MAX: { afecto: 12, paciencia: -8, rosa: 10, morada: 18, seq: ["sonrojada", "feliz", "feliz"] }
+      }
+    },
+    {
+      id: "o4",
+      label: "Opción 4 (23 letras)...",
+      player: "Opción 4 (23 letras)...",
+      eva: "Eso no me hace gracia, {nombre}.",
+      posExpr: "neutral",
+      effects: {
+        BASE: { afecto: -22, paciencia: -55, rosa: 2, morada: 12, seq: ["molesta", "triste", "neutral"] },
+        T50: { afecto: -12, paciencia: -40, rosa: 4, morada: 16, seq: ["nerviosa", "triste", "neutral"] },
+        T100: { afecto: -5, paciencia: -25, rosa: 6, morada: 20, seq: ["nerviosa", "sonrojada", "feliz"] },
+        MAX: { afecto: 5, paciencia: -12, rosa: 8, morada: 25, seq: ["sonrojada", "feliz", "feliz"] }
+      }
+    },
+    {
+      id: "o5",
+      label: "Opción 5: 17 let.",
+      player: "Opción 5: 17 let.",
+      eva: "¿Se puede saber qué pretendes?",
+      posExpr: "neutral",
+      effects: {
+        BASE: { afecto: -40, paciencia: -75, rosa: 0, morada: 15, seq: ["molesta", "triste", "neutral"] },
+        T50: { afecto: -25, paciencia: -55, rosa: 2, morada: 20, seq: ["triste", "molesta", "triste"] },
+        T100: { afecto: -12, paciencia: -35, rosa: 4, morada: 25, seq: ["nerviosa", "sonrojada", "feliz"] },
+        MAX: { afecto: 0, paciencia: -18, rosa: 6, morada: 30, seq: ["nerviosa", "sonrojada", "feliz"] }
+      }
     }
   ],
   charlar: [
@@ -587,7 +625,7 @@ const EVA_HABLAR = {
       label: "La casa",
       player: "Esta casa tiene un aire particular. ¿Hace mucho que vives aquí?",
       reactions: [
-        { maxAfecto: 29, expr: "molesta", eva: "No voy a hablar de eso ahora, {nombre}. No te metas tanto.", paciencia: 10 },
+        { maxAfecto: 29, expr: "molesta", eva: "No voy a hablar de eso ahora, {nombre}. No te metas tanto.", paciencia: -10 },
         { maxAfecto: 59, expr: "nerviosa", eva: "Hace un tiempo, sí. Mejor lo dejamos para otro día.", vinculo: 3 },
         { maxAfecto: 100, expr: "neutral", eva: "Sí, ya lleva años. A veces siento que me conoce mejor de lo que yo la conozco.", vinculo: 8, afecto: 2 }
       ]
@@ -604,9 +642,40 @@ const EVA_HABLAR = {
   ]
 };
 
+/* Elogiar: se usa el umbral más alto que se cumpla (MAX > T100 > T50 > BASE). */
+const EVA_ELOGIAR_TIERS = [
+  { id: "MAX", corazon: 200, rosa: 250, morada: 250 },
+  { id: "T100", corazon: 100, rosa: 100, morada: 100 },
+  { id: "T50", corazon: 50, rosa: 50, morada: 50 },
+  { id: "BASE" }
+];
+
+/* Secuencia de reacción de Elogiar: primera, segunda y resto (ms). */
+const EVA_ELOGIAR_SEQ = {
+  firstMs: 1200,
+  secondMs: 1200
+};
+
+/* Expresión tras Elogiar o al tocar a Eva. */
+const EVA_EXPR_RULES = {
+  halfBars: 125,
+  fullBars: 250,
+  low: { tristeAt: -20, molestaAt: -40 },
+  mid: { tristeAt: -30, molestaAt: -40 },
+  full: { tristeFrom: -1, neverMolesta: true },
+  pacienciaAbs: 80
+};
+
+const EVA_DELTA_LABELS = {
+  afecto: "Corazón",
+  paciencia: "Paciencia",
+  rosa: "Rosa",
+  morada: "Morada"
+};
+
 const EVA_RULES = {
-  warningAt: 80,
-  kickAt: 100,
+  warningAt: -80,
+  kickAt: -100,
   warning: {
     expr: "molesta",
     text: "Estoy perdiendo la paciencia, {nombre}. Si sigues así, voy a pedirte que te vayas de la casa."
@@ -629,7 +698,13 @@ const STORY_PATCH_KEY = "eva_novela_story_v16";
 
 function editableStory() {
   return JSON.parse(JSON.stringify({
-    bars: (EVA_INFO.bars || []).map((b) => ({ id: b.id, name: b.name || "", color: b.color, max: b.max })),
+    bars: (EVA_INFO.bars || []).map((b) => ({ id: b.id, name: b.name || "", color: b.color, max: b.max, min: b.min })),
+    afectoMin: EVA_INFO.afectoMin,
+    afectoMax: EVA_INFO.afectoMax,
+    elogiarTiers: EVA_ELOGIAR_TIERS,
+    elogiarSeq: EVA_ELOGIAR_SEQ,
+    exprRules: EVA_EXPR_RULES,
+    deltaLabels: EVA_DELTA_LABELS,
     fields: EVA_INFO.fields || [],
     menuOptions: EVA_MENU.options || [],
     hablar: {
@@ -652,9 +727,21 @@ function applyEditableStory(data) {
   if (Array.isArray(data.bars)) {
     data.bars.forEach((src) => {
       const b = (EVA_INFO.bars || []).find((x) => x.id === src.id);
-      if (b && src.name != null) b.name = String(src.name);
+      if (!b) return;
+      if (src.name != null) b.name = String(src.name);
+      if (src.max != null) b.max = src.max;
+      if (src.min != null) b.min = src.min;
     });
   }
+  if (data.afectoMin != null) EVA_INFO.afectoMin = data.afectoMin;
+  if (data.afectoMax != null) EVA_INFO.afectoMax = data.afectoMax;
+  if (Array.isArray(data.elogiarTiers) && typeof EVA_ELOGIAR_TIERS !== "undefined") {
+    EVA_ELOGIAR_TIERS.length = 0;
+    data.elogiarTiers.forEach((x) => EVA_ELOGIAR_TIERS.push(x));
+  }
+  if (data.elogiarSeq && typeof EVA_ELOGIAR_SEQ !== "undefined") Object.assign(EVA_ELOGIAR_SEQ, data.elogiarSeq);
+  if (data.exprRules && typeof EVA_EXPR_RULES !== "undefined") Object.assign(EVA_EXPR_RULES, data.exprRules);
+  if (data.deltaLabels && typeof EVA_DELTA_LABELS !== "undefined") Object.assign(EVA_DELTA_LABELS, data.deltaLabels);
   if (Array.isArray(data.fields)) EVA_INFO.fields = data.fields;
   if (Array.isArray(data.menuOptions)) EVA_MENU.options = data.menuOptions;
   if (data.hablar) {
