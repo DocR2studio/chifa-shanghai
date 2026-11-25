@@ -9,10 +9,10 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="screen-orientation" content="landscape">
   <title>Título del juego</title>
-  <link rel="manifest" href="manifest.json?v=8">
+  <link rel="manifest" href="manifest.json?v=9">
   <link rel="icon" href="assets/logo-eva.jpg">
   <link rel="apple-touch-icon" href="assets/logo-eva.jpg">
-  <link rel="stylesheet" href="style.css?v=8">
+  <link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
 
@@ -47,9 +47,9 @@
         <p class="kicker">Potenciado por</p>
         <div class="brand-row">
           <div class="brand-card">
-            <img src="assets/logo-eva.jpg?v=8" alt="Eva_D2studio" class="brand-logo" width="900" height="900">
+            <img src="assets/logo-eva.jpg?v=9" alt="Eva_D2studio" class="brand-logo" width="900" height="900">
           </div>
-          <img src="assets/verificado.png?v=8" alt="Verificado" class="brand-check">
+          <img src="assets/verificado.png?v=9" alt="Verificado" class="brand-check">
         </div>
         <p class="brand-name">Eva_D2studio</p>
       </div>
@@ -74,13 +74,13 @@
       <div class="title-stage-wrap">
         <div class="title-stage" id="title-stage">
           <h1 class="title-logo-wrap">
-            <img class="title-logo" src="assets/title/logo.png?v=8" alt="Unknown Love" width="475" height="263">
+            <img class="title-logo" src="assets/title/logo.png?v=9" alt="Unknown Love" width="475" height="263">
           </h1>
           <div class="title-eyes">
-            <img class="title-eyes-top" src="assets/title/ojos-enojada.png?v=8" alt="" width="430" height="215">
-            <img class="title-eyes-bot" src="assets/title/ojos-enamorada.png?v=8" alt="" width="430" height="215">
+            <img class="title-eyes-top" src="assets/title/ojos-enojada.png?v=9" alt="" width="430" height="215">
+            <img class="title-eyes-bot" src="assets/title/ojos-enamorada.png?v=9" alt="" width="430" height="215">
           </div>
-          <img class="title-eva" src="assets/title/eva.png?v=8" alt="" width="214" height="705">
+          <img class="title-eva" src="assets/title/eva.png?v=9" alt="" width="214" height="705">
           <div class="title-actions">
             <button type="button" id="btn-jugar" class="title-btn">Jugar</button>
             <button type="button" id="btn-title-cargar" class="title-btn" disabled>Cargar</button>
@@ -137,7 +137,9 @@
         <img id="bg-img" alt="">
         <video id="bg-video" playsinline muted loop preload="none"></video>
         <div class="game-shade" id="game-shade"></div>
+        <svg id="hotspots" class="hotspots" viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid slice" aria-hidden="false" hidden></svg>
       </div>
+      <div id="travel-fade" class="travel-fade" aria-hidden="true"></div>
       <div id="sprite-layer" class="sprite-layer" hidden>
         <img id="sprite-eva-a" class="sprite-eva" alt="Eva">
         <img id="sprite-eva-b" class="sprite-eva" alt="">
@@ -164,13 +166,13 @@
             <div class="bar-track"><div class="bar-fill bar-extra" id="fill-extra"></div></div>
             <span class="bar-val" id="val-extra">0</span>
           </div>
-          <p id="hud-time" class="hud-time">Día 1 · Mañana</p>
           <p id="loc-name" class="loc-name"></p>
         </div>
       </div>
+      <p id="hud-day" class="hud-day" hidden>Día 1 · Mañana</p>
       <div id="hud-icons" class="hud-icons" hidden>
         <button type="button" id="btn-peek" class="hud-icon" aria-label="Ocultar interfaz"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.6-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.6 6.5-9.5 6.5S2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.4"/><path d="M4 20 L20 4"/></svg></button>
-        <button type="button" id="btn-gallery" class="hud-icon" aria-label="Escenas"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.4" y="3.6" width="12.6" height="9.8" rx="1.15" transform="rotate(-13 8.7 8.5)"/><rect x="7.15" y="8.15" width="14.3" height="11.7" rx="1.25"/><circle cx="17.55" cy="11.7" r="1.45"/><path d="M8.3 19.05 L12.15 13.85 L14.45 16.35 L16.95 13.2 L20.7 19.05 Z"/></svg></button>
+        <button type="button" id="btn-tasks" class="hud-icon" aria-label="Tareas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 3.4 H14.8 L18.2 6.8 V20.6 H6.6 Z"/><path d="M14.8 3.4 V6.8 H18.2"/><path d="M8.8 9.4 H16 M8.8 12.4 H16 M8.8 15.4 H13.4"/><path d="M11.6 17.6 L18.8 10.4 L20.1 11.7 L12.9 18.9 L10.8 19.6 Z"/><path d="M17.5 11.7 L18.8 13"/></svg></button>
         <button type="button" id="btn-map" class="hud-icon" aria-label="Mapa"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.8 11.1 L12 4.3 20.2 11.1 V20.3 H3.8 Z"/><path d="M3.8 14.7 H20.2"/><path d="M12 11.1 V20.3"/><path d="M12 17.15 H8.7"/><g transform="rotate(-34 12 13.2)"><rect x="2.4" y="11.85" width="19.2" height="2.7" rx="0.35"/><path d="M4.8 11.85 V14.55 M7.2 11.85 V14.55 M9.6 11.85 V14.55 M12 11.85 V14.55 M14.4 11.85 V14.55 M16.8 11.85 V14.55 M19.2 11.85 V14.55"/></g></svg></button>
         <button type="button" id="btn-bag" class="hud-icon" aria-label="Mochila"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.6 7.5 V5.85 C8.6 4.35 15.4 4.35 15.4 5.85 V7.5"/><path d="M8.15 9 C6.35 10.6 6.15 15.2 6.55 20"/><path d="M15.85 9 C17.65 10.6 17.85 15.2 17.45 20"/><path d="M7.55 8.15 C7.55 7.15 8.45 6.55 9.4 6.55 H14.6 C15.55 6.55 16.45 7.15 16.45 8.15 V18.85 C16.45 19.85 15.55 20.45 14.6 20.45 H9.4 C8.45 20.45 7.55 19.85 7.55 18.85 Z"/><rect x="9.05" y="13.15" width="5.9" height="5.15" rx="1.15"/><path d="M10.2 13.15 V14.15 H13.8 V13.15"/><path d="M8 10.35 H16"/></svg></button>
         <div class="hud-icon-stack">
@@ -233,11 +235,11 @@
     </div>
 
 
-    <div id="modal-gallery" class="modal" hidden>
-      <div class="modal-panel gallery-panel">
-        <p class="modal-title">Escenas</p>
-        <div id="gallery-list" class="gallery-list"></div>
-        <button type="button" id="btn-cerrar-gallery" class="btn btn-text">Cerrar</button>
+    <div id="modal-tasks" class="modal" hidden>
+      <div class="modal-panel tasks-panel">
+        <p class="modal-title">Tareas</p>
+        <ul id="tasks-list" class="tasks-list"></ul>
+        <button type="button" id="btn-cerrar-tasks" class="btn btn-text">Cerrar</button>
       </div>
     </div>
 
@@ -286,9 +288,9 @@
           </div>
           <div id="phone-home" class="phone-body phone-home">
             <div class="phone-apps">
-              <button type="button" class="phone-app" data-app="contacts"><img class="phone-app-icon" src="assets/phone/app-contactos.png?v=8" alt=""><span>Contactos</span></button>
-              <button type="button" class="phone-app" data-app="camera"><img class="phone-app-icon" src="assets/phone/app-camara.png?v=8" alt=""><span>Cámara</span></button>
-              <button type="button" class="phone-app" data-app="info"><img class="phone-app-icon" src="assets/phone/app-info.png?v=8" alt=""><span>Info</span></button>
+              <button type="button" class="phone-app" data-app="contacts"><img class="phone-app-icon" src="assets/phone/app-contactos.png?v=9" alt=""><span>Contactos</span></button>
+              <button type="button" class="phone-app" data-app="camera"><img class="phone-app-icon" src="assets/phone/app-camara.png?v=9" alt=""><span>Cámara</span></button>
+              <button type="button" class="phone-app" data-app="info"><img class="phone-app-icon" src="assets/phone/app-info.png?v=9" alt=""><span>Info</span></button>
             </div>
           </div>
           <div id="phone-app" class="phone-body phone-app-screen" hidden>
@@ -310,9 +312,9 @@
 
 
   </div>
-  <script src="vendor/jszip.min.js?v=8"></script>
-  <script src="story.js?v=8"></script>
-  <script src="media.js?v=8"></script>
-  <script src="engine.js?v=8"></script>
+  <script src="vendor/jszip.min.js?v=9"></script>
+  <script src="story.js?v=9"></script>
+  <script src="media.js?v=9"></script>
+  <script src="engine.js?v=9"></script>
 </body>
 </html>

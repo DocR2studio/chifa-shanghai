@@ -27,6 +27,7 @@
     activityCount: 0,
     inventory: [],
     unlockedScenes: [],
+    tasksDone: [],
     chats: {},
     peek: false,
     settings: { music: 70, sfx: 70, textSpeed: "normal" }
@@ -80,7 +81,7 @@
     titleTimer = setTimeout(() => el.classList.add("title-ready"), 2200);
   }
   function hideModals() {
-    ["modal-menu", "modal-saves", "modal-confirm", "modal-map", "modal-gallery", "modal-bag", "modal-settings", "modal-phone"].forEach((id) => {
+    ["modal-menu", "modal-saves", "modal-confirm", "modal-map", "modal-tasks", "modal-bag", "modal-settings", "modal-phone"].forEach((id) => {
       if ($(id)) $(id).hidden = true;
     });
   }
@@ -128,6 +129,7 @@
       activityCount: state.activityCount,
       inventory: (state.inventory || []).map((it) => Object.assign({}, it)),
       unlockedScenes: (state.unlockedScenes || []).slice(),
+      tasksDone: (state.tasksDone || []).slice(),
       chats: cloneChats(state.chats)
     };
   }
@@ -224,6 +226,7 @@
   function showHudChrome(on) {
     $("hud").hidden = !on;
     if ($("hud-icons")) $("hud-icons").hidden = !on;
+    if ($("hud-day")) $("hud-day").hidden = !on;
   }
   function renderHUD() {
     if (state.bars.extra == null) state.bars.extra = 0;
@@ -236,8 +239,12 @@
       if (val) val.textContent = String(v);
     });
     const loc = locById(state.location);
-    if ($("loc-name")) $("loc-name").textContent = loc ? loc.name : "";
-    if ($("hud-time")) $("hud-time").textContent = timeLabel();
+    if ($("loc-name")) {
+      let n = loc ? loc.name : "";
+      if (loc && loc.placeholder) n = n + " (por ahora)";
+      $("loc-name").textContent = n;
+    }
+    if ($("hud-day")) $("hud-day").textContent = timeLabel();
     applyTimeShade();
   }
   function countActivity() {
@@ -461,6 +468,7 @@
     state.activityCount = 0;
     state.inventory = exampleInventory();
     state.unlockedScenes = [];
+    state.tasksDone = [];
     state.chats = seedChatHistory(emptyChatState());
     setPeek(false);
     hideModals();
@@ -506,6 +514,8 @@
     if (evaHere) showEvaSprite(true, "neutral");
     else showEvaSprite(false);
     renderActions(loc, evaHere);
+    completeTaskBy("enter", loc.id);
+    renderHotspots();
     autosave();
   }
   function renderActions(loc, evaHere) {
@@ -557,6 +567,7 @@
       const gain = 2 + Math.floor(Math.random() * 4);
       state.bars.fuerza = clamp(state.bars.fuerza + gain);
       text = text + " Fuerza +" + gain + ".";
+      completeTaskBy("action", state.location, "exercise-home");
     } else if (act.fuerza) {
       state.bars.fuerza = clamp(state.bars.fuerza + act.fuerza);
     }
@@ -602,6 +613,7 @@
     state.conv = conv;
     if (opts && opts.countsAsActivity) {
       countActivity();
+      completeTaskBy("talk", state.location);
       renderHUD();
     }
     startNode(nodeId || conv.start);
@@ -625,7 +637,7 @@
   function advance() {
     if (!$("screen-game").classList.contains("is-on")) return;
     if (state.peek) return;
-    if (["modal-menu", "modal-saves", "modal-confirm", "modal-map", "modal-gallery", "modal-bag", "modal-settings", "modal-phone"].some((id) => $(id) && !$(id).hidden)) return;
+    if (["modal-menu", "modal-saves", "modal-confirm", "modal-map", "modal-tasks", "modal-bag", "modal-settings", "modal-phone"].some((id) => $(id) && !$(id).hidden)) return;
     if (!$("end-card").hidden) return;
     if ($("dialogue").hidden) return;
     if (!$("choices").hidden) return;
@@ -692,6 +704,7 @@
         };
         span.textContent = shortNames[loc.id] || loc.name;
         t.appendChild(span);
+        if (loc.placeholder) t.classList.add("is-placeholder");
         MediaStore.mediaFor(loc.id).then((m) => {
           if (m.imageURL) t.style.backgroundImage = "url('" + m.imageURL + "')";
         });
@@ -701,7 +714,7 @@
             return;
           }
           $("modal-map").hidden = true;
-          enterHouse(loc.id, { chargeMove: true });
+          travelTo(loc.id);
         });
         grid.appendChild(t);
       });
@@ -740,6 +753,7 @@
     state.activityCount = snap.activityCount || 0;
     state.inventory = Array.isArray(snap.inventory) ? snap.inventory.map((it) => Object.assign({}, it)) : exampleInventory();
     state.unlockedScenes = Array.isArray(snap.unlockedScenes) ? snap.unlockedScenes.slice() : [];
+    state.tasksDone = Array.isArray(snap.tasksDone) ? snap.tasksDone.slice() : [];
     state.chats = normalizeChats(snap.chats);
     setPeek(false);
     hideModals();
@@ -809,37 +823,125 @@
   }
 
 
-  /* ---------- Gallery / bag / settings / phone ---------- */
-  function openGallery() {
+  /* ---------- Tasks / doors / travel / bag / settings / phone ---------- */
+  function isTaskDone(id) {
+    return (state.tasksDone || []).indexOf(id) !== -1;
+  }
+  function completeTaskBy(type, location, kind) {
+    (TASKS || []).forEach((tsk) => {
+      const w = tsk.when || {};
+      if (w.type !== type) return;
+      if (w.location && w.location !== location) return;
+      if (w.kind && w.kind !== kind) return;
+      if (isTaskDone(tsk.id)) return;
+      state.tasksDone = (state.tasksDone || []).concat([tsk.id]);
+      toast("Tarea hecha: " + tsk.text);
+    });
+  }
+  function openTasks() {
     hideModals();
-    const list = $("gallery-list");
+    const list = $("tasks-list");
     list.innerHTML = "";
-    const unlocked = state.unlockedScenes || [];
-    const items = (SCENES || []).filter((s) => unlocked.indexOf(s.id) !== -1);
+    const items = TASKS || [];
     if (!items.length) {
       const empty = document.createElement("p");
-      empty.className = "gallery-empty";
-      empty.textContent = "Aún no hay escenas";
+      empty.className = "tasks-empty";
+      empty.textContent = "No hay tareas por ahora.";
       list.appendChild(empty);
     } else {
-      items.forEach((s) => {
-        const fig = document.createElement("button");
-        fig.type = "button";
-        fig.className = "gallery-item";
-        const img = document.createElement("img");
-        img.alt = s.name || "";
-        img.src = s.image || "";
-        MediaStore.mediaFor(s.id).then((m) => {
-          if (m.imageURL) img.src = m.imageURL;
-        });
-        const cap = document.createElement("span");
-        cap.textContent = s.name || "";
-        fig.appendChild(img);
-        fig.appendChild(cap);
-        list.appendChild(fig);
+      items.forEach((tsk) => {
+        const li = document.createElement("li");
+        li.className = "task-item" + (isTaskDone(tsk.id) ? " is-done" : "");
+        const mark = document.createElement("span");
+        mark.className = "task-mark";
+        const text = document.createElement("span");
+        text.className = "task-text";
+        text.textContent = tsk.text;
+        li.appendChild(mark);
+        li.appendChild(text);
+        list.appendChild(li);
       });
     }
-    $("modal-gallery").hidden = false;
+    $("modal-tasks").hidden = false;
+  }
+  function doorPoints(d) {
+    if (d.points && d.points.length) return d.points;
+    if (d.rect && d.rect.length === 4) {
+      const x = d.rect[0], y = d.rect[1], w = d.rect[2], h = d.rect[3];
+      return [[x, y], [x + w, y], [x + w, y + h], [x, y + h]];
+    }
+    return [];
+  }
+  function setSvgHidden(svg, hide) {
+    if (hide) svg.setAttribute("hidden", "");
+    else svg.removeAttribute("hidden");
+  }
+  function renderHotspots() {
+    const svg = $("hotspots");
+    if (!svg) return;
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    if (state.phase !== "house") {
+      setSvgHidden(svg, true);
+      return;
+    }
+    const doors = (typeof DOORS !== "undefined" && DOORS[state.location]) || [];
+    setSvgHidden(svg, doors.length === 0);
+    doors.forEach((d) => {
+      const pts = doorPoints(d);
+      if (pts.length < 3) return;
+      const el = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+      el.setAttribute("points", pts.map((pt) => (pt[0] * 1280).toFixed(1) + "," + (pt[1] * 720).toFixed(1)).join(" "));
+      el.setAttribute("class", "hotspot" + (d.closed ? " is-closed" : "") + (d.kind === "back" ? " is-back" : ""));
+      el.setAttribute("tabindex", "0");
+      el.setAttribute("role", "button");
+      el.setAttribute("aria-label", d.label || "");
+      const go = (ev) => { ev.preventDefault(); ev.stopPropagation(); onDoor(d); };
+      el.addEventListener("click", go);
+      el.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") go(ev);
+      });
+      const glow = el.cloneNode();
+      glow.setAttribute("class", "hotspot-glow");
+      glow.removeAttribute("tabindex");
+      glow.removeAttribute("role");
+      svg.appendChild(glow);
+      svg.appendChild(el);
+      if (d.kind === "back") {
+        const xs = pts.map((pt) => pt[0]);
+        const ys = pts.map((pt) => pt[1]);
+        const cx = ((Math.min.apply(null, xs) + Math.max.apply(null, xs)) / 2) * 1280;
+        const cy = ((Math.min.apply(null, ys) + Math.max.apply(null, ys)) / 2) * 720;
+        const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        arrow.setAttribute("class", "hotspot-arrow");
+        arrow.setAttribute("d", "M " + (cx - 28) + " " + (cy + 12) + " L " + cx + " " + (cy - 16) + " L " + (cx + 28) + " " + (cy + 12));
+        svg.appendChild(arrow);
+      }
+    });
+  }
+  function onDoor(d) {
+    if (traveling) return;
+    if (d.closed || !d.to) {
+      toast(d.label || "Cerrado por ahora.");
+      return;
+    }
+    travelTo(d.to);
+  }
+  let traveling = false;
+  async function travelTo(locId) {
+    const loc = locById(locId);
+    if (!loc || traveling) return;
+    if (state.phase === "house" && state.location === locId) return;
+    traveling = true;
+    const fade = $("travel-fade");
+    if (fade) fade.classList.add("is-on");
+    await wait(350);
+    enterHouse(locId);
+    if (fade) {
+      fade.offsetWidth;
+      fade.classList.remove("is-on");
+    }
+    await wait(500);
+    traveling = false;
   }
   function openBag() {
     hideModals();
@@ -1399,7 +1501,7 @@
     if (demo === "closed") { showScreen("closed"); return; }
     if (demo === "name") { openName(); return; }
     if (demo === "editor") { openEditor(); return; }
-    if (demo === "house" || demo === "map" || demo === "talk" || demo === "enojada" || demo === "enamorada" || demo === "triste" || demo === "peek" || demo === "bag" || demo === "settings" || demo === "phone" || demo === "info" || demo === "gallery" || demo === "chats" || demo === "chat") {
+    if (demo === "house" || demo === "map" || demo === "talk" || demo === "enojada" || demo === "enamorada" || demo === "triste" || demo === "peek" || demo === "bag" || demo === "settings" || demo === "phone" || demo === "info" || demo === "tasks" || demo === "pasillo" || demo === "sala" || demo === "cuarto_eva" || demo === "fade" || demo === "chats" || demo === "chat") {
       state.name = "Doc";
       state.bars = { ...HOUSE.startBars };
       state.day = 1;
@@ -1407,6 +1509,7 @@
       state.activityCount = 0;
       state.inventory = exampleInventory();
       state.unlockedScenes = [];
+      state.tasksDone = [];
       state.chats = seedChatHistory(emptyChatState());
       if (demo === "talk" || demo === "enojada" || demo === "enamorada" || demo === "triste") {
         enterHouse("cocina");
@@ -1418,7 +1521,8 @@
           playLine();
         }
       } else {
-        enterHouse("cuarto");
+        const startLoc = (demo === "pasillo" || demo === "fade") ? "pasillo" : (demo === "sala" ? "sala" : (demo === "cuarto_eva" ? "cuarto_eva" : "cuarto"));
+        enterHouse(startLoc);
         if (demo === "map") openMap();
         if (demo === "peek") setPeek(true);
         if (demo === "bag") openBag();
@@ -1427,7 +1531,8 @@
         if (demo === "info") openPhone("info");
         if (demo === "chats") openPhone("contacts");
         if (demo === "chat") { openPhone("contacts"); openChatThread("eva"); }
-        if (demo === "gallery") openGallery();
+        if (demo === "tasks") openTasks();
+        if (demo === "fade") { travelTo("sala"); }
       }
       return;
     }
@@ -1543,12 +1648,12 @@
     $("btn-cerrar-saves").addEventListener("click", () => { $("modal-saves").hidden = true; });
     $("btn-cerrar-mapa").addEventListener("click", () => { $("modal-map").hidden = true; });
     $("btn-peek").addEventListener("click", (e) => { e.stopPropagation(); setPeek(!state.peek); });
-    $("btn-gallery").addEventListener("click", (e) => { e.stopPropagation(); openGallery(); });
+    $("btn-tasks").addEventListener("click", (e) => { e.stopPropagation(); openTasks(); });
     $("btn-map").addEventListener("click", (e) => { e.stopPropagation(); openMap(); });
     $("btn-bag").addEventListener("click", (e) => { e.stopPropagation(); openBag(); });
     $("btn-settings").addEventListener("click", (e) => { e.stopPropagation(); openSettings(); });
     $("btn-phone").addEventListener("click", (e) => { e.stopPropagation(); openPhone(); });
-    $("btn-cerrar-gallery").addEventListener("click", () => { $("modal-gallery").hidden = true; });
+    $("btn-cerrar-tasks").addEventListener("click", () => { $("modal-tasks").hidden = true; });
     $("btn-cerrar-bag").addEventListener("click", () => { $("modal-bag").hidden = true; });
     $("btn-cerrar-settings").addEventListener("click", () => { $("modal-settings").hidden = true; });
     $("btn-cerrar-phone").addEventListener("click", () => { $("modal-phone").hidden = true; phoneHome(); });
@@ -1572,7 +1677,7 @@
       refreshTitleButtons();
       showScreen("title");
     });
-    ["modal-gallery", "modal-bag", "modal-settings", "modal-phone"].forEach((id) => {
+    ["modal-tasks", "modal-bag", "modal-settings", "modal-phone"].forEach((id) => {
       $(id).addEventListener("click", (e) => {
         if (e.target === $(id)) {
           $(id).hidden = true;
@@ -1598,7 +1703,7 @@
     });
 
     $("screen-game").addEventListener("pointerup", (e) => {
-      if (e.target.closest("button, .action-bar, .modal, .end-card, .menu-btn, .hud, .hud-icons, .chip, .phone-shell, .hud-panel")) return;
+      if (e.target.closest("button, .action-bar, .modal, .end-card, .menu-btn, .hud, .hud-icons, .chip, .phone-shell, .hud-panel, .hotspots, .travel-fade")) return;
       if (state.peek) {
         setPeek(false);
         return;
@@ -1625,7 +1730,7 @@
     });
   }
 
-  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, playTitleIntro, openBag, openSettings, openPhone, openChatThread, openGallery, setPeek, getExpr: () => currentExpr, getState: () => state };
+  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, playTitleIntro, openBag, openSettings, openPhone, openChatThread, openTasks, travelTo, setPeek, getExpr: () => currentExpr, getState: () => state };
 
   document.addEventListener("DOMContentLoaded", () => {
     bind();

@@ -40,7 +40,7 @@ const HOUSE = {
       name: "Pasillo (piso 2)",
       floor: 2,
       image: "assets/locs/pasillo.jpg",
-      look: "El pasillo conecta las habitaciones. Al fondo, la luz del jardín.",
+      look: "El pasillo conecta las habitaciones. Al fondo, las escaleras bajan al primer piso.",
       actions: [
         { id: "observar", label: "Observar", text: "Las puertas están cerradas. Se oye apenas el viento en los árboles." }
       ]
@@ -101,7 +101,8 @@ const HOUSE = {
       name: "Lavandería",
       floor: 1,
       image: "assets/locs/lavanderia.jpg",
-      look: "La lavandería está limpia. Las toallas esperan dobladas en la cesta.",
+      placeholder: true,
+      look: "Todavía no hay una foto definitiva de este lugar. Las toallas esperan dobladas en la cesta.",
       actions: [
         { id: "ordenar", label: "Ordenar", text: "Doblas lo que había suelto. No es mucho, pero queda mejor." }
       ]
@@ -139,6 +140,65 @@ const HOUSE = {
     }
   ]
 };
+
+
+/* Zonas clicables por lugar. Coordenadas relativas al fondo (0 a 1).
+   Cada puerta es un polígono: points: [[x, y], ...].
+   También se admite rect: [x, y, ancho, alto].
+   to: id del lugar de destino.
+   closed: true no deja pasar (muestra el aviso).
+   kind: "back" dibuja una flecha discreta (para el jardín, sin puerta). */
+const DOORS = {
+  pasillo: [
+    { id: "cuarto", to: "cuarto", label: "Tu cuarto", points: [[0.068, 0.00], [0.178, 0.015], [0.180, 0.875], [0.062, 0.90]] },
+    { id: "bano", to: "bano", label: "Baño", points: [[0.228, 0.155], [0.290, 0.185], [0.292, 0.80], [0.226, 0.815]] },
+    { id: "escaleras", to: "escaleras", label: "Escaleras", points: [[0.412, 0.465], [0.598, 0.465], [0.598, 0.725], [0.412, 0.725]] },
+    { id: "cuarto_eva", to: "cuarto_eva", label: "Cuarto de Eva", points: [[0.625, 0.215], [0.670, 0.215], [0.672, 0.73], [0.623, 0.73]] },
+    { id: "estudio", to: "estudio", label: "Estudio", points: [[0.688, 0.168], [0.752, 0.152], [0.758, 0.785], [0.686, 0.75]] },
+    { id: "cerrado", to: null, closed: true, label: "Cerrado por ahora", points: [[0.790, 0.03], [0.922, 0.00], [0.938, 0.90], [0.788, 0.90]] }
+  ],
+  cuarto: [
+    { id: "pasillo", to: "pasillo", label: "Pasillo", points: [[0.800, 0.04], [0.905, 0.04], [0.910, 0.84], [0.798, 0.84]] }
+  ],
+  cuarto_eva: [
+    { id: "pasillo", to: "pasillo", label: "Pasillo", points: [[0.072, 0.00], [0.158, 0.00], [0.160, 0.86], [0.068, 0.88]] }
+  ],
+  bano: [
+    { id: "pasillo", to: "pasillo", label: "Pasillo", points: [[0.775, 0.00], [0.895, 0.00], [0.905, 0.88], [0.772, 0.88]] }
+  ],
+  estudio: [
+    { id: "pasillo", to: "pasillo", label: "Pasillo", points: [[0.070, 0.00], [0.162, 0.00], [0.165, 0.86], [0.065, 0.88]] }
+  ],
+  escaleras: [
+    { id: "pasillo", to: "pasillo", label: "Pasillo (piso 2)", points: [[0.385, 0.00], [0.555, 0.00], [0.530, 0.26], [0.725, 0.34], [0.725, 0.825], [0.488, 0.825], [0.500, 0.36], [0.455, 0.26]] },
+    { id: "lavanderia", to: "lavanderia", label: "Lavandería", points: [[0.375, 0.475], [0.465, 0.475], [0.465, 0.835], [0.375, 0.835]] },
+    { id: "sala", to: "sala", label: "Sala", points: [[0.748, 0.92], [0.748, 0.22], [0.765, 0.08], [0.820, 0.015], [0.875, 0.08], [0.895, 0.22], [0.898, 0.92]] }
+  ],
+  sala: [
+    { id: "escaleras", to: "escaleras", label: "Escaleras", points: [[0.075, 0.86], [0.072, 0.20], [0.090, 0.08], [0.125, 0.025], [0.165, 0.025], [0.200, 0.08], [0.215, 0.20], [0.218, 0.86]] },
+    { id: "jardin", to: "jardin", label: "Jardín y piscina", points: [[0.548, 0.225], [0.698, 0.225], [0.698, 0.66], [0.548, 0.66]] },
+    { id: "cocina", to: "cocina", label: "Cocina", points: [[0.748, 0.18], [0.828, 0.18], [0.828, 0.80], [0.748, 0.80]] },
+    { id: "cochera", to: "cochera", label: "Cochera", points: [[0.838, 0.02], [0.925, 0.00], [0.938, 0.92], [0.838, 0.90]] }
+  ],
+  cocina: [
+    { id: "sala", to: "sala", label: "Sala", points: [[0.072, 0.06], [0.175, 0.06], [0.178, 0.88], [0.068, 0.90]] }
+  ],
+  cochera: [
+    { id: "sala", to: "sala", label: "Sala", points: [[0.052, 0.06], [0.195, 0.06], [0.198, 0.83], [0.050, 0.83]] }
+  ],
+  jardin: [
+    { id: "sala", to: "sala", label: "Volver a la sala", kind: "back", points: [[0.28, 0.86], [0.72, 0.86], [0.72, 0.995], [0.28, 0.995]] }
+  ],
+  lavanderia: [
+    { id: "escaleras", to: "escaleras", label: "Escaleras", points: [[0.500, 0.08], [0.608, 0.08], [0.608, 0.675], [0.500, 0.675]] }
+  ]
+};
+
+const TASKS = [
+  { id: "hablar-eva-cocina", text: "Habla con Eva en la cocina", when: { type: "talk", location: "cocina" } },
+  { id: "ejercicio-una", text: "Haz ejercicio una vez", when: { type: "action", kind: "exercise-home" } },
+  { id: "visitar-estudio", text: "Entra al estudio", when: { type: "enter", location: "estudio" } }
+];
 
 const INTRO = {
   id: "intro",
