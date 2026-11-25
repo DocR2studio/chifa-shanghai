@@ -1402,22 +1402,43 @@
     if (sub === "peticion" || sub === "accion") {
       const data = (typeof EVA_MENU !== "undefined" && EVA_MENU[sub]) || { options: [] };
       const list = data.options || [];
-      list.forEach((opt, i) => {
-        appendMeetOption(box, opt.label || "Opción", () => playUnlockable(opt, opt.ok, opt.locked), () => {
+      const groupId = sub === "accion" ? state.meetAccionGroup : null;
+      const group = groupId && list.find((o) => o && o.id === groupId && o.options);
+      const shown = group ? group.options : list;
+      const shownList = group ? group.options : list;
+      shown.forEach((opt, i) => {
+        const openGroup = !group && opt && opt.options && opt.options.length;
+        const run = () => {
+          if (openGroup) {
+            state.meetAccionGroup = opt.id;
+            buildEvaMeetMenu();
+            return;
+          }
+          if (opt && opt.effects) playAccionOption(opt);
+          else playUnlockable(opt, opt.ok, opt.locked);
+        };
+        appendMeetOption(box, opt.label || "Opción", run, () => {
           openEditModal("Opción", opt.label || "", (v) => { opt.label = v; saveStoryPatch(); buildEvaMeetMenu(); });
         }, () => {
-          list.splice(i, 1);
+          shownList.splice(i, 1);
           saveStoryPatch();
           buildEvaMeetMenu();
         });
       });
       if (editorLive) appendAddButton(box, "Añadir recuadro", () => {
-        list.push({ id: "o" + Date.now(), label: "Nueva opción", need: 0, ok: { expr: "neutral", eva: "De acuerdo.", vinculo: 1 } });
+        const addTo = shownList;
+        addTo.push({ id: "o" + Date.now(), label: "Nueva opción", need: 0, ok: { expr: "neutral", eva: "De acuerdo.", vinculo: 1 } });
         saveStoryPatch();
         buildEvaMeetMenu();
       });
       appendMeetOption(box, (EVA_HABLAR && EVA_HABLAR.backLabel) || "Volver", () => {
+        if (group) {
+          state.meetAccionGroup = null;
+          buildEvaMeetMenu();
+          return;
+        }
         state.meetSub = null;
+        state.meetAccionGroup = null;
         showMeetScene(null);
         buildEvaMeetMenu();
         renderEvaMeetStats();
@@ -1481,6 +1502,7 @@
   function closeEvaMeet(instant) {
     state.evaMeet = false;
     state.meetSub = null;
+    state.meetAccionGroup = null;
     showMeetScene(null);
     stopExprSeq();
     evaMeetBusy = false;
@@ -1547,6 +1569,7 @@
     if (id === "peticion" || id === "accion") {
       const data = (typeof EVA_MENU !== "undefined" && EVA_MENU[id]) || {};
       state.meetSub = id;
+      state.meetAccionGroup = null;
       showMeetScene(data.scene || ("eva-" + id));
       buildEvaMeetMenu();
     }
@@ -3304,6 +3327,56 @@
       }
     }], null, { countsAsActivity: false });
   }
+  function findAccionOption(id) {
+    const opts = (typeof EVA_MENU !== "undefined" && EVA_MENU.accion && EVA_MENU.accion.options) || [];
+    for (let i = 0; i < opts.length; i++) {
+      const g = opts[i];
+      if (g && g.id === id) return g;
+      const hit = ((g && g.options) || []).find((s) => s && s.id === id);
+      if (hit) return hit;
+    }
+    return null;
+  }
+  function playAccionOption(opt) {
+    if (!opt) return;
+    if (!opt.effects) {
+      playUnlockable(opt, opt.ok, opt.locked);
+      return;
+    }
+    hideEvaMeetStats();
+    const ev = ensureEvaInfo();
+    const tier = pickElogiarTier(ev);
+    const pack = opt.effects[tier.id] || opt.effects.BASE || {};
+    const applied = applyStatDelta(pack);
+    showStatDelta(applied);
+    const evaText = pack.eva || opt.eva || "…";
+    const expr = pack.expr || (pack.seq && pack.seq[0]) || evaMoodExpr(opt, applied.afecto || 0);
+    const lines = [];
+    if (opt.player) {
+      lines.push({
+        who: state.name || "Tú",
+        text: opt.player,
+        _onEdit: (v) => { opt.player = v; saveStoryPatch(); }
+      });
+    }
+    lines.push({
+      who: "Eva",
+      expr: expr,
+      text: evaText,
+      _onEdit: (v) => {
+        pack.eva = v;
+        saveStoryPatch();
+      }
+    });
+    const p = ensureEvaInfo().bars.roja || 0;
+    if (isPacienciaWarn(p) && !state.pendingKick) {
+      const w = (typeof EVA_RULES !== "undefined" && EVA_RULES.warning) || {};
+      lines.push({ who: "Eva", expr: (pack.seq && pack.seq[pack.seq.length - 1]) || expr, text: w.text || "Estoy perdiendo la paciencia." });
+    }
+    beginMeetTalk(lines, null, { countsAsActivity: true });
+    if (pack.seq) playExprSeq(pack.seq);
+  }
+
   async function showMeetScene(sceneId, opts) {
     meetSceneId = sceneId || null;
     const slot = $("eva-scene-slot");
@@ -3603,6 +3676,7 @@
     list.appendChild(renderRoomActionsCard());
     list.appendChild(await renderEvaScenesCard());
     list.appendChild(renderElogiarSeqCard());
+    list.appendChild(renderAccionEffectsCard());
     for (const item of EDITOR_ITEMS.filter((i) => i.kind === "scene")) {
       list.appendChild(await renderMediaCard(item));
     }
@@ -3637,6 +3711,148 @@
 
   function parseExprSeq(text) {
     return String(text || "").split(",").map((s) => s.trim()).filter(Boolean).slice(0, 3);
+  }
+  function renderAccionEffectsCard() {
+    const card = document.createElement("article");
+    card.className = "editor-card editor-seq-card editor-accion-card";
+    const h = document.createElement("h3");
+    h.textContent = "Beso, Masaje y Tocar";
+    card.appendChild(h);
+    const note = document.createElement("p");
+    note.className = "editor-note";
+    note.textContent = "Valores exactos por nivel (BASE, T50, T100, MAX). Corazón, Rosa, Morada y Paciencia. La etiqueta de cada opción se puede cambiar, incluida Opción C.";
+    card.appendChild(note);
+    const tiers = ["BASE", "T50", "T100", "MAX"];
+    const fields = [
+      ["afecto", "Corazón"],
+      ["rosa", "Rosa"],
+      ["morada", "Morada"],
+      ["paciencia", "Paciencia"]
+    ];
+    const groups = (typeof EVA_MENU !== "undefined" && EVA_MENU.accion && EVA_MENU.accion.options) || [];
+    const wanted = { beso: 1, masaje: 1, tocar: 1 };
+    groups.filter((g) => g && wanted[g.id]).forEach((group) => {
+      const block = document.createElement("div");
+      block.className = "seq-opt";
+      const title = document.createElement("h4");
+      const titleInp = document.createElement("input");
+      titleInp.type = "text";
+      titleInp.value = group.label || group.id;
+      titleInp.addEventListener("change", () => {
+        group.label = titleInp.value.trim() || group.label;
+        titleInp.value = group.label;
+        saveStoryPatch();
+      });
+      title.appendChild(titleInp);
+      block.appendChild(title);
+      (group.options || []).forEach((opt) => {
+        if (!opt) return;
+        const sub = document.createElement("div");
+        sub.className = "accion-opt";
+        const head = document.createElement("div");
+        head.className = "seq-row";
+        const lab = document.createElement("label");
+        lab.textContent = "Etiqueta";
+        const nameInp = document.createElement("input");
+        nameInp.type = "text";
+        nameInp.value = opt.label || "";
+        nameInp.addEventListener("change", () => {
+          opt.label = nameInp.value.trim();
+          nameInp.value = opt.label;
+          saveStoryPatch();
+        });
+        head.appendChild(lab);
+        head.appendChild(nameInp);
+        head.appendChild(makePencil(() => {
+          openEditModal("Etiqueta", nameInp.value, (v) => {
+            nameInp.value = v;
+            opt.label = v;
+            saveStoryPatch();
+          });
+        }, "Editar etiqueta"));
+        sub.appendChild(head);
+        const playerRow = document.createElement("div");
+        playerRow.className = "seq-row";
+        const plab = document.createElement("label");
+        plab.textContent = "Tú";
+        const pinp = document.createElement("input");
+        pinp.type = "text";
+        pinp.value = opt.player || "";
+        pinp.addEventListener("change", () => {
+          opt.player = pinp.value;
+          saveStoryPatch();
+        });
+        playerRow.appendChild(plab);
+        playerRow.appendChild(pinp);
+        playerRow.appendChild(makePencil(() => {
+          openEditModal("Lo que dices", pinp.value, (v) => {
+            pinp.value = v;
+            opt.player = v;
+            saveStoryPatch();
+          });
+        }, "Editar línea"));
+        sub.appendChild(playerRow);
+        if (!opt.effects) opt.effects = {};
+        tiers.forEach((tier) => {
+          if (!opt.effects[tier]) opt.effects[tier] = { afecto: 0, rosa: 0, morada: 0, paciencia: 0, eva: "…", expr: "neutral", skipBalance: true };
+          const pack = opt.effects[tier];
+          pack.skipBalance = true;
+          const row = document.createElement("div");
+          row.className = "accion-tier";
+          const tlab = document.createElement("div");
+          tlab.className = "accion-tier-name";
+          tlab.textContent = tier;
+          row.appendChild(tlab);
+          const nums = document.createElement("div");
+          nums.className = "accion-nums";
+          fields.forEach((pair) => {
+            const cell = document.createElement("label");
+            cell.textContent = pair[1];
+            const inp = document.createElement("input");
+            inp.type = "number";
+            inp.step = "1";
+            inp.value = pack[pair[0]] != null ? pack[pair[0]] : 0;
+            const save = () => {
+              const n = Number(inp.value);
+              pack[pair[0]] = isFinite(n) ? n : 0;
+              pack.skipBalance = true;
+              opt.skipBalance = true;
+              inp.value = pack[pair[0]];
+              saveStoryPatch();
+            };
+            inp.addEventListener("change", save);
+            cell.appendChild(inp);
+            nums.appendChild(cell);
+          });
+          row.appendChild(nums);
+          const evaRow = document.createElement("div");
+          evaRow.className = "seq-row";
+          const elab = document.createElement("label");
+          elab.textContent = "Eva · " + tier;
+          const einp = document.createElement("input");
+          einp.type = "text";
+          einp.value = pack.eva || "";
+          einp.addEventListener("change", () => {
+            pack.eva = einp.value;
+            saveStoryPatch();
+          });
+          evaRow.appendChild(elab);
+          evaRow.appendChild(einp);
+          evaRow.appendChild(makePencil(() => {
+            openEditModal((opt.label || opt.id) + " · " + tier, einp.value, (v) => {
+              einp.value = v;
+              pack.eva = v;
+              saveStoryPatch();
+            });
+          }, "Editar respuesta"));
+          row.appendChild(evaRow);
+          sub.appendChild(row);
+        });
+        block.appendChild(sub);
+      });
+      card.appendChild(block);
+    });
+    return card;
   }
   function renderElogiarSeqCard() {
     const card = document.createElement("article");
@@ -4424,7 +4640,7 @@
     });
   }
 
-  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, playTitleIntro, openBag, openSettings, openPhone, openChatThread, openTasks, travelTo, setPeek, getExpr: () => currentExpr, getState: () => state, openEvaMeet, closeEvaMeet, addAfecto, setAfecto, addEvaInfoBar, setEvaInfoBar, setEditorLive, ejectFromHouse, evaStatus: currentEvaStatus, weekdayName: (d) => weekdayName(d != null ? d : state.day), renderHUD, renderActions, showRoomEva, isEvaHere, isEvaCleaning, currentSceneVariant, isEvaSleeping, refreshRoomVisual, startIntroCine, skipIntroCine, startMission, completeMission, maybeTriggerEvent, renderHotspots, eventDoorTargets };
+  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, playTitleIntro, openBag, openSettings, openPhone, openChatThread, openTasks, travelTo, setPeek, getExpr: () => currentExpr, getState: () => state, openEvaMeet, closeEvaMeet, addAfecto, setAfecto, addEvaInfoBar, setEvaInfoBar, setEditorLive, ejectFromHouse, evaStatus: currentEvaStatus, weekdayName: (d) => weekdayName(d != null ? d : state.day), renderHUD, renderActions, showRoomEva, isEvaHere, isEvaCleaning, currentSceneVariant, isEvaSleeping, refreshRoomVisual, startIntroCine, skipIntroCine, startMission, completeMission, maybeTriggerEvent, renderHotspots, eventDoorTargets, pickElogiarTier, playAccionOption, findAccionOption, applyStatDelta, buildEvaMeetMenu };
 
   document.addEventListener("DOMContentLoaded", () => {
     bind();

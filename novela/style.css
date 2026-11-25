@@ -3517,3 +3517,54 @@ body { min-height: 100dvh; }
   background: rgba(0,0,0,0.3);
   color: var(--paper);
 }
+
+.editor-accion-card .seq-opt h4 input {
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 4px 8px;
+  width: min(16rem, 100%);
+}
+.editor-accion-card .accion-opt {
+  margin: 0.7rem 0 1.1rem;
+  padding: 0.6rem 0.7rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: rgba(0,0,0,0.18);
+}
+.editor-accion-card .accion-tier {
+  margin-top: 0.55rem;
+}
+.editor-accion-card .accion-tier-name {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.85;
+  margin-bottom: 0.25rem;
+}
+.editor-accion-card .accion-nums {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.4rem 0.5rem;
+}
+.editor-accion-card .accion-nums label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.75rem;
+}
+.editor-accion-card .accion-nums input {
+  font: inherit;
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: rgba(0,0,0,0.3);
+  color: var(--paper);
+  width: 100%;
+}
+@media (max-width: 900px) {
+  .editor-accion-card .accion-nums { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

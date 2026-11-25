@@ -348,8 +348,47 @@ const EVA_MENU = {
     options: [
       { id: "ayudar", label: "Ayudar un poco en la casa", need: 0,
         ok: { expr: "feliz", eva: "Si quieres, puedes recoger esas tazas. Se agradece.", vinculo: 5, afecto: 1 } },
-      { id: "masajes", label: "Masajes", need: 0,
-        ok: { expr: "feliz", eva: "Está bien. Con calma, un rato nada más." } },
+      { id: "beso", label: "Beso", skipBalance: true, options: [
+        { id: "beso-mejilla", label: "Mejilla", skipBalance: true, player: "Me acerco y te doy un beso en la mejilla.",
+          effects: {
+            BASE: { skipBalance: true, afecto: 12, rosa: 4, morada: 0, paciencia: -8, expr: "feliz", eva: "Qué gesto más tierno." },
+            T50: { skipBalance: true, afecto: 15, rosa: 6, morada: 2, paciencia: -6, expr: "feliz", eva: "Me agrada." },
+            T100: { skipBalance: true, afecto: 18, rosa: 8, morada: 4, paciencia: -4, expr: "sonrojada", eva: "Me gusta cuando haces eso." },
+            MAX: { skipBalance: true, afecto: 22, rosa: 10, morada: 6, paciencia: -2, expr: "feliz", eva: "Siempre me sienta bien." }
+          } },
+        { id: "beso-boca", label: "Boca", skipBalance: true, player: "Te doy un beso.",
+          effects: {
+            BASE: { skipBalance: true, afecto: 6, rosa: 10, morada: 8, paciencia: -25, expr: "nerviosa", eva: "Espera… no tan de pronto." },
+            T50: { skipBalance: true, afecto: 10, rosa: 14, morada: 12, paciencia: -18, expr: "sonrojada", eva: "Un momento… está bien." },
+            T100: { skipBalance: true, afecto: 14, rosa: 18, morada: 16, paciencia: -12, expr: "sonrojada", eva: "Está bien." },
+            MAX: { skipBalance: true, afecto: 18, rosa: 22, morada: 20, paciencia: -8, expr: "feliz", eva: "Está bien. Con calma." }
+          } }
+      ] },
+      { id: "masaje", label: "Masaje", skipBalance: true, options: [
+        { id: "masaje-espalda", label: "Espalda", skipBalance: true, player: "¿Te hago un masaje en la espalda?",
+          effects: {
+            BASE: { skipBalance: true, afecto: 15, rosa: 2, morada: 0, paciencia: -10, expr: "feliz", eva: "Está bien. Con calma, un rato nada más." },
+            T50: { skipBalance: true, afecto: 18, rosa: 4, morada: 2, paciencia: -8, expr: "feliz", eva: "Sí. Gracias." },
+            T100: { skipBalance: true, afecto: 22, rosa: 6, morada: 4, paciencia: -5, expr: "feliz", eva: "Se agradece." },
+            MAX: { skipBalance: true, afecto: 25, rosa: 8, morada: 6, paciencia: -3, expr: "feliz", eva: "Justo lo que necesitaba." }
+          } }
+      ] },
+      { id: "tocar", label: "Tocar", skipBalance: true, options: [
+        { id: "tocar-mejilla", label: "Agarrarla de la mejilla", skipBalance: true, player: "Te tomo suavemente de la mejilla.",
+          effects: {
+            BASE: { skipBalance: true, afecto: 8, rosa: 3, morada: 0, paciencia: -12, expr: "nerviosa", eva: "¿Qué haces?" },
+            T50: { skipBalance: true, afecto: 10, rosa: 5, morada: 2, paciencia: -8, expr: "sonrojada", eva: "Me tomas por sorpresa." },
+            T100: { skipBalance: true, afecto: 14, rosa: 7, morada: 4, paciencia: -5, expr: "feliz", eva: "Está bien." },
+            MAX: { skipBalance: true, afecto: 16, rosa: 9, morada: 6, paciencia: -3, expr: "feliz", eva: "Me gusta." }
+          } },
+        { id: "tocar-c", label: "Opción C", skipBalance: true, player: "…",
+          effects: {
+            BASE: { skipBalance: true, afecto: -50, rosa: 6, morada: 15, paciencia: -45, expr: "molesta", eva: "Prefiero que no." },
+            T50: { skipBalance: true, afecto: -30, rosa: 10, morada: 18, paciencia: -32, expr: "triste", eva: "Eso no me gusta." },
+            T100: { skipBalance: true, afecto: -15, rosa: 14, morada: 22, paciencia: -20, expr: "neutral", eva: "Bueno… no te pases." },
+            MAX: { skipBalance: true, afecto: -5, rosa: 18, morada: 26, paciencia: -12, expr: "neutral", eva: "Está bien, pero no insistas." }
+          } }
+      ] },
       { id: "acercarte", label: "Acercarte un poco más", need: 50,
         ok: { expr: "sonrojada", eva: "Está bien… no te vayas más lejos, entonces.", vinculo: 8, afecto: 3 },
         locked: { expr: "molesta", eva: "¿Qué haces? Dame un poco de espacio.", paciencia: -12 } },
@@ -1030,6 +1069,151 @@ function applyV25Story(data) {
   }
 }
 
+const EVA_ACCION_V26_IDS = ["beso", "masaje", "tocar", "beso-mejilla", "beso-boca", "masaje-espalda", "tocar-mejilla", "tocar-c"];
+
+function normAccionKey(s) {
+  return String(s || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function isBannedAccionOption(opt) {
+  if (!opt || typeof opt !== "object") return false;
+  const id = normAccionKey(opt.id);
+  const lab = normAccionKey(opt.label);
+  const bannedIds = { "masaje b": 1, masajeb: 1, teta: 1, "agarrarle una teta": 1, nalgada: 1 };
+  return !!(bannedIds[id] || bannedIds[lab]);
+}
+
+function snapshotAccionV26Defaults() {
+  const menu = (typeof EVA_MENU !== "undefined" && EVA_MENU.accion) || {};
+  const ids = { beso: 1, masaje: 1, tocar: 1 };
+  return (menu.options || []).filter((o) => o && ids[o.id]).map((o) => JSON.parse(JSON.stringify(o)));
+}
+
+const EVA_ACCION_V26_DEFAULTS = snapshotAccionV26Defaults();
+
+function stampAccionSkipBalance(opt) {
+  if (!opt || typeof opt !== "object") return;
+  if (EVA_ACCION_V26_IDS.indexOf(opt.id) >= 0) opt.skipBalance = true;
+  if (opt.effects && typeof opt.effects === "object") {
+    Object.keys(opt.effects).forEach((k) => {
+      const pack = opt.effects[k];
+      if (pack && typeof pack === "object") pack.skipBalance = true;
+    });
+  }
+  (opt.options || []).forEach(stampAccionSkipBalance);
+}
+
+function mergeAccionOption(dst, src) {
+  if (!dst || !src) return;
+  if (typeof src.label === "string" && src.label) dst.label = src.label;
+  if (typeof src.player === "string") dst.player = src.player;
+  if (src.skipBalance) dst.skipBalance = true;
+  if (src.effects && typeof src.effects === "object") {
+    if (!dst.effects) dst.effects = {};
+    Object.keys(src.effects).forEach((tier) => {
+      const pack = src.effects[tier];
+      if (!pack || typeof pack !== "object") return;
+      if (!dst.effects[tier]) dst.effects[tier] = {};
+      const out = dst.effects[tier];
+      ["afecto", "rosa", "morada", "paciencia"].forEach((k) => {
+        if (typeof pack[k] === "number") out[k] = pack[k];
+      });
+      if (typeof pack.eva === "string") out.eva = pack.eva;
+      if (typeof pack.expr === "string") out.expr = pack.expr;
+      if (Array.isArray(pack.seq)) out.seq = pack.seq.slice();
+    });
+  }
+  stampAccionSkipBalance(dst);
+}
+
+function sanitizeAccionOptions(list) {
+  if (!Array.isArray(list)) return [];
+  const out = [];
+  list.forEach((opt) => {
+    if (!opt) return;
+    if (isBannedAccionOption(opt)) return;
+    if (Array.isArray(opt.options)) opt.options = sanitizeAccionOptions(opt.options);
+    out.push(opt);
+  });
+  return out;
+}
+
+function ensureAccionV26Groups() {
+  if (typeof EVA_MENU === "undefined" || !EVA_MENU) return;
+  if (!EVA_MENU.accion || typeof EVA_MENU.accion !== "object") {
+    EVA_MENU.accion = { scene: "eva-accion", options: [] };
+  }
+  const block = EVA_MENU.accion;
+  if (!Array.isArray(block.options)) block.options = [];
+  block.options = sanitizeAccionOptions(block.options);
+  const defaults = (typeof EVA_ACCION_V26_DEFAULTS !== "undefined" && EVA_ACCION_V26_DEFAULTS) || snapshotAccionV26Defaults();
+  if (!defaults.length) return;
+  const have = {};
+  block.options.forEach((o, i) => { if (o && o.id) have[o.id] = i; });
+  let insertAt = block.options.findIndex((o) => o && o.id === "ayudar");
+  insertAt = insertAt >= 0 ? insertAt + 1 : 0;
+  defaults.forEach((group) => {
+    const idx = have[group.id];
+    if (idx == null) {
+      block.options.splice(insertAt, 0, group);
+      insertAt += 1;
+      have[group.id] = true;
+      return;
+    }
+    const cur = block.options[idx];
+    if (typeof group.label === "string" && !cur.label) cur.label = group.label;
+    if (!Array.isArray(cur.options)) cur.options = [];
+    cur.options = sanitizeAccionOptions(cur.options);
+    (group.options || []).forEach((sub) => {
+      const found = cur.options.find((x) => x && x.id === sub.id);
+      if (!found) cur.options.push(JSON.parse(JSON.stringify(sub)));
+      else {
+        if (!found.effects) found.effects = JSON.parse(JSON.stringify(sub.effects || {}));
+        if (!found.label) found.label = sub.label;
+        if (found.player == null && sub.player != null) found.player = sub.player;
+        stampAccionSkipBalance(found);
+      }
+    });
+    stampAccionSkipBalance(cur);
+  });
+  const hasMasajeGroup = block.options.some((o) => o && o.id === "masaje" && o.options && o.options.length);
+  if (hasMasajeGroup) {
+    block.options = block.options.filter((o) => !(o && o.id === "masajes" && !o.effects && !(o.options && o.options.length)));
+  }
+}
+
+function applyV26Story(data) {
+  ensureAccionV26Groups();
+  if (!data || typeof data !== "object") return;
+  const srcBlock = data.accion;
+  if (srcBlock && Array.isArray(srcBlock.options) && typeof EVA_MENU !== "undefined") {
+    const live = (EVA_MENU.accion && EVA_MENU.accion.options) || [];
+    srcBlock.options.forEach((g) => {
+      if (!g || !g.id) return;
+      if (isBannedAccionOption(g)) return;
+      const dst = live.find((x) => x && x.id === g.id);
+      if (!dst) return;
+      mergeAccionOption(dst, g);
+      (g.options || []).forEach((sub) => {
+        if (!sub || !sub.id || isBannedAccionOption(sub)) return;
+        if (!Array.isArray(dst.options)) dst.options = [];
+        let dsub = dst.options.find((x) => x && x.id === sub.id);
+        if (!dsub) {
+          dsub = { id: sub.id };
+          dst.options.push(dsub);
+        }
+        mergeAccionOption(dsub, sub);
+      });
+    });
+  }
+}
+
 const STORY_PATCH_KEY = "eva_novela_story_v16";
 
 function editableStory() {
@@ -1137,6 +1321,7 @@ function applyEditableStory(data) {
   ensureV23RoomActions();
   ensureV24Balance(data);
   applyV25Story(data);
+  applyV26Story(data);
 }
 
 function ensureV23RoomActions() {
@@ -1183,6 +1368,7 @@ function scalePacienciaPenalty(n) {
 
 function scaleEffectFields(obj, path, changes) {
   if (!obj || typeof obj !== "object") return;
+  if (obj.skipBalance === true || obj.exactBalance === true) return;
   if (typeof obj.rosa === "number" && obj.rosa > 0) {
     const before = obj.rosa;
     const after = scaleRosaGain(before);
@@ -1252,12 +1438,22 @@ function ensureV24Balance(data) {
   const menu = (typeof EVA_MENU !== "undefined" && EVA_MENU) || {};
   ["peticion", "accion"].forEach((key) => {
     const block = menu[key];
-    ((block && block.options) || []).forEach((opt) => {
-      if (!opt) return;
-      const base = "menu." + key + "." + (opt.id || "?");
+    const walkOpt = (opt, base) => {
+      if (!opt || opt.skipBalance === true || opt.exactBalance === true) return;
       if (opt.ok) scaleEffectFields(opt.ok, base + ".ok", changes);
       if (opt.locked) scaleEffectFields(opt.locked, base + ".locked", changes);
       scaleEffectFields(opt, base, changes);
+      if (opt.effects) {
+        Object.keys(opt.effects).forEach((tier) => {
+          scaleEffectFields(opt.effects[tier], base + ".effects." + tier, changes);
+        });
+      }
+      (opt.options || []).forEach((sub) => {
+        walkOpt(sub, base + ".options." + ((sub && sub.id) || "?"));
+      });
+    };
+    ((block && block.options) || []).forEach((opt) => {
+      walkOpt(opt, "menu." + key + "." + ((opt && opt.id) || "?"));
     });
   });
   if (menu.giftOk) scaleEffectFields(menu.giftOk, "menu.giftOk", changes);
