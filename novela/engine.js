@@ -241,6 +241,61 @@
     const st = currentEvaStatus();
     return !!(st.cleaning && st.loc === locId);
   }
+  function isEvaSleeping() {
+    const st = currentEvaStatus();
+    if (!st || st.loc !== "cuarto_eva" || st.cleaning) return false;
+    if (state.moment === "madrugada") return true;
+    if (state.moment === "noche") return (st.move || 0) >= 1;
+    return false;
+  }
+  function currentSceneVariant() {
+    if (state.phase !== "house") return null;
+    const loc = state.location;
+    if (!loc || !isEvaHere(loc)) return null;
+    const list = (typeof EVA_SCENES !== "undefined" && Array.isArray(EVA_SCENES)) ? EVA_SCENES : [];
+    const variants = list.filter((v) => v && v.loc === loc);
+    if (!variants.length) return null;
+    const cleaning = isEvaCleaning(loc);
+    if (cleaning) {
+      return variants.find((v) => v.when === "cleaning") || variants.find((v) => v.when === "present") || null;
+    }
+    if (loc === "cuarto_eva" && isEvaSleeping()) {
+      return variants.find((v) => v.when === "sleeping") || null;
+    }
+    return variants.find((v) => v.when === "awake") || variants.find((v) => v.when === "present") || null;
+  }
+  function sceneMediaKey(id) {
+    return "escena:" + id;
+  }
+  function findActionById(id) {
+    const locs = (typeof HOUSE !== "undefined" && HOUSE.locations) || [];
+    for (let i = 0; i < locs.length; i++) {
+      const acts = (locs[i] && locs[i].actions) || [];
+      for (let j = 0; j < acts.length; j++) {
+        if (acts[j] && acts[j].id === id) return acts[j];
+        const opts = (acts[j] && acts[j].options) || [];
+        for (let k = 0; k < opts.length; k++) {
+          if (opts[k] && opts[k].id === id) return opts[k];
+        }
+      }
+    }
+    const tmpl = typeof EVA_ROOM_ACTIONS !== "undefined" ? EVA_ROOM_ACTIONS : {};
+    const keys = Object.keys(tmpl);
+    for (let i = 0; i < keys.length; i++) {
+      const a = tmpl[keys[i]];
+      if (a && typeof a === "object" && a.id === id) return a;
+    }
+    return null;
+  }
+  function sceneCatalogAction(id) {
+    if (id === "ayudar-eva") return ayudarEvaAction();
+    if (id === "broma") {
+      const src = findActionById("broma");
+      return src ? Object.assign({}, src) : { id: "broma", label: "Hacer una broma", paciencia: -15, scene: "broma" };
+    }
+    const src = findActionById(id);
+    return src ? Object.assign({}, src) : null;
+  }
   function setPeek(on) {
     state.peek = !!on;
     const game = $("screen-game");
@@ -309,11 +364,56 @@
     img.onerror = () => img.classList.add("is-missing");
     img.src = src;
   }
+  function sceneWebpPath(path) {
+    if (!path || /^(blob:|data:|https?:)/i.test(path)) return "";
+    const bare = String(path).split("?")[0];
+    if (/^assets\/escenas\/.+\.(png|jpe?g)$/i.test(bare)) return bare.replace(/\.(png|jpe?g)$/i, ".webp");
+    return "";
+  }
+  function setImgWithFallback(url) {
+    const img = $("bg-img");
+    if (!url) {
+      setImg("");
+      return;
+    }
+    const list = [];
+    const webp = sceneWebpPath(url);
+    if (webp) list.push(assetUrl(webp));
+    const u = /^(blob:|data:|https?:)/i.test(url) ? url : assetUrl(url);
+    if (list.indexOf(u) < 0) list.push(u);
+    let i = 0;
+    const tryNext = () => {
+      if (i >= list.length) {
+        img.classList.add("is-missing");
+        return;
+      }
+      const src = list[i++];
+      img.onload = () => img.classList.remove("is-missing");
+      img.onerror = () => tryNext();
+      if (img.getAttribute("src") === src && img.complete && img.naturalWidth) {
+        img.classList.remove("is-missing");
+        return;
+      }
+      img.classList.remove("is-missing");
+      img.src = src;
+    };
+    tryNext();
+  }
   async function applyLocationVisual(locId, fallbackImage) {
     const layer = $("bg-layer");
     layer.className = "bg-layer bg-cafe";
     $("game-shade").classList.add("is-house");
     clearVideo();
+    const variant = currentSceneVariant();
+    if (variant) {
+      const customScene = await MediaStore.mediaFor(sceneMediaKey(variant.id));
+      if (customScene.imageURL) {
+        setImg(customScene.imageURL);
+        return;
+      }
+      setImgWithFallback(variant.image || "");
+      return;
+    }
     const custom = await MediaStore.mediaFor(locId);
     if (custom.videoURL) {
       setImg("");
@@ -324,6 +424,15 @@
       return;
     }
     setImg(custom.imageURL || fallbackImage || "");
+  }
+  async function refreshRoomVisual() {
+    const loc = locById(state.location);
+    if (!loc) return;
+    await applyLocationVisual(loc.id, loc.image);
+    const evaHere = isEvaHere(loc.id);
+    showRoomEva(evaHere);
+    renderActions(loc, evaHere);
+    renderHotspots();
   }
   let spriteOn = "a";
   let currentExpr = null;
@@ -587,11 +696,10 @@
   }
   function actionNeedsUnmet(act) {
     if (!act) return false;
-    if (act.needRosa != null || act.needMorada != null) {
-      const ev = ensureEvaInfo();
-      if (act.needRosa != null && (ev.bars.rosa || 0) < act.needRosa) return true;
-      if (act.needMorada != null && (ev.bars.morada || 0) < act.needMorada) return true;
-    }
+    const ev = ensureEvaInfo();
+    if (act.needHeart != null && (ev.afecto || 0) < act.needHeart) return true;
+    if (act.needRosa != null && (ev.bars.rosa || 0) < act.needRosa) return true;
+    if (act.needMorada != null && (ev.bars.morada || 0) < act.needMorada) return true;
     return false;
   }
   function isActionLocked(act) {
@@ -615,7 +723,19 @@
     if (state.actionSub && state.actionSub.options) {
       return { list: state.actionSub.options.slice(), back: true };
     }
-    const list = ((loc && loc.actions) || []).slice();
+    let list = ((loc && loc.actions) || []).slice();
+    const variant = currentSceneVariant();
+    const hide = {};
+    ((variant && variant.hideActions) || []).forEach((id) => { hide[id] = true; });
+    list = list.filter((a) => a && !hide[a.id]);
+    const extras = ((variant && variant.actions) || []).map((id) => sceneCatalogAction(id)).filter(Boolean);
+    let insertAt = Math.min(1, list.length);
+    extras.forEach((ex) => {
+      if (!list.some((x) => x.id === ex.id)) {
+        list.splice(insertAt, 0, ex);
+        insertAt += 1;
+      }
+    });
     if (loc && isEvaCleaning(loc.id)) {
       if (!list.some((x) => x.id === "ayudar-eva")) {
         list.splice(Math.min(1, list.length), 0, ayudarEvaAction());
@@ -739,6 +859,7 @@
       state.pendingActionScene = true;
     }
     if (advances) state.pendingAdvance = act.advance;
+    if (act.wakeAngry) state.pendingWakeReproach = true;
     startTalk([{
       speaker: "",
       text: text,
@@ -811,6 +932,12 @@
       fadeAdvance(kind);
       return;
     }
+    if (state.pendingLeaveRoom) {
+      const to = state.pendingLeaveRoom;
+      state.pendingLeaveRoom = null;
+      travelTo(to);
+      return;
+    }
     if (state.evaMeet) {
       showEvaSprite(false);
       const meet = $("eva-meet");
@@ -821,11 +948,8 @@
       autosave();
       return;
     }
-    const loc = locById(state.location);
-    const evaHere = isEvaHere(state.location);
     showEvaSprite(false);
-    showRoomEva(evaHere);
-    renderActions(loc, evaHere);
+    refreshRoomVisual();
     autosave();
   }
 
@@ -1102,6 +1226,18 @@
     if (!layer || !hit || layer.hidden) return;
     const box = coverBox(layer);
     if (!box) return;
+    const variant = layer.classList.contains("is-scene") ? currentSceneVariant() : null;
+    if (variant) {
+      const h = variant.hit || { x: 0.32, y: 0.18, w: 0.36, h: 0.72 };
+      hit.style.width = (h.w * box.w) + "px";
+      hit.style.height = (h.h * box.h) + "px";
+      hit.style.left = (box.x + h.x * box.w) + "px";
+      hit.style.top = (box.y + h.y * box.h) + "px";
+      hit.style.transform = "none";
+      return;
+    }
+    hit.style.width = "";
+    hit.style.transform = "";
     const places = (typeof EVA_MENU !== "undefined" && EVA_MENU.place) || {};
     const place = places[state.location] || { x: 0.5, y: 0.90, h: 0.60 };
     const height = place.h * box.h;
@@ -1116,8 +1252,23 @@
     if (!layer) return;
     if (!on || state.evaMeet) {
       layer.hidden = true;
+      layer.classList.remove("is-scene");
       return;
     }
+    const variant = currentSceneVariant();
+    if (variant) {
+      layer.classList.add("is-scene");
+      layer.hidden = false;
+      if (img) img.hidden = true;
+      if (hit) {
+        hit.hidden = false;
+        hit.setAttribute("aria-label", "Eva");
+      }
+      placeRoomEva();
+      return;
+    }
+    layer.classList.remove("is-scene");
+    if (img) img.hidden = false;
     const src = assetUrl((typeof EVA_MENU !== "undefined" && EVA_MENU.fullImage) || "assets/eva-full.png");
     if (img) {
       img.alt = "Eva";
@@ -1355,6 +1506,8 @@
     if (e) e.stopPropagation();
     if (traveling || evaMeetBusy || state.evaMeet) return;
     if (state.talking || state.peek) return;
+    const variant = currentSceneVariant();
+    if (variant && variant.talk === false) return;
     evaMeetBusy = true;
     const hit = $("eva-room-hit");
     if (hit) {
@@ -1672,10 +1825,7 @@
     }
     applyTimeShade();
     renderHUD();
-    const loc = locById(state.location);
-    const evaHere = isEvaHere(state.location);
-    showRoomEva(evaHere);
-    if (loc) renderActions(loc, evaHere);
+    await refreshRoomVisual();
     autosave();
     if (fade) {
       fade.offsetWidth;
@@ -1683,6 +1833,25 @@
     }
     await wait(500);
     traveling = false;
+    if (state.pendingWakeReproach) {
+      state.pendingWakeReproach = false;
+      const ev = ensureEvaInfo();
+      const needRosa = 100;
+      const needMorada = 100;
+      if ((ev.bars.rosa || 0) < needRosa || (ev.bars.morada || 0) < needMorada) {
+        const lines = (typeof EVA_SCENE_LINES !== "undefined" && EVA_SCENE_LINES) || {};
+        startTalk([{
+          who: "Eva",
+          expr: lines.wakeAngryExpr || "molesta",
+          text: lines.wakeAngry || "¿Qué haces aquí? Vete a tu cuarto.",
+          _onEdit: (v) => {
+            if (typeof EVA_SCENE_LINES !== "undefined") EVA_SCENE_LINES.wakeAngry = v;
+            saveStoryPatch();
+          }
+        }]);
+        state.pendingLeaveRoom = "cuarto";
+      }
+    }
   }
   function hideActionScene() {
     const meet = $("eva-meet");
@@ -2739,6 +2908,97 @@
     card.appendChild(actions);
     return card;
   }
+  async function renderEvaScenesCard() {
+    const card = document.createElement("article");
+    card.className = "editor-card editor-scenes-card";
+    const h = document.createElement("h3");
+    h.textContent = "Escenas de Eva";
+    card.appendChild(h);
+    const note = document.createElement("p");
+    note.className = "editor-note";
+    note.textContent = "Cuando Eva está en una habitación con una variante para su actividad, esa foto reemplaza el fondo y el sprite. Puedes cambiar cada foto.";
+    card.appendChild(note);
+    const list = (typeof EVA_SCENES !== "undefined" && EVA_SCENES) || [];
+    for (let i = 0; i < list.length; i++) {
+      const v = list[i];
+      const media = await MediaStore.mediaFor(sceneMediaKey(v.id));
+      const row = document.createElement("div");
+      row.className = "scene-variant-row";
+      const pre = document.createElement("div");
+      pre.className = "editor-previews";
+      const src = media.imageURL || (v.image ? assetUrl(v.image) : "");
+      if (src) {
+        const img = document.createElement("img");
+        img.className = "prev";
+        img.alt = v.label || v.id;
+        img.src = src;
+        pre.appendChild(img);
+      } else {
+        const empty = document.createElement("div");
+        empty.className = "editor-slot-empty";
+        empty.textContent = "Agregar foto";
+        pre.appendChild(empty);
+      }
+      row.appendChild(pre);
+      const side = document.createElement("div");
+      side.className = "scene-variant-meta";
+      const lab = document.createElement("p");
+      lab.className = "scene-variant-label";
+      lab.textContent = v.label || v.id;
+      side.appendChild(lab);
+      const actions = document.createElement("div");
+      actions.className = "editor-actions";
+      actions.appendChild(fileButton("Agregar foto", "image/*", async (f) => {
+        await MediaStore.put(sceneMediaKey(v.id), "image", f, f.name);
+        await renderEditor();
+      }));
+      if (media.image) {
+        const rm = document.createElement("button");
+        rm.type = "button";
+        rm.className = "btn btn-ghost btn-tiny";
+        rm.textContent = "Quitar";
+        rm.addEventListener("click", async () => {
+          await MediaStore.remove(sceneMediaKey(v.id), "image");
+          await renderEditor();
+        });
+        actions.appendChild(rm);
+      }
+      side.appendChild(actions);
+      row.appendChild(side);
+      card.appendChild(row);
+    }
+    const lines = (typeof EVA_SCENE_LINES !== "undefined" && EVA_SCENE_LINES) || {};
+    const actionsT = typeof EVA_ROOM_ACTIONS !== "undefined" ? EVA_ROOM_ACTIONS : {};
+    const fields = [
+      { key: "wakeAngry", label: "Al despertar a su lado (si no cumple)", get: () => lines.wakeAngry || "", set: (v) => { lines.wakeAngry = v; } },
+      { key: "dormirLadoLabel", label: "Acción: Dormir a su lado", get: () => (actionsT.dormirLado && actionsT.dormirLado.label) || "", set: (v) => { if (actionsT.dormirLado) actionsT.dormirLado.label = v; } },
+      { key: "dormirLadoText", label: "Texto: Dormir a su lado", get: () => (actionsT.dormirLado && actionsT.dormirLado.text) || "", set: (v) => { if (actionsT.dormirLado) actionsT.dormirLado.text = v; } },
+      { key: "verTvEvaLabel", label: "Acción: Ver TV junto a Eva", get: () => (actionsT.verTvEva && actionsT.verTvEva.label) || "", set: (v) => { if (actionsT.verTvEva) actionsT.verTvEva.label = v; } },
+      { key: "verTvEvaText", label: "Texto: Ver TV junto a Eva", get: () => (actionsT.verTvEva && actionsT.verTvEva.text) || "", set: (v) => { if (actionsT.verTvEva) actionsT.verTvEva.text = v; } },
+      { key: "dormirPiernasLabel", label: "Acción: Dormir en sus piernas", get: () => (actionsT.dormirPiernas && actionsT.dormirPiernas.label) || "", set: (v) => { if (actionsT.dormirPiernas) actionsT.dormirPiernas.label = v; } },
+      { key: "dormirPiernasText", label: "Texto: Dormir en sus piernas", get: () => (actionsT.dormirPiernas && actionsT.dormirPiernas.text) || "", set: (v) => { if (actionsT.dormirPiernas) actionsT.dormirPiernas.text = v; } },
+      { key: "mejorNo", label: "Dormir en sus piernas (si no cumple)", get: () => (actionsT.dormirPiernas && actionsT.dormirPiernas.deniedText) || "", set: (v) => { if (actionsT.dormirPiernas) actionsT.dormirPiernas.deniedText = v; } }
+    ];
+    fields.forEach((f) => {
+      const row = document.createElement("div");
+      row.className = "seq-row";
+      const lab = document.createElement("label");
+      lab.textContent = f.label;
+      const isLong = /Texto|despiert|cumple/.test(f.key + f.label);
+      const inp = isLong ? document.createElement("textarea") : document.createElement("input");
+      if (!isLong) inp.type = "text";
+      inp.value = f.get();
+      const save = () => { f.set(inp.value); saveStoryPatch(); };
+      inp.addEventListener("change", save);
+      row.appendChild(lab);
+      row.appendChild(inp);
+      row.appendChild(makePencil(() => {
+        openEditModal(f.label, inp.value, (v) => { inp.value = v; save(); });
+      }, "Editar"));
+      card.appendChild(row);
+    });
+    return card;
+  }
   async function renderEditor() {
     const list = $("editor-list");
     list.innerHTML = "";
@@ -2747,6 +3007,7 @@
     list.appendChild(renderPacienciaRecoverCard());
     list.appendChild(renderEvaScheduleCard());
     list.appendChild(renderRoomActionsCard());
+    list.appendChild(await renderEvaScenesCard());
     list.appendChild(renderElogiarSeqCard());
     for (const item of EDITOR_ITEMS.filter((i) => i.kind === "scene")) {
       list.appendChild(await renderMediaCard(item));
@@ -3548,7 +3809,7 @@
     });
   }
 
-  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, playTitleIntro, openBag, openSettings, openPhone, openChatThread, openTasks, travelTo, setPeek, getExpr: () => currentExpr, getState: () => state, openEvaMeet, closeEvaMeet, addAfecto, setAfecto, addEvaInfoBar, setEvaInfoBar, setEditorLive, ejectFromHouse, evaStatus: currentEvaStatus, weekdayName: (d) => weekdayName(d != null ? d : state.day), renderHUD, renderActions, showRoomEva, isEvaHere, isEvaCleaning };
+  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, playTitleIntro, openBag, openSettings, openPhone, openChatThread, openTasks, travelTo, setPeek, getExpr: () => currentExpr, getState: () => state, openEvaMeet, closeEvaMeet, addAfecto, setAfecto, addEvaInfoBar, setEvaInfoBar, setEditorLive, ejectFromHouse, evaStatus: currentEvaStatus, weekdayName: (d) => weekdayName(d != null ? d : state.day), renderHUD, renderActions, showRoomEva, isEvaHere, isEvaCleaning, currentSceneVariant, isEvaSleeping, refreshRoomVisual };
 
   document.addEventListener("DOMContentLoaded", () => {
     bind();

@@ -767,7 +767,131 @@ const EVA_ROOM_ACTIONS = {
     vinculo: 2,
     text: "Echas una mano con la limpieza. Eva lo agradece."
   },
+  dormirLado: {
+    id: "dormir-lado",
+    label: "Dormir a su lado",
+    advance: "day",
+    wakeAngry: true,
+    energia: 40,
+    text: "Te acuestas a su lado y cierras los ojos."
+  },
+  dormirPiernas: {
+    id: "dormir-piernas",
+    label: "Dormir en sus piernas",
+    advance: "moment",
+    denyTalk: true,
+    needHeart: 50,
+    needRosa: 40,
+    deniedText: "Mejor no.",
+    deniedExpr: "neutral",
+    energia: 15,
+    text: "Cierras los ojos un momento, recostado en sus piernas."
+  },
+  verTvEva: {
+    id: "ver-tv-eva",
+    label: "Ver TV junto a Eva",
+    vinculo: 2,
+    afecto: 1,
+    text: "Te sientas con Eva y ven un rato la televisión."
+  },
   backLabel: "Volver"
+};
+
+const EVA_SCENES = [
+  {
+    id: "pasillo-limpiando",
+    loc: "pasillo",
+    when: "cleaning",
+    label: "Pasillo · limpiando",
+    image: "assets/escenas/pasillo-limpiando.png",
+    talk: true,
+    actions: ["ayudar-eva"],
+    hit: { x: 0.30, y: 0.34, w: 0.35, h: 0.56 }
+  },
+  {
+    id: "cuarto-eva-durmiendo",
+    loc: "cuarto_eva",
+    when: "sleeping",
+    label: "Cuarto de Eva · durmiendo",
+    image: "assets/escenas/cuarto-eva-durmiendo.png",
+    talk: false,
+    actions: ["dormir-lado", "broma"],
+    hideActions: ["jugar-eva", "dormir-eva"],
+    hit: { x: 0.38, y: 0.40, w: 0.24, h: 0.38 }
+  },
+  {
+    id: "cuarto-eva-sentada",
+    loc: "cuarto_eva",
+    when: "awake",
+    label: "Cuarto de Eva · sentada",
+    image: "assets/escenas/cuarto-eva-sentada.png",
+    talk: true,
+    hit: { x: 0.38, y: 0.32, w: 0.22, h: 0.60 }
+  },
+  {
+    id: "cocina-lavando",
+    loc: "cocina",
+    when: "cleaning",
+    label: "Cocina · lavando platos",
+    image: "assets/escenas/cocina-lavando.png",
+    talk: true,
+    actions: ["ayudar-eva"],
+    hit: { x: 0.51, y: 0.34, w: 0.16, h: 0.50 }
+  },
+  {
+    id: "cocina-cafe",
+    loc: "cocina",
+    when: "present",
+    label: "Cocina · tomando café",
+    image: "assets/escenas/cocina-cafe.png",
+    talk: true,
+    hit: { x: 0.27, y: 0.30, w: 0.16, h: 0.58 }
+  },
+  {
+    id: "lavanderia-ayuda",
+    loc: "lavanderia",
+    when: "present",
+    label: "Lavandería",
+    image: "assets/escenas/lavanderia-ayuda.png",
+    talk: true,
+    actions: ["ayudar-eva", "broma"],
+    hit: { x: 0.45, y: 0.46, w: 0.18, h: 0.47 }
+  },
+  {
+    id: "sala-sentada",
+    loc: "sala",
+    when: "present",
+    label: "Sala · sentada",
+    image: "assets/escenas/sala-sentada.png",
+    talk: true,
+    actions: ["ver-tv-eva", "dormir-piernas"],
+    hideActions: ["ver-tv"],
+    hit: { x: 0.41, y: 0.36, w: 0.13, h: 0.48 }
+  },
+  {
+    id: "sala-limpiando",
+    loc: "sala",
+    when: "cleaning",
+    label: "Sala · limpiando",
+    image: "assets/escenas/sala-limpiando.png",
+    talk: true,
+    actions: ["ayudar-eva"],
+    hit: { x: 0.36, y: 0.30, w: 0.16, h: 0.60 }
+  },
+  {
+    id: "escaleras",
+    loc: "escaleras",
+    when: "present",
+    label: "Escaleras",
+    image: "assets/escenas/escaleras.png",
+    talk: true,
+    hit: { x: 0.42, y: 0.12, w: 0.21, h: 0.62 }
+  }
+];
+
+const EVA_SCENE_LINES = {
+  wakeAngry: "¿Qué haces aquí? Vete a tu cuarto.",
+  wakeAngryExpr: "molesta"
 };
 
 const EVA_RULES = {
@@ -833,6 +957,8 @@ function editableStory() {
     schedule: EVA_SCHEDULE,
     roomActionTemplate: EVA_ROOM_ACTIONS,
     roomActions: HOUSE.locations.map((l) => ({ id: l.id, actions: l.actions || [] })),
+    evaScenes: typeof EVA_SCENES !== "undefined" ? EVA_SCENES : [],
+    sceneLines: typeof EVA_SCENE_LINES !== "undefined" ? EVA_SCENE_LINES : {},
     aviso: AVISO,
     inventory: DEFAULT_INVENTORY
   }));
@@ -880,6 +1006,18 @@ function applyEditableStory(data) {
     if (data.schedule.cleaning) EVA_SCHEDULE.cleaning = data.schedule.cleaning;
   }
   if (data.roomActionTemplate && typeof EVA_ROOM_ACTIONS !== "undefined") Object.assign(EVA_ROOM_ACTIONS, data.roomActionTemplate);
+  if (Array.isArray(data.evaScenes) && typeof EVA_SCENES !== "undefined") {
+    data.evaScenes.forEach((src) => {
+      if (!src || !src.id) return;
+      const v = EVA_SCENES.find((x) => x.id === src.id);
+      if (!v) return;
+      if (src.image != null) v.image = src.image;
+      if (src.label != null) v.label = src.label;
+      if (src.hit) v.hit = src.hit;
+      if (src.talk != null) v.talk = src.talk;
+    });
+  }
+  if (data.sceneLines && typeof EVA_SCENE_LINES !== "undefined") Object.assign(EVA_SCENE_LINES, data.sceneLines);
   if (Array.isArray(data.roomActions)) {
     data.roomActions.forEach((src) => {
       const loc = locById(src.id);
