@@ -12,19 +12,27 @@ const SAVE_KEY = "eva_novela_v3";
 
 const HOUSE = {
   start: "cuarto",
-  moveCost: 5,
+  moveCost: 0,
   barsMax: 100,
-  startBars: { energia: 70, fuerza: 30, aprendizaje: 30 },
+  startBars: { energia: 70, fuerza: 30, aprendizaje: 30, extra: 0 },
   evaIn: ["cocina", "sala", "cuarto_eva"],
+  evaByTime: {
+    "mañana": "cocina",
+    "tarde": "sala",
+    "noche": "cuarto_eva",
+    "madrugada": "cuarto_eva"
+  },
   locations: [
     {
       id: "cuarto",
       name: "Tu cuarto",
       floor: 2,
       image: "assets/locs/cuarto.jpg",
-      look: "Tu cuarto está en orden. La luz de la tarde entra en silencio.",
+      look: "Tu cuarto está en orden. La cama, el escritorio y el armario esperan.",
       actions: [
-        { id: "dormir", label: "Dormir", energia: 40, text: "Cierras los ojos un rato. El cansancio se va poco a poco." }
+        { id: "dormir", label: "Dormir", energia: 40, text: "Cierras los ojos un rato. El cansancio se va poco a poco." },
+        { id: "ejercicio", label: "Hacer ejercicio", kind: "exercise-home", energia: -10, text: "Haces una rutina breve en el cuarto. El cuerpo responde." },
+        { id: "gimnasio", label: "Gimnasio", comingSoon: true }
       ]
     },
     {
@@ -54,7 +62,8 @@ const HOUSE = {
       image: "assets/locs/estudio.jpg",
       look: "El estudio huele a papel y madera. Hay una mesa lista para trabajar.",
       actions: [
-        { id: "estudiar", label: "Estudiar", aprendizaje: 12, energia: -15, text: "Te concentras en los apuntes. Algo queda más claro que antes." }
+        { id: "estudiar", label: "Estudiar", aprendizaje: 12, energia: -15, text: "Te concentras en los apuntes. Algo queda más claro que antes." },
+        { id: "archivo", label: "Consultar el archivo", needAprendizaje: 40, text: "Revisas el archivo con más cuidado. Ahora encaja algo que antes se te escapaba." }
       ]
     },
     {
@@ -114,7 +123,8 @@ const HOUSE = {
       image: "assets/locs/jardin.jpg",
       look: "El jardín está quieto. El agua de la piscina refleja los árboles.",
       actions: [
-        { id: "entrenar", label: "Entrenar", fuerza: 12, energia: -15, text: "Haces una rutina breve al aire libre. El cuerpo responde." }
+        { id: "entrenar", label: "Entrenar", kind: "exercise-home", energia: -10, text: "Haces una rutina breve al aire libre. El cuerpo responde." },
+        { id: "gimnasio", label: "Gimnasio", comingSoon: true }
       ]
     },
     {
@@ -124,7 +134,7 @@ const HOUSE = {
       image: "assets/locs/cochera.jpg",
       look: "La cochera está ordenada. Hay espacio de sobra para moverse.",
       actions: [
-        { id: "entrenar", label: "Entrenar", fuerza: 12, energia: -15, text: "Entrenas junto al banco de trabajo. Sales un poco más firme." }
+        { id: "entrenar", label: "Entrenar", kind: "exercise-home", energia: -10, text: "Entrenas junto al banco de trabajo. Sales un poco más firme." }
       ]
     }
   ]
@@ -135,9 +145,9 @@ const INTRO = {
   name: "Introducción",
   image: "assets/locs/cuarto.jpg",
   lines: [
-    { speaker: "", text: "La casa de Eva te recibe en silencio, {nombre}. La luz de la tarde entra por los ventanales." },
+    { speaker: "", moment: "noche", text: "La casa de Eva te recibe en silencio, {nombre}. Afuera ya es de noche." },
     { who: "Eva", speaker: "Eva", expr: "feliz", text: "El cuarto del fondo es tuyo. Descansa, recorre la casa cuando quieras. Si me necesitas, suele encontrarme en la cocina o en la sala." },
-    { speaker: "", text: "Dejas la maleta junto a la cama. Hoy puedes estudiar, entrenar o simplemente mirar alrededor." }
+    { speaker: "", moment: "madrugada", text: "Dejas la maleta junto a la cama. Es casi madrugada. Mañana puedes estudiar, entrenar o simplemente mirar alrededor." }
   ]
 };
 
@@ -231,6 +241,45 @@ const EVA = {
     }
   }
 };
+
+
+const TIMES = ["mañana", "tarde", "noche", "madrugada"];
+const TIME_LABELS = {
+  "mañana": "Mañana",
+  "tarde": "Tarde",
+  "noche": "Noche",
+  "madrugada": "Madrugada"
+};
+const ACTIVITIES_PER_TIME = 4;
+const SETTINGS_KEY = "eva_novela_settings";
+
+const DEFAULT_INVENTORY = [
+  { id: "llaves", name: "Llaves", example: true, desc: "Objeto de ejemplo. Todavía no se usa." },
+  { id: "cuaderno", name: "Cuaderno", example: true, desc: "Objeto de ejemplo. Todavía no se usa." }
+];
+
+const CODEX = {
+  eva: {
+    name: "Eva",
+    text: "Dueña de la casa. Tranquila y atenta, a veces se queda pensando más de la cuenta. Conoce este lugar mejor de lo que cuenta."
+  },
+  player: {
+    name: "{nombre}",
+    text: "Acabas de llegar a la casa de Eva. Todavía estás conociendo las habitaciones y el ritmo de los días."
+  }
+};
+
+const SCENES = [];
+
+function exampleInventory() {
+  return DEFAULT_INVENTORY.map((it) => Object.assign({}, it));
+}
+
+function evaAt(moment, phase) {
+  if (phase === "intro") return HOUSE.start;
+  const map = HOUSE.evaByTime || {};
+  return map[moment] || "sala";
+}
 
 function locById(id) {
   return HOUSE.locations.find((l) => l.id === id) || null;

@@ -21,7 +21,14 @@
     typeTimer: null,
     savesMode: "load",
     pendingConfirm: null,
-    currentBgKey: null
+    currentBgKey: null,
+    day: 0,
+    moment: "noche",
+    activityCount: 0,
+    inventory: [],
+    unlockedScenes: [],
+    peek: false,
+    settings: { music: 70, sfx: 70, textSpeed: "normal" }
   };
 
   function wait(ms) {
@@ -72,8 +79,8 @@
     titleTimer = setTimeout(() => el.classList.add("title-ready"), 2200);
   }
   function hideModals() {
-    ["modal-menu", "modal-saves", "modal-confirm", "modal-map"].forEach((id) => {
-      $(id).hidden = true;
+    ["modal-menu", "modal-saves", "modal-confirm", "modal-map", "modal-gallery", "modal-bag", "modal-settings", "modal-phone"].forEach((id) => {
+      if ($(id)) $(id).hidden = true;
     });
   }
 
@@ -114,7 +121,12 @@
       phase: state.phase,
       lineIndex: state.lineIndex,
       sceneName: (state.name ? state.name + " · " : "") + locationLabel(),
-      updated: Date.now()
+      updated: Date.now(),
+      day: state.day,
+      moment: state.moment,
+      activityCount: state.activityCount,
+      inventory: (state.inventory || []).map((it) => Object.assign({}, it)),
+      unlockedScenes: (state.unlockedScenes || []).slice()
     };
   }
   function autosave() {
@@ -164,15 +176,83 @@
       el.hidden = true;
     }, 2400);
   }
+  function loadSettings() {
+    try {
+      const raw = localStorage.getItem(SETTINGS_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (data && typeof data === "object") {
+        state.settings = Object.assign(state.settings, data);
+      }
+    } catch (e) { /* ignore */ }
+  }
+  function saveSettings() {
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
+    } catch (e) { /* ignore */ }
+  }
+  function typeDelay() {
+    const s = (state.settings && state.settings.textSpeed) || "normal";
+    if (s === "slow") return 48;
+    if (s === "fast") return 12;
+    return TYPE_MS;
+  }
+  function timeLabel() {
+    const mom = TIME_LABELS[state.moment] || state.moment;
+    if (!state.day) return mom;
+    return "Día " + state.day + " · " + mom;
+  }
+  function applyTimeShade() {
+    const el = $("game-shade");
+    if (!el) return;
+    el.classList.remove("is-manana", "is-tarde", "is-noche", "is-madrugada");
+    const cls = { "mañana": "is-manana", "tarde": "is-tarde", "noche": "is-noche", "madrugada": "is-madrugada" }[state.moment];
+    if (cls) el.classList.add(cls);
+  }
+  function isEvaHere(locId) {
+    return evaAt(state.moment, state.phase) === locId;
+  }
+  function setPeek(on) {
+    state.peek = !!on;
+    const game = $("screen-game");
+    if (game) game.classList.toggle("is-peek", state.peek);
+    const btn = $("btn-peek");
+    if (btn) btn.setAttribute("aria-pressed", state.peek ? "true" : "false");
+  }
+  function showHudChrome(on) {
+    $("hud").hidden = !on;
+    if ($("hud-icons")) $("hud-icons").hidden = !on;
+  }
   function renderHUD() {
-    ["energia", "fuerza", "aprendizaje"].forEach((k) => {
-      const v = clamp(state.bars[k]);
+    if (state.bars.extra == null) state.bars.extra = 0;
+    ["energia", "fuerza", "aprendizaje", "extra"].forEach((k) => {
+      const v = clamp(state.bars[k] || 0);
       state.bars[k] = v;
-      $("fill-" + k).style.width = v + "%";
-      $("val-" + k).textContent = String(v);
+      const fill = $("fill-" + k);
+      const val = $("val-" + k);
+      if (fill) fill.style.width = v + "%";
+      if (val) val.textContent = String(v);
     });
     const loc = locById(state.location);
-    $("loc-name").textContent = loc ? loc.name : "";
+    if ($("loc-name")) $("loc-name").textContent = loc ? loc.name : "";
+    if ($("hud-time")) $("hud-time").textContent = timeLabel();
+    applyTimeShade();
+  }
+  function countActivity() {
+    if (state.phase !== "house") return;
+    state.activityCount = (state.activityCount || 0) + 1;
+    if (state.activityCount < ACTIVITIES_PER_TIME) return;
+    state.activityCount = 0;
+    const i = TIMES.indexOf(state.moment);
+    if (i < 0 || i >= TIMES.length - 1) {
+      state.day = (state.day || 1) + 1;
+      state.moment = "mañana";
+      toast("Amanece. Día " + state.day + ".");
+    } else {
+      state.moment = TIMES[i + 1];
+      toast("Ahora es de " + (TIME_LABELS[state.moment] || state.moment).toLowerCase() + ".");
+    }
+    applyTimeShade();
   }
 
   /* ---------- Media / backgrounds ---------- */
@@ -336,7 +416,7 @@
       }
       $("line").textContent = text.slice(0, i + 1);
       const ch = text[i];
-      const delay = ".,;:!?…".indexOf(ch) !== -1 ? 180 : TYPE_MS;
+      const delay = ".,;:!?…".indexOf(ch) !== -1 ? Math.round(typeDelay() * 6.5) : typeDelay();
       state.typeTimer = setTimeout(tick, delay);
     };
     tick();
@@ -353,6 +433,10 @@
       speaker.hidden = true;
       speaker.textContent = "";
     }
+    if (line.moment) {
+      state.moment = line.moment;
+      renderHUD();
+    }
     const cid = charIdFromName(who);
     if (cid) showEvaSprite(true, lineExpr(line));
     showDialogue(true);
@@ -368,11 +452,18 @@
     state.talking = "intro";
     state.talkLines = INTRO.lines;
     state.bars = { ...HOUSE.startBars };
+    state.day = 0;
+    state.moment = "noche";
+    state.activityCount = 0;
+    state.inventory = exampleInventory();
+    state.unlockedScenes = [];
+    setPeek(false);
     hideModals();
     showScreen("game");
-    $("hud").hidden = true;
+    showHudChrome(true);
     $("action-bar").hidden = true;
     $("btn-saltar").hidden = false;
+    renderHUD();
     $("end-card").hidden = true;
     applyLocationVisual("intro", INTRO.image).then(() => applyLocationVisual("cuarto", locById("cuarto").image));
     // Prefer custom intro media; if none, cuarto is already the intro default.
@@ -384,30 +475,29 @@
   }
   function enterHouse(locId, opts) {
     const loc = locById(locId) || locById(HOUSE.start);
-    const charge = !!(opts && opts.chargeMove);
-    if (charge && locId !== state.location) {
-      if (state.bars.energia < HOUSE.moveCost) {
-        toast("No tienes suficiente energía. Deberías dormir o comer.");
-        return;
-      }
-      state.bars.energia = clamp(state.bars.energia - HOUSE.moveCost);
-    }
+    const fromIntro = state.phase === "intro";
     state.phase = "house";
+    if (fromIntro) {
+      state.day = 1;
+      state.moment = "mañana";
+      state.activityCount = 0;
+    }
     state.location = loc.id;
     state.lineIndex = 0;
     state.talking = null;
     state.talkLines = [];
+    setPeek(false);
     stopTyping();
     hideModals();
     showScreen("game");
     $("btn-saltar").hidden = true;
-    $("hud").hidden = false;
+    showHudChrome(true);
     $("end-card").hidden = true;
     showDialogue(false);
     $("game-shade").classList.add("is-house");
     renderHUD();
     applyLocationVisual(loc.id, loc.image);
-    const evaHere = HOUSE.evaIn.indexOf(loc.id) !== -1;
+    const evaHere = isEvaHere(loc.id);
     if (evaHere) showEvaSprite(true, "neutral");
     else showEvaSprite(false);
     renderActions(loc, evaHere);
@@ -416,15 +506,6 @@
   function renderActions(loc, evaHere) {
     const bar = $("action-bar");
     bar.innerHTML = "";
-    const mapBtn = document.createElement("button");
-    mapBtn.type = "button";
-    mapBtn.className = "chip chip-map";
-    mapBtn.textContent = "Mapa";
-    mapBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      openMap();
-    });
-    bar.appendChild(mapBtn);
     if (evaHere) {
       const talk = document.createElement("button");
       talk.type = "button";
@@ -432,7 +513,7 @@
       talk.textContent = "Hablar con Eva";
       talk.addEventListener("click", (e) => {
         e.stopPropagation();
-        startTalk(EVA.talk[loc.id] || []);
+        startTalk(EVA.talk[loc.id] || [], null, { countsAsActivity: true });
       });
       bar.appendChild(talk);
     }
@@ -440,7 +521,9 @@
       const b = document.createElement("button");
       b.type = "button";
       b.className = "chip";
-      b.textContent = act.label;
+      if (act.comingSoon) b.classList.add("is-soon");
+      if (act.needAprendizaje && state.bars.aprendizaje < act.needAprendizaje) b.classList.add("is-locked");
+      b.textContent = act.comingSoon ? act.label + " (Próximamente)" : act.label;
       b.addEventListener("click", (e) => {
         e.stopPropagation();
         doAction(act);
@@ -450,17 +533,33 @@
     bar.hidden = false;
   }
   function doAction(act) {
+    if (act.comingSoon) {
+      toast("Próximamente.");
+      return;
+    }
+    if (act.needAprendizaje && state.bars.aprendizaje < act.needAprendizaje) {
+      toast("Todavía no sabes lo suficiente. Necesitas Aprendizaje " + act.needAprendizaje + ".");
+      return;
+    }
     const cost = act.energia && act.energia < 0 ? -act.energia : 0;
     if (cost && state.bars.energia < cost) {
       toast("No tienes suficiente energía.");
       return;
     }
     if (act.energia) state.bars.energia = clamp(state.bars.energia + act.energia);
-    if (act.fuerza) state.bars.fuerza = clamp(state.bars.fuerza + act.fuerza);
+    let text = act.text || "";
+    if (act.kind === "exercise-home") {
+      const gain = 2 + Math.floor(Math.random() * 4);
+      state.bars.fuerza = clamp(state.bars.fuerza + gain);
+      text = text + " Fuerza +" + gain + ".";
+    } else if (act.fuerza) {
+      state.bars.fuerza = clamp(state.bars.fuerza + act.fuerza);
+    }
     if (act.aprendizaje) state.bars.aprendizaje = clamp(state.bars.aprendizaje + act.aprendizaje);
+    countActivity();
     renderHUD();
     autosave();
-    startTalk([{ speaker: "", text: act.text }]);
+    startTalk([{ speaker: "", text: text }]);
   }
   function showNodeChoices(choices) {
     const box = $("choices");
@@ -492,10 +591,14 @@
     $("end-card").hidden = true;
     playLine();
   }
-  function startTalk(talk, nodeId) {
+  function startTalk(talk, nodeId, opts) {
     const conv = normalizeTalk(talk);
     if (!conv) return;
     state.conv = conv;
+    if (opts && opts.countsAsActivity) {
+      countActivity();
+      renderHUD();
+    }
     startNode(nodeId || conv.start);
   }
   function endTalk() {
@@ -507,7 +610,7 @@
     $("choices").innerHTML = "";
     showDialogue(false);
     const loc = locById(state.location);
-    const evaHere = HOUSE.evaIn.indexOf(state.location) !== -1;
+    const evaHere = isEvaHere(state.location);
     if (evaHere) showEvaSprite(true, "neutral");
     else showEvaSprite(false);
     renderActions(loc, evaHere);
@@ -516,7 +619,8 @@
 
   function advance() {
     if (!$("screen-game").classList.contains("is-on")) return;
-    if (!$("modal-menu").hidden || !$("modal-saves").hidden || !$("modal-confirm").hidden || !$("modal-map").hidden) return;
+    if (state.peek) return;
+    if (["modal-menu", "modal-saves", "modal-confirm", "modal-map", "modal-gallery", "modal-bag", "modal-settings", "modal-phone"].some((id) => $(id) && !$(id).hidden)) return;
     if (!$("end-card").hidden) return;
     if ($("dialogue").hidden) return;
     if (!$("choices").hidden) return;
@@ -564,6 +668,15 @@
         t.type = "button";
         t.className = "map-tile" + (loc.id === state.location ? " is-here" : "");
         t.style.backgroundImage = "url('" + loc.image + "')";
+        const who = [];
+        if (loc.id === state.location) who.push("Tú");
+        if (isEvaHere(loc.id)) who.push("Eva");
+        if (who.length) {
+          const pins = document.createElement("em");
+          pins.className = "map-pins";
+          pins.textContent = who.join(" · ");
+          t.appendChild(pins);
+        }
         const span = document.createElement("span");
         const shortNames = {
           pasillo: "Pasillo",
@@ -612,10 +725,17 @@
   function applySnapshot(snap) {
     if (!snap) return;
     state.name = snap.name || "Tú";
-    state.bars = { energia: 70, fuerza: 30, aprendizaje: 30, ...(snap.bars || {}) };
+    state.bars = { energia: 70, fuerza: 30, aprendizaje: 30, extra: 0, ...(snap.bars || {}) };
+    if (state.bars.extra == null) state.bars.extra = 0;
     state.location = snap.location || HOUSE.start;
     state.phase = snap.phase || "house";
     state.lineIndex = snap.lineIndex || 0;
+    state.day = snap.day != null ? snap.day : (state.phase === "intro" ? 0 : 1);
+    state.moment = snap.moment || (state.phase === "intro" ? "noche" : "mañana");
+    state.activityCount = snap.activityCount || 0;
+    state.inventory = Array.isArray(snap.inventory) ? snap.inventory.map((it) => Object.assign({}, it)) : exampleInventory();
+    state.unlockedScenes = Array.isArray(snap.unlockedScenes) ? snap.unlockedScenes.slice() : [];
+    setPeek(false);
     hideModals();
     if (state.phase === "intro") {
       startIntroStory();
@@ -680,6 +800,159 @@
     $("confirm-text").textContent = text;
     state.pendingConfirm = fn;
     $("modal-confirm").hidden = false;
+  }
+
+
+  /* ---------- Gallery / bag / settings / phone ---------- */
+  function openGallery() {
+    hideModals();
+    const list = $("gallery-list");
+    list.innerHTML = "";
+    const unlocked = state.unlockedScenes || [];
+    const items = (SCENES || []).filter((s) => unlocked.indexOf(s.id) !== -1);
+    if (!items.length) {
+      const empty = document.createElement("p");
+      empty.className = "gallery-empty";
+      empty.textContent = "Aún no hay escenas";
+      list.appendChild(empty);
+    } else {
+      items.forEach((s) => {
+        const fig = document.createElement("button");
+        fig.type = "button";
+        fig.className = "gallery-item";
+        const img = document.createElement("img");
+        img.alt = s.name || "";
+        img.src = s.image || "";
+        MediaStore.mediaFor(s.id).then((m) => {
+          if (m.imageURL) img.src = m.imageURL;
+        });
+        const cap = document.createElement("span");
+        cap.textContent = s.name || "";
+        fig.appendChild(img);
+        fig.appendChild(cap);
+        list.appendChild(fig);
+      });
+    }
+    $("modal-gallery").hidden = false;
+  }
+  function openBag() {
+    hideModals();
+    const grid = $("bag-grid");
+    const detail = $("bag-detail");
+    grid.innerHTML = "";
+    detail.hidden = true;
+    const items = state.inventory || [];
+    const slots = Math.max(8, items.length);
+    for (let i = 0; i < slots; i++) {
+      const cell = document.createElement("button");
+      cell.type = "button";
+      cell.className = "bag-slot";
+      const it = items[i];
+      if (it) {
+        cell.classList.add("has-item");
+        cell.textContent = it.name;
+        if (it.example) {
+          const tag = document.createElement("small");
+          tag.textContent = "ejemplo";
+          cell.appendChild(tag);
+        }
+        cell.addEventListener("click", (e) => {
+          e.stopPropagation();
+          detail.hidden = false;
+          detail.textContent = it.name + (it.example ? " (ejemplo). " : ". ") + (it.desc || "");
+        });
+      } else {
+        cell.classList.add("is-empty");
+      }
+      grid.appendChild(cell);
+    }
+    $("modal-bag").hidden = false;
+  }
+  function syncSettingsForm() {
+    const s = state.settings;
+    if ($("set-music")) $("set-music").value = String(s.music);
+    if ($("set-sfx")) $("set-sfx").value = String(s.sfx);
+    if ($("set-speed")) $("set-speed").value = s.textSpeed || "normal";
+    const fs = document.fullscreenElement || document.webkitFullscreenElement;
+    if ($("btn-fullscreen")) $("btn-fullscreen").textContent = fs ? "Salir de pantalla completa" : "Pantalla completa";
+  }
+  function openSettings() {
+    hideModals();
+    syncSettingsForm();
+    $("modal-settings").hidden = false;
+  }
+  function toggleFullscreen() {
+    const root = document.documentElement;
+    const fs = document.fullscreenElement || document.webkitFullscreenElement;
+    if (fs) {
+      const ex = document.exitFullscreen || document.webkitExitFullscreen;
+      if (ex) Promise.resolve(ex.call(document)).catch(() => {});
+    } else {
+      const req = root.requestFullscreen || root.webkitRequestFullscreen;
+      if (req) Promise.resolve(req.call(root)).catch(() => {});
+    }
+    setTimeout(syncSettingsForm, 300);
+  }
+  function openPhone(app) {
+    hideModals();
+    $("phone-home").hidden = !!app;
+    $("phone-app").hidden = !app;
+    if ($("phone-clock")) {
+      $("phone-clock").textContent = timeLabel();
+    }
+    if (app) openPhoneApp(app);
+    $("modal-phone").hidden = false;
+  }
+  function phoneHome() {
+    $("phone-home").hidden = false;
+    $("phone-app").hidden = true;
+    $("phone-app-body").innerHTML = "";
+    if ($("phone-clock")) $("phone-clock").textContent = timeLabel();
+  }
+  function openPhoneApp(app) {
+    $("phone-home").hidden = true;
+    $("phone-app").hidden = false;
+    const titles = { contacts: "Contactos", camera: "Cámara", info: "Info" };
+    $("phone-app-title").textContent = titles[app] || "App";
+    const body = $("phone-app-body");
+    body.innerHTML = "";
+    if (app === "contacts") {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "phone-contact";
+      card.innerHTML = "<strong></strong><span></span>";
+      card.querySelector("strong").textContent = "Eva";
+      card.querySelector("span").textContent = "En " + ((locById(evaAt(state.moment, state.phase)) || {}).name || "la casa");
+      body.appendChild(card);
+    } else if (app === "camera") {
+      const shot = document.createElement("div");
+      shot.className = "phone-camera";
+      const img = document.createElement("img");
+      const loc = locById(state.location);
+      img.alt = loc ? loc.name : "";
+      if (loc) {
+        img.src = loc.image;
+        MediaStore.mediaFor(loc.id).then((m) => { if (m.imageURL) img.src = m.imageURL; });
+      }
+      const cap = document.createElement("p");
+      cap.textContent = "Próximamente";
+      shot.appendChild(img);
+      shot.appendChild(cap);
+      body.appendChild(shot);
+    } else if (app === "info") {
+      [["eva", CODEX.eva], ["player", CODEX.player]].forEach(([id, entry]) => {
+        if (!entry) return;
+        const card = document.createElement("article");
+        card.className = "phone-codex";
+        const h = document.createElement("h3");
+        h.textContent = fillName(entry.name || id, state.name);
+        const t = document.createElement("p");
+        t.textContent = fillName(entry.text || "", state.name);
+        card.appendChild(h);
+        card.appendChild(t);
+        body.appendChild(card);
+      });
+    }
   }
 
   /* ---------- Editor ---------- */
@@ -851,9 +1124,14 @@
     if (demo === "closed") { showScreen("closed"); return; }
     if (demo === "name") { openName(); return; }
     if (demo === "editor") { openEditor(); return; }
-    if (demo === "house" || demo === "map" || demo === "talk" || demo === "enojada" || demo === "enamorada" || demo === "triste") {
+    if (demo === "house" || demo === "map" || demo === "talk" || demo === "enojada" || demo === "enamorada" || demo === "triste" || demo === "peek" || demo === "bag" || demo === "settings" || demo === "phone" || demo === "info" || demo === "gallery") {
       state.name = "Doc";
       state.bars = { ...HOUSE.startBars };
+      state.day = 1;
+      state.moment = "mañana";
+      state.activityCount = 0;
+      state.inventory = exampleInventory();
+      state.unlockedScenes = [];
       if (demo === "talk" || demo === "enojada" || demo === "enamorada" || demo === "triste") {
         enterHouse("cocina");
         if (demo === "enojada") startTalk(EVA.talk.cocina, "enojo");
@@ -866,6 +1144,12 @@
       } else {
         enterHouse("cuarto");
         if (demo === "map") openMap();
+        if (demo === "peek") setPeek(true);
+        if (demo === "bag") openBag();
+        if (demo === "settings") openSettings();
+        if (demo === "phone") openPhone();
+        if (demo === "info") openPhone("info");
+        if (demo === "gallery") openGallery();
       }
       return;
     }
@@ -980,6 +1264,43 @@
     });
     $("btn-cerrar-saves").addEventListener("click", () => { $("modal-saves").hidden = true; });
     $("btn-cerrar-mapa").addEventListener("click", () => { $("modal-map").hidden = true; });
+    $("btn-peek").addEventListener("click", (e) => { e.stopPropagation(); setPeek(!state.peek); });
+    $("btn-gallery").addEventListener("click", (e) => { e.stopPropagation(); openGallery(); });
+    $("btn-map").addEventListener("click", (e) => { e.stopPropagation(); openMap(); });
+    $("btn-bag").addEventListener("click", (e) => { e.stopPropagation(); openBag(); });
+    $("btn-settings").addEventListener("click", (e) => { e.stopPropagation(); openSettings(); });
+    $("btn-phone").addEventListener("click", (e) => { e.stopPropagation(); openPhone(); });
+    $("btn-cerrar-gallery").addEventListener("click", () => { $("modal-gallery").hidden = true; });
+    $("btn-cerrar-bag").addEventListener("click", () => { $("modal-bag").hidden = true; });
+    $("btn-cerrar-settings").addEventListener("click", () => { $("modal-settings").hidden = true; });
+    $("btn-cerrar-phone").addEventListener("click", () => { $("modal-phone").hidden = true; phoneHome(); });
+    $("phone-back").addEventListener("click", (e) => { e.stopPropagation(); phoneHome(); });
+    document.querySelectorAll(".phone-app").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openPhoneApp(btn.getAttribute("data-app"));
+      });
+    });
+    $("set-music").addEventListener("input", () => { state.settings.music = Number($("set-music").value); saveSettings(); });
+    $("set-sfx").addEventListener("input", () => { state.settings.sfx = Number($("set-sfx").value); saveSettings(); });
+    $("set-speed").addEventListener("change", () => { state.settings.textSpeed = $("set-speed").value; saveSettings(); });
+    $("btn-fullscreen").addEventListener("click", (e) => { e.stopPropagation(); toggleFullscreen(); });
+    $("btn-set-guardar").addEventListener("click", () => openSaves("save"));
+    $("btn-set-cargar").addEventListener("click", () => openSaves("load"));
+    $("btn-set-inicio").addEventListener("click", () => {
+      $("modal-settings").hidden = true;
+      hideModals();
+      refreshTitleButtons();
+      showScreen("title");
+    });
+    ["modal-gallery", "modal-bag", "modal-settings", "modal-phone"].forEach((id) => {
+      $(id).addEventListener("click", (e) => {
+        if (e.target === $(id)) {
+          $(id).hidden = true;
+          if (id === "modal-phone") phoneHome();
+        }
+      });
+    });
     $("btn-confirm-ok").addEventListener("click", () => {
       const fn = state.pendingConfirm;
       $("modal-confirm").hidden = true;
@@ -998,7 +1319,11 @@
     });
 
     $("screen-game").addEventListener("pointerup", (e) => {
-      if (e.target.closest("button, .action-bar, .modal, .end-card, .menu-btn, .hud, .chip")) return;
+      if (e.target.closest("button, .action-bar, .modal, .end-card, .menu-btn, .hud, .hud-icons, .chip, .phone-shell, .hud-panel")) return;
+      if (state.peek) {
+        setPeek(false);
+        return;
+      }
       advance();
     });
     ["modal-menu", "modal-saves", "modal-map"].forEach((id) => {
@@ -1021,10 +1346,11 @@
     });
   }
 
-  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, playTitleIntro, getExpr: () => currentExpr };
+  window.__VN = { showScreen, enterHouse, openMap, openEditor, openName, playBoot, showFullLine, advance, playTitleIntro, openBag, openSettings, openPhone, openGallery, setPeek, getExpr: () => currentExpr, getState: () => state };
 
   document.addEventListener("DOMContentLoaded", () => {
     bind();
+    loadSettings();
     refreshTitleButtons();
     MediaStore.open().catch(() => {});
     playBoot();
