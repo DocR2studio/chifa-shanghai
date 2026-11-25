@@ -1,6 +1,6 @@
 /* story.js — Datos de la demo: casa, intro, diálogos.
    Usa {nombre} donde deba aparecer el nombre del jugador.
-   Las imágenes por defecto están en assets/locs/ y assets/eva.png.
+   Las imágenes por defecto están en assets/locs/, assets/eva-full.png, assets/eva-close.png y assets/eva2/.
    El editor puede sustituirlas en el dispositivo (IndexedDB). */
 const STORY = {
   title: "Unknown Love",
@@ -209,33 +209,51 @@ const INTRO = {
   ]
 };
 
-const EXPRESSIONS = ["neutral", "enojada", "feliz", "triste", "enamorada"];
+const EXPRESSIONS = ["neutral", "feliz", "triste", "molesta", "sonrojada", "nerviosa"];
 const EXPR_LABELS = {
   neutral: "Neutral",
-  enojada: "Enojada",
   feliz: "Feliz",
   triste: "Triste",
-  enamorada: "Enamorada"
+  molesta: "Molesta",
+  sonrojada: "Sonrojada",
+  nerviosa: "Nerviosa",
+  enojada: "Molesta",
+  enamorada: "Sonrojada"
+};
+
+/* Retratos de diálogo: soltar PNG en assets/eva2/<archivo>. Si falta el archivo, se usa eva-close.png. */
+const EVA_EXPR_DIR = "assets/eva2/";
+const EVA_EXPR_FALLBACK = "assets/eva-close.png";
+const EVA_EXPR_MAP = {
+  neutral: "neutral.png",
+  enojada: "molesta.png",
+  molesta: "molesta.png",
+  feliz: "feliz.png",
+  triste: "triste.png",
+  enamorada: "sonrojada.png",
+  sonrojada: "sonrojada.png",
+  nerviosa: "nerviosa.png"
 };
 
 const CHARACTERS = {
   eva: {
     id: "eva",
     name: "Eva",
-    expressions: {
-      neutral: "assets/eva/neutral.png",
-      enojada: "assets/eva/enojada.png",
-      feliz: "assets/eva/feliz.png",
-      triste: "assets/eva/triste.png",
-      enamorada: "assets/eva/enamorada.png"
-    }
+    expressions: Object.fromEntries(
+      Object.keys(EVA_EXPR_MAP).map((k) => [k, EVA_EXPR_DIR + EVA_EXPR_MAP[k]])
+    )
   }
 };
 
 function exprAsset(charId, expr) {
+  expr = expr || "neutral";
+  if (charId === "eva") {
+    const file = EVA_EXPR_MAP[expr] || EVA_EXPR_MAP.neutral;
+    return file ? EVA_EXPR_DIR + file : EVA_EXPR_FALLBACK;
+  }
   const ch = CHARACTERS[charId];
   if (!ch) return "";
-  return ch.expressions[expr] || ch.expressions.neutral || "";
+  return (ch.expressions && (ch.expressions[expr] || ch.expressions.neutral)) || "";
 }
 
 function mediaKey(charId, expr) {
@@ -245,7 +263,7 @@ function mediaKey(charId, expr) {
 const EVA = {
   id: "eva",
   name: "Eva",
-  image: "assets/eva/neutral.png",
+  image: EVA_EXPR_FALLBACK,
   talk: {
     cocina: {
       start: "saludo",
@@ -396,7 +414,7 @@ const CHATS = [
   {
     id: "eva",
     name: "Eva",
-    avatar: "assets/eva/avatar.png",
+    avatar: "assets/eva-perfil.png",
     start: "saludo",
     nodes: {
       saludo: {

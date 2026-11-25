@@ -328,7 +328,7 @@
       const legacy = await MediaStore.mediaFor(charId);
       if (legacy.imageURL) return legacy.imageURL;
     }
-    return exprAsset(charId, expr) || EVA.image;
+    return exprAsset(charId, expr) || (typeof EVA_EXPR_FALLBACK !== "undefined" && EVA_EXPR_FALLBACK) || EVA.image;
   }
   async function setExpression(charId, expr, opts) {
     expr = expr || "neutral";
@@ -340,21 +340,30 @@
     const b = $("sprite-eva-b");
     const instant = !spriteVisible || (opts && opts.instant) || currentExpr === expr;
     const visible = spriteOn === "a" ? a : b;
-    if (spriteVisible && currentExpr === expr && visible.getAttribute("src") === url) {
+    if (spriteVisible && currentExpr === expr && (visible.getAttribute("src") === url || visible.getAttribute("src") === assetUrl(url))) {
       layer.hidden = false;
       return;
     }
     const incoming = spriteOn === "a" ? b : a;
     const outgoing = spriteOn === "a" ? a : b;
     incoming.alt = (CHARACTERS[charId] && CHARACTERS[charId].name) || "Eva";
+    const src = assetUrl(url);
+    const fallback = assetUrl((typeof EVA_EXPR_FALLBACK !== "undefined" && EVA_EXPR_FALLBACK) || "assets/eva-close.png");
     incoming.removeAttribute("src");
-    incoming.src = url;
+    incoming.src = src;
     incoming.hidden = false;
     const ready = new Promise((res) => {
-      if (incoming.complete && incoming.naturalWidth && incoming.getAttribute("src") === url) res();
+      if (incoming.complete && incoming.naturalWidth && incoming.getAttribute("src") === src) res();
       else {
         incoming.onload = () => res();
-        incoming.onerror = () => res();
+        incoming.onerror = () => {
+          if (charId === "eva" && incoming.getAttribute("src") !== fallback) {
+            incoming.onload = () => res();
+            incoming.src = fallback;
+            return;
+          }
+          res();
+        };
       }
     });
     await ready;
@@ -626,6 +635,7 @@
       showEvaSprite(false);
       const meet = $("eva-meet");
       if (meet) meet.classList.remove("is-talking");
+      renderEvaMeetStats();
       autosave();
       return;
     }
@@ -669,6 +679,7 @@
 
   function assetUrl(path) {
     if (!path) return path;
+    if (/^(blob:|data:|https?:)/i.test(path)) return path;
     const s = document.querySelector("script[src*=\"story.js\"]");
     const m = s && s.src && s.src.match(/[?&]v=([^&]+)/);
     if (!m) return path;
@@ -791,7 +802,55 @@
     return sheet;
   }
 
-  let evaMeetBusy = false;
+
+  function hideEvaMeetStats() {
+    const box = $("eva-meet-stats");
+    if (box) {
+      box.hidden = true;
+      box.innerHTML = "";
+    }
+  }
+  function renderEvaMeetStats() {
+    const box = $("eva-meet-stats");
+    if (!box) return;
+    box.innerHTML = "";
+    const cfg = typeof EVA_INFO !== "undefined" ? EVA_INFO : {};
+    const ev = ensureEvaInfo();
+    const top = document.createElement("div");
+    top.className = "eva-meet-stats-row";
+    const barsBox = document.createElement("div");
+    barsBox.className = "eva-meet-stats-bars";
+    (cfg.bars || []).forEach((b) => {
+      const track = document.createElement("div");
+      track.className = "phone-eva-bar";
+      track.setAttribute("data-bar", b.id);
+      const col = b.color || "#888";
+      let hx = String(col).replace("#", "");
+      if (hx.length === 3) hx = hx[0] + hx[0] + hx[1] + hx[1] + hx[2] + hx[2];
+      if (hx.length === 6) {
+        const r = parseInt(hx.slice(0, 2), 16), g = parseInt(hx.slice(2, 4), 16), bl = parseInt(hx.slice(4, 6), 16);
+        track.style.background = "rgba(" + r + "," + g + "," + bl + ",0.28)";
+      }
+      const fill = document.createElement("span");
+      const v = ev.bars[b.id] != null ? ev.bars[b.id] : 0;
+      fill.style.width = v + "%";
+      fill.style.background = col;
+      track.appendChild(fill);
+      barsBox.appendChild(track);
+    });
+    const heart = document.createElement("div");
+    heart.className = "phone-eva-heart eva-meet-stats-heart";
+    heart.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.4 S3.2 14.2 3.2 8.8 A4.6 4.6 0 0 1 12 6.7 A4.6 4.6 0 0 1 20.8 8.8 C20.8 14.2 12 20.4 12 20.4 Z"/></svg>';
+    const pct = document.createElement("b");
+    pct.textContent = String(ev.afecto != null ? ev.afecto : 10) + "%";
+    heart.appendChild(pct);
+    top.appendChild(barsBox);
+    top.appendChild(heart);
+    box.appendChild(top);
+    box.hidden = false;
+  }
+
+    let evaMeetBusy = false;
   function coverBox(el) {
     const vw = el.clientWidth;
     const vh = el.clientHeight;
@@ -860,6 +919,7 @@
       img.src = assetUrl((typeof EVA_MENU !== "undefined" && EVA_MENU.closeImage) || "assets/eva-close.png");
     }
     buildEvaMeetMenu();
+    renderEvaMeetStats();
     if (meet) {
       meet.classList.remove("is-talking");
       meet.hidden = false;
@@ -876,6 +936,7 @@
     state.evaMeet = false;
     evaMeetBusy = false;
     const meet = $("eva-meet");
+    hideEvaMeetStats();
     if (meet) {
       meet.hidden = true;
       meet.classList.remove("is-talking", "is-in");
@@ -914,6 +975,7 @@
     beginMeetTalk([{ who: "Eva", expr: line.expr || "feliz", text: line.text }], null, { countsAsActivity: false });
   }
   function onEvaMeetOption(id) {
+    hideEvaMeetStats();
     if (id === "olvidalo") {
       closeEvaMeet();
       return;
@@ -1391,7 +1453,7 @@
     const img = $("phone-app-avatar");
     if (!img) return;
     if (avatar) {
-      img.src = avatar;
+      img.src = assetUrl(avatar);
       img.hidden = false;
     } else {
       img.removeAttribute("src");
@@ -1481,7 +1543,7 @@
       row.setAttribute("data-chat-id", c.id);
       const av = document.createElement("img");
       av.className = "chat-avatar";
-      av.src = c.avatar;
+      av.src = assetUrl(c.avatar);
       av.alt = "";
       const name = document.createElement("span");
       name.className = "chat-row-name";
@@ -1954,7 +2016,10 @@
     $("btn-settings").addEventListener("click", (e) => { e.stopPropagation(); openSettings(); });
     $("btn-phone").addEventListener("click", (e) => { e.stopPropagation(); openPhone(); });
     $("btn-cerrar-tasks").addEventListener("click", () => { $("modal-tasks").hidden = true; });
-    $("btn-cerrar-bag").addEventListener("click", () => { $("modal-bag").hidden = true; });
+    $("btn-cerrar-bag").addEventListener("click", () => {
+      $("modal-bag").hidden = true;
+      if (state.evaMeet && !state.talking) renderEvaMeetStats();
+    });
     $("btn-cerrar-settings").addEventListener("click", () => { $("modal-settings").hidden = true; });
     $("btn-cerrar-phone").addEventListener("click", () => { $("modal-phone").hidden = true; phoneHome(); });
     $("phone-back").addEventListener("click", (e) => { e.stopPropagation(); phoneBack(); });

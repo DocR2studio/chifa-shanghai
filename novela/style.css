@@ -869,7 +869,7 @@ body { min-height: 100dvh; }
 }
 .toast[hidden] { display: none !important; }
 
-#hud[hidden], #hud-day[hidden], #hud-icons[hidden], #action-bar[hidden], #btn-saltar[hidden], #sprite-eva[hidden], #sprite-layer[hidden], #dialogue[hidden], #eva-room[hidden], #eva-meet[hidden] {
+#hud[hidden], #hud-day[hidden], #hud-icons[hidden], #action-bar[hidden], #btn-saltar[hidden], #sprite-eva[hidden], #sprite-layer[hidden], #dialogue[hidden], #eva-room[hidden], #eva-meet[hidden], #eva-meet-stats[hidden] {
   display: none !important;
 }
 
@@ -1199,11 +1199,11 @@ body { min-height: 100dvh; }
 /* ---- Expression sprites + editor slots (v5) ---- */
 .sprite-layer {
   position: absolute;
-  right: 8%;
-  bottom: 26%;
-  height: 78%;
-  width: 28%;
-  max-width: 38%;
+  right: 10%;
+  bottom: 19%;
+  height: 80%;
+  width: 34%;
+  max-width: 44%;
   z-index: 3;
   pointer-events: none;
 }
@@ -1258,7 +1258,7 @@ body { min-height: 100dvh; }
 .expr-slot .editor-actions { justify-content: center; }
 
 @media (max-height: 380px) {
-  .sprite-layer { height: 74%; bottom: 28%; }
+  .sprite-layer { height: 78%; bottom: 19%; }
   .expr-slot .prev-sprite { height: 72px; }
 }
 
@@ -2395,7 +2395,8 @@ body { min-height: 100dvh; }
 }
 .eva-meet-opt:active { transform: scale(0.98); }
 .eva-meet.is-talking .eva-meet-close,
-.eva-meet.is-talking .eva-meet-menu {
+.eva-meet.is-talking .eva-meet-menu,
+.eva-meet.is-talking .eva-meet-stats {
   visibility: hidden;
   pointer-events: none;
 }
@@ -2513,4 +2514,53 @@ body { min-height: 100dvh; }
   font-weight: 500;
   padding: 1px 0;
   text-align: right;
+}
+
+
+/* ---- v13: meet stats + portrait placement ---- */
+.eva-meet-stats {
+  position: absolute;
+  left: 55.7%;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 210px;
+  max-width: 26%;
+  z-index: 2;
+  padding: 10px 12px 11px;
+  background: rgba(8, 10, 16, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+.eva-meet-stats[hidden] { display: none !important; }
+.eva-meet.is-in .eva-meet-stats {
+  animation: eva-menu-in 0.4s ease 0.08s both;
+}
+.eva-meet-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.eva-meet-stats-bars {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.eva-meet-stats .phone-eva-bar { height: 8px; }
+.eva-meet-stats-heart {
+  flex: 0 0 auto;
+  width: 44px;
+}
+.eva-meet-stats-heart svg {
+  width: 22px;
+  height: 22px;
+}
+.eva-meet-stats-heart b {
+  font-size: 0.78rem;
+  color: #f3c1cb;
 }
