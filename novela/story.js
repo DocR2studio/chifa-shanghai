@@ -347,6 +347,8 @@ const EVA_MENU = {
     options: [
       { id: "ayudar", label: "Ayudar un poco en la casa", need: 0,
         ok: { expr: "feliz", eva: "Si quieres, puedes recoger esas tazas. Se agradece.", vinculo: 5, afecto: 1 } },
+      { id: "masajes", label: "Masajes", need: 0,
+        ok: { expr: "feliz", eva: "Está bien. Con calma, un rato nada más." } },
       { id: "acercarte", label: "Acercarte un poco más", need: 50,
         ok: { expr: "sonrojada", eva: "Está bien… no te vayas más lejos, entonces.", vinculo: 8, afecto: 3 },
         locked: { expr: "molesta", eva: "¿Qué haces? Dame un poco de espacio.", paciencia: -12 } },
@@ -673,6 +675,15 @@ const EVA_DELTA_LABELS = {
   morada: "Morada"
 };
 
+/* Recuperar Paciencia: suma hacia 0 (la barra se vacía). Si el corazón llega a heartBonusAt, se suma heartBonus. */
+const EVA_PACIENCIA_RECOVERY = {
+  room: 30,
+  masajes: 50,
+  ayudar: 20,
+  heartBonus: 70,
+  heartBonusAt: 100
+};
+
 const EVA_RULES = {
   warningAt: -80,
   kickAt: -100,
@@ -718,6 +729,7 @@ function editableStory() {
     noGift: EVA_MENU.noGift,
     giftOk: EVA_MENU.giftOk,
     rules: EVA_RULES,
+    pacienciaRecovery: EVA_PACIENCIA_RECOVERY,
     inventory: DEFAULT_INVENTORY
   }));
 }
@@ -755,6 +767,7 @@ function applyEditableStory(data) {
   if (data.noGift) EVA_MENU.noGift = data.noGift;
   if (data.giftOk) EVA_MENU.giftOk = data.giftOk;
   if (data.rules) Object.assign(EVA_RULES, data.rules);
+  if (data.pacienciaRecovery && typeof EVA_PACIENCIA_RECOVERY !== "undefined") Object.assign(EVA_PACIENCIA_RECOVERY, data.pacienciaRecovery);
   if (Array.isArray(data.inventory)) {
     DEFAULT_INVENTORY.length = 0;
     data.inventory.forEach((it) => DEFAULT_INVENTORY.push(it));

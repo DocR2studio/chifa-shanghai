@@ -1494,6 +1494,7 @@
     if (!loc || traveling) return;
     if (state.phase === "house" && state.location === locId) return;
     traveling = true;
+    const prev = state.location;
     const fade = $("travel-fade");
     if (fade) fade.classList.add("is-on");
     await wait(350);
@@ -1502,7 +1503,9 @@
       fade.offsetWidth;
       fade.classList.remove("is-on");
     }
-    await wait(500);
+    await wait(280);
+    if (prev && prev !== locId) recoverPaciencia("room");
+    await wait(220);
     traveling = false;
   }
   function openBag(opts) {
@@ -2054,6 +2057,43 @@
     host.appendChild(el);
     setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 3200);
   }
+  function pacienciaRecoverCfg() {
+    return (typeof EVA_PACIENCIA_RECOVERY !== "undefined" && EVA_PACIENCIA_RECOVERY) || {};
+  }
+  function pacienciaRecoverAmount(kind) {
+    const cfg = pacienciaRecoverCfg();
+    const base = Number(cfg[kind]) || 0;
+    if (!base) return 0;
+    const ev = ensureEvaInfo();
+    const at = cfg.heartBonusAt != null ? Number(cfg.heartBonusAt) : 100;
+    const bonus = (ev.afecto || 0) >= at ? (Number(cfg.heartBonus) || 0) : 0;
+    return base + bonus;
+  }
+  function showPacienciaRecover(n) {
+    const v = Math.round(Number(n) || 0);
+    if (v <= 0) return;
+    const meet = $("eva-meet");
+    const host = (meet && !meet.hidden) ? meet : ($("screen-game") || meet);
+    if (!host) return;
+    host.querySelectorAll(".eva-delta-paciencia").forEach((el) => el.remove());
+    const el = document.createElement("div");
+    el.className = "eva-delta eva-delta-paciencia";
+    el.textContent = "+" + v + " Paciencia";
+    host.appendChild(el);
+    setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 3200);
+  }
+  function recoverPaciencia(kind) {
+    const amount = pacienciaRecoverAmount(kind);
+    if (!amount) return 0;
+    const ev = ensureEvaInfo();
+    const before = ev.bars.roja || 0;
+    ev.bars.roja = clampBarVal("roja", before + amount);
+    const applied = ev.bars.roja - before;
+    autosave();
+    refreshEvaInfoUI();
+    if (applied > 0) showPacienciaRecover(amount);
+    return applied;
+  }
   function setEditorLive(on) {
     editorLive = !!on;
     try { sessionStorage.setItem("eva_novela_editor_live", editorLive ? "1" : "0"); } catch (e) { /* ignore */ }
@@ -2290,6 +2330,7 @@
       paciencia: r.paciencia
     };
     applyReaction(use);
+    if (allowed && item && item.id) recoverPaciencia(item.id);
     beginMeetTalk([{
       who: "Eva",
       expr: use.expr,
@@ -2500,6 +2541,7 @@
     const list = $("editor-list");
     list.innerHTML = "";
     list.appendChild(renderBarsEditorCard());
+    list.appendChild(renderPacienciaRecoverCard());
     list.appendChild(renderElogiarSeqCard());
     for (const item of EDITOR_ITEMS.filter((i) => i.kind === "scene")) {
       list.appendChild(await renderMediaCard(item));
@@ -2602,6 +2644,57 @@
       });
       card.appendChild(block);
     });
+    return card;
+  }
+
+  function renderPacienciaRecoverCard() {
+    const card = document.createElement("article");
+    card.className = "editor-card editor-recover-card";
+    const h = document.createElement("h3");
+    h.textContent = "Recuperar Paciencia";
+    card.appendChild(h);
+    const note = document.createElement("p");
+    note.className = "editor-note";
+    note.textContent = "Estas acciones acercan la Paciencia a 0 (la barra se vacía). Si el corazón llega al mínimo, se suma el extra.";
+    card.appendChild(note);
+    if (typeof EVA_PACIENCIA_RECOVERY === "undefined") return card;
+    const cfg = EVA_PACIENCIA_RECOVERY;
+    const fields = [
+      ["room", "Cambiar de habitación"],
+      ["masajes", "Masajes"],
+      ["ayudar", "Ayudar en casa"],
+      ["heartBonus", "Extra si el corazón llega al mínimo"],
+      ["heartBonusAt", "Corazón mínimo para el extra (%)"]
+    ];
+    const box = document.createElement("div");
+    box.className = "recover-fields";
+    fields.forEach((pair) => {
+      const row = document.createElement("div");
+      row.className = "seq-row";
+      const lab = document.createElement("label");
+      lab.textContent = pair[1];
+      const inp = document.createElement("input");
+      inp.type = "number";
+      inp.step = "1";
+      inp.value = cfg[pair[0]] != null ? cfg[pair[0]] : 0;
+      const save = () => {
+        cfg[pair[0]] = Number(inp.value);
+        if (!isFinite(cfg[pair[0]])) cfg[pair[0]] = 0;
+        inp.value = cfg[pair[0]];
+        saveStoryPatch();
+      };
+      inp.addEventListener("change", save);
+      row.appendChild(lab);
+      row.appendChild(inp);
+      row.appendChild(makePencil(() => {
+        openEditModal(pair[1], String(inp.value), (v) => {
+          inp.value = v;
+          save();
+        });
+      }, "Editar valor"));
+      box.appendChild(row);
+    });
+    card.appendChild(box);
     return card;
   }
   function renderBarsEditorCard() {
@@ -2756,7 +2849,7 @@
       ejectFromHouse();
       return;
     }
-    if (demo === "house" || demo === "map" || demo === "talk" || demo === "enojada" || demo === "enamorada" || demo === "triste" || demo === "peek" || demo === "bag" || demo === "settings" || demo === "phone" || demo === "info" || demo === "tasks" || demo === "pasillo" || demo === "sala" || demo === "cuarto_eva" || demo === "fade" || demo === "chats" || demo === "chat" || demo === "cocina" || demo === "eva" || demo === "eva-menu" || demo === "eva-hablar" || demo === "hablar" || demo === "reaccion" || demo === "paciencia" || demo === "editor-live" || demo === "elogiar" || demo === "heart-100" || demo === "heart-neg") {
+    if (demo === "house" || demo === "map" || demo === "talk" || demo === "enojada" || demo === "enamorada" || demo === "triste" || demo === "peek" || demo === "bag" || demo === "settings" || demo === "phone" || demo === "info" || demo === "tasks" || demo === "pasillo" || demo === "sala" || demo === "cuarto_eva" || demo === "fade" || demo === "chats" || demo === "chat" || demo === "cocina" || demo === "eva" || demo === "eva-menu" || demo === "eva-hablar" || demo === "hablar" || demo === "reaccion" || demo === "paciencia" || demo === "editor-live" || demo === "elogiar" || demo === "heart-100" || demo === "heart-neg" || demo === "accion" || demo === "masajes" || demo === "ayudar" || demo === "recover-room") {
       state.name = "Doc";
       state.bars = { ...HOUSE.startBars };
       state.day = 1;
@@ -2778,14 +2871,23 @@
           playLine();
         }
       } else {
-        const startLoc = (demo === "pasillo" || demo === "fade") ? "pasillo" : (demo === "sala" ? "sala" : (demo === "cuarto_eva" ? "cuarto_eva" : ((demo === "cocina" || demo === "eva" || demo === "eva-menu" || demo === "eva-hablar" || demo === "hablar" || demo === "reaccion" || demo === "paciencia" || demo === "editor-live" || demo === "elogiar" || demo === "heart-100" || demo === "heart-neg") ? "cocina" : "cuarto")));
+        const startLoc = (demo === "pasillo" || demo === "fade") ? "pasillo" : (demo === "sala" ? "sala" : (demo === "cuarto_eva" ? "cuarto_eva" : ((demo === "cocina" || demo === "eva" || demo === "eva-menu" || demo === "eva-hablar" || demo === "hablar" || demo === "reaccion" || demo === "paciencia" || demo === "editor-live" || demo === "elogiar" || demo === "heart-100" || demo === "heart-neg" || demo === "accion" || demo === "masajes" || demo === "ayudar" || demo === "recover-room") ? "cocina" : "cuarto")));
         enterHouse(startLoc);
         if (demo === "editor-live") setEditorLive(true);
-        if (demo === "eva-menu" || demo === "eva-hablar" || demo === "hablar" || demo === "reaccion" || demo === "paciencia" || demo === "editor-live" || demo === "elogiar" || demo === "heart-100" || demo === "heart-neg") {
+        if (demo === "eva-menu" || demo === "eva-hablar" || demo === "hablar" || demo === "reaccion" || demo === "paciencia" || demo === "editor-live" || demo === "elogiar" || demo === "heart-100" || demo === "heart-neg" || demo === "accion" || demo === "masajes" || demo === "ayudar") {
           if (demo === "paciencia") setEvaInfoBar("roja", -80);
           if (demo === "heart-100") setAfecto(100);
           if (demo === "heart-neg") setAfecto(-50);
+          if (demo === "accion" || demo === "masajes" || demo === "ayudar") setEvaInfoBar("roja", -50);
           openEvaMeet();
+        }
+        if (demo === "accion" || demo === "masajes" || demo === "ayudar") {
+          state.meetSub = "accion";
+          buildEvaMeetMenu();
+        }
+        if (demo === "recover-room") {
+          setEvaInfoBar("roja", -80);
+          travelTo("sala");
         }
         if (demo === "hablar" || demo === "eva-hablar") {
           state.meetSub = "hablar";

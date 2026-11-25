@@ -2,7 +2,7 @@
   "name": "Unknown Love",
   "short_name": "Novela",
   "description": "Novela visual en horizontal",
-  "start_url": "./?v=17",
+  "start_url": "./?v=18",
   "scope": "./",
   "display": "fullscreen",
   "orientation": "landscape",

@@ -2986,3 +2986,31 @@ body { min-height: 100dvh; }
   background: rgba(0,0,0,0.3);
   color: var(--paper);
 }
+
+.eva-delta-paciencia {
+  top: 18%;
+  font-size: 0.72rem;
+  padding: 5px 10px;
+  letter-spacing: 0.02em;
+  z-index: 41;
+}
+.editor-list .editor-recover-card { grid-column: 1 / -1; }
+.editor-recover-card .recover-fields .seq-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 5.5rem auto;
+  align-items: center;
+  gap: 8px;
+}
+.editor-recover-card .recover-fields .seq-row label {
+  flex: none;
+  width: auto;
+  min-width: 0;
+  font-size: 0.78rem;
+  line-height: 1.25;
+  white-space: normal;
+}
+.editor-recover-card .recover-fields input[type="number"] {
+  flex: none;
+  width: 5.5rem;
+  justify-self: end;
+}
