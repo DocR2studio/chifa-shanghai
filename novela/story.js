@@ -32,7 +32,7 @@ const HOUSE = {
       actions: [
         { id: "ejercicio", label: "Hacer ejercicio", kind: "exercise-home", energia: -10, text: "Haces una rutina breve en el cuarto. El cuerpo responde." },
         { id: "dormir", label: "Dormir", advance: "day", energia: 40, text: "Cierras los ojos. Cuando despiertas, ya es de mañana." },
-        { id: "descansar", label: "Descansar", advance: "moment", energia: 10, text: "Te recuestas un rato. El tiempo pasa sin prisa.", disabledAt: "madrugada", disabledHint: "Ya es madrugada. Si quieres que amanezca, mejor duerme." }
+        { id: "descansar", label: "Descansar", advance: "moment", energia: 10, text: "Te recuestas un rato. El tiempo pasa sin prisa." }
       ]
     },
     {
@@ -794,6 +794,13 @@ const EVA_ROOM_ACTIONS = {
     afecto: 1,
     text: "Te sientas con Eva y ven un rato la televisión."
   },
+  descansarMueble: {
+    id: "descansar-mueble",
+    label: "Descansar en el mueble",
+    advance: "moment",
+    energia: 10,
+    text: "Te recuestas un rato en el mueble. El tiempo pasa sin prisa."
+  },
   backLabel: "Volver"
 };
 
@@ -1028,6 +1035,33 @@ function applyEditableStory(data) {
   if (Array.isArray(data.inventory)) {
     DEFAULT_INVENTORY.length = 0;
     data.inventory.forEach((it) => DEFAULT_INVENTORY.push(it));
+  }
+  ensureV23RoomActions();
+}
+
+function ensureV23RoomActions() {
+  const cuarto = typeof locById === "function" ? locById("cuarto") : null;
+  if (cuarto && Array.isArray(cuarto.actions)) {
+    cuarto.actions.forEach((act) => {
+      if (!act || act.id !== "descansar") return;
+      delete act.disabledAt;
+      delete act.disabledHint;
+      act.advance = "moment";
+    });
+  }
+  const sala = typeof locById === "function" ? locById("sala") : null;
+  if (sala) {
+    if (!Array.isArray(sala.actions)) sala.actions = [];
+    if (!sala.actions.some((a) => a && a.id === "descansar-mueble")) {
+      const src = (typeof EVA_ROOM_ACTIONS !== "undefined" && EVA_ROOM_ACTIONS.descansarMueble) || {
+        id: "descansar-mueble",
+        label: "Descansar en el mueble",
+        advance: "moment",
+        energia: 10,
+        text: "Te recuestas un rato en el mueble. El tiempo pasa sin prisa."
+      };
+      sala.actions.push(Object.assign({}, src));
+    }
   }
 }
 

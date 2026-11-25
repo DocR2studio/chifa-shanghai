@@ -1821,6 +1821,11 @@
         state.moment = times[i + 1];
         state.activityCount = 0;
         toast("Ahora es de " + (TIME_LABELS[state.moment] || state.moment).toLowerCase() + ".");
+      } else if (i === times.length - 1) {
+        state.day = (state.day || 1) + 1;
+        state.moment = "mañana";
+        state.activityCount = 0;
+        toast("Amanece. Día " + state.day + ".");
       }
     }
     applyTimeShade();
