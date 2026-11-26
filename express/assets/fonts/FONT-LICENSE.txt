@@ -1,0 +1,1 @@
+Playfair Display (c) The Playfair Project Authors (https://github.com/clauswilke/PlayfairDisplay). Licensed under the SIL Open Font License 1.1 (https://openfontlicense.org). Latin subset, WOFF.

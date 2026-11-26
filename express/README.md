@@ -1,4 +1,4 @@
-# Shanghai Express — beta web v2
+# Shanghai Express — beta web v2 (diseño v5)
 
 Prototipo estático móvil para Abancay. No es APK, no tiene backend y no realiza pedidos, cobros, SMS, llamadas ni GPS reales.
 
@@ -72,3 +72,7 @@ Sin cambios: index.html, menú de origen y demás recursos existentes.
 ## Créditos
 
 Diseño e ilustraciones SVG originales. Logo Chifa Shanghai proporcionado por el sitio del propietario. Leaflet 1.9.4 (BSD-2-Clause; assets/LEAFLET-LICENSE.txt). Cartografía © OpenStreetMap contributors, con atribución visible. Respetar https://operations.osmfoundation.org/policies/tiles/ antes de un lanzamiento público de mayor tráfico.
+
+## Diseño v5 (premium chino)
+
+Nuevo logo de delivery (assets/logo-delivery.png) en splash, acceso, cabecera, favicon, apple-touch-icon y manifest.webmanifest. Paleta del logo: jade profundo (#04382a / #029368), laca roja (#b8222b) y oro (#d9a93a) sobre crema. Títulos en Playfair Display (WOFF local, OFL) con respaldo Songti SC/Noto Serif SC/Georgia. Motivos SVG: nubes (assets/cloud.svg), celosía (assets/lattice.svg) y esquinas de marco (assets/corner-*.svg) con baja opacidad. Sin emojis. La funcionalidad no cambia. Cache-busting `?v=5`.
