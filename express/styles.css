@@ -1,14 +1,14 @@
-/* Shanghai Express beta v5 — diseño premium chino: jade profundo, laca roja y oro.
+/* Shanghai Express beta v6 — diseño premium chino: jade profundo, laca roja y oro.
    Paleta tomada del logo de delivery. Sin emojis; los motivos son SVG/CSS ligeros. */
-@font-face{font-family:'Playfair Display';font-style:normal;font-weight:600;font-display:swap;src:url(assets/fonts/playfair-600.woff?v=5) format('woff')}
-@font-face{font-family:'Playfair Display';font-style:normal;font-weight:800;font-display:swap;src:url(assets/fonts/playfair-800.woff?v=5) format('woff')}
+@font-face{font-family:'Playfair Display';font-style:normal;font-weight:600;font-display:swap;src:url(assets/fonts/playfair-600.woff?v=6) format('woff')}
+@font-face{font-family:'Playfair Display';font-style:normal;font-weight:800;font-display:swap;src:url(assets/fonts/playfair-800.woff?v=6) format('woff')}
 :root{
   --jade:#029368;--pine:#08573f;--deep:#04382a;--abyss:#032a20;
   --red:#b8222b;--lacquer:#b8222b;--lacquer-d:#7f1219;--lacquer-l:#d8383f;
   --gold:#d9a93a;--gold-d:#9a6f17;--gold-l:#f3d98a;--sun:#f4e11e;
   --cream:#fbf5e4;--paper:#fffdf6;--ink:#1b2a23;--muted:#667262;--line:#e7dcbc;
   --display:'Playfair Display','Songti SC','Noto Serif SC','Source Han Serif SC',Georgia,'Times New Roman',serif;
-  --cloud:url(assets/cloud.svg?v=5);--lattice:url(assets/lattice.svg?v=5);
+  --cloud:url(assets/cloud.svg?v=6);--lattice:url(assets/lattice.svg?v=6);
   --shadow:0 6px 18px #04382a18,0 1px 3px #04382a14;
 }
 *{box-sizing:border-box}
@@ -56,7 +56,7 @@ main>section,.pagehead{padding:0 22px}
 /* Hero en laca roja con marco chino */
 .hero{margin-top:20px;border-radius:20px;background:radial-gradient(120% 120% at 100% 0,#d8383f 0,transparent 55%),linear-gradient(145deg,#b8222b,#7f1219);min-height:206px;position:relative;overflow:hidden;color:#fff1d6;padding:26px 24px;isolation:isolate;box-shadow:0 10px 24px #7f121935,inset 0 0 0 1px #f3d98a55}
 .hero:before{content:'';position:absolute;inset:0;background:var(--cloud);background-size:120px;opacity:.16;z-index:-2}
-.hero:after{content:'';position:absolute;inset:8px;border:1px solid #f3d98a80;border-radius:13px;z-index:-1;pointer-events:none;background:url(assets/corner-tl.svg?v=5) left top/22px no-repeat,url(assets/corner-tr.svg?v=5) right top/22px no-repeat,url(assets/corner-bl.svg?v=5) left bottom/22px no-repeat,url(assets/corner-br.svg?v=5) right bottom/22px no-repeat}
+.hero:after{content:'';position:absolute;inset:8px;border:1px solid #f3d98a80;border-radius:13px;z-index:-1;pointer-events:none;background:url(assets/corner-tl.svg?v=6) left top/22px no-repeat,url(assets/corner-tr.svg?v=6) right top/22px no-repeat,url(assets/corner-bl.svg?v=6) left bottom/22px no-repeat,url(assets/corner-br.svg?v=6) right bottom/22px no-repeat}
 .eyebrow{font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:700}
 .hero .eyebrow{color:var(--gold-l)}
 .hero h1{font:800 27px/1.14 var(--display);margin:12px 0 10px;position:relative;z-index:2;max-width:225px;text-shadow:0 2px 6px #4a0c1166}
@@ -149,7 +149,7 @@ nav .icon{width:23px;height:23px}
 .quantity{display:flex;align-items:center;border:1px solid #d9a93a;border-radius:10px;overflow:hidden;margin-top:8px;width:max-content;background:var(--paper)}
 .quantity button{background:var(--paper);color:var(--lacquer);width:31px;height:30px;font-size:18px}
 .quantity span{font-size:12px;min-width:22px;text-align:center;font-weight:700}
-.totals{background:var(--paper);border:1px solid #d9c387;border-radius:18px;padding:19px 20px;margin:24px 0 14px;box-shadow:var(--shadow);position:relative;background-image:url(assets/corner-tl.svg?v=5),url(assets/corner-tr.svg?v=5),url(assets/corner-bl.svg?v=5),url(assets/corner-br.svg?v=5);background-repeat:no-repeat;background-size:16px;background-position:left 5px top 5px,right 5px top 5px,left 5px bottom 5px,right 5px bottom 5px}
+.totals{background:var(--paper);border:1px solid #d9c387;border-radius:18px;padding:19px 20px;margin:24px 0 14px;box-shadow:var(--shadow);position:relative;background-image:url(assets/corner-tl.svg?v=6),url(assets/corner-tr.svg?v=6),url(assets/corner-bl.svg?v=6),url(assets/corner-br.svg?v=6);background-repeat:no-repeat;background-size:16px;background-position:left 5px top 5px,right 5px top 5px,left 5px bottom 5px,right 5px bottom 5px}
 .totals>div{display:flex;justify-content:space-between;font-size:12px;margin-bottom:12px;color:#44503f}
 .totals .grand{border-top:1px solid #d9a93a80;padding-top:14px;font-weight:800;font-size:18px;margin-bottom:0;font-family:var(--display);color:var(--lacquer-d)}
 
@@ -180,7 +180,7 @@ legend{font:800 16px var(--display);margin-bottom:4px;color:var(--deep)}
 .livepill{display:inline-flex;gap:7px;align-items:center;background:var(--deep);color:var(--gold-l);font-size:9px;letter-spacing:1.4px;border-radius:20px;padding:6px 12px;border:1px solid var(--gold);font-weight:700}
 .livepill:before{content:'';width:6px;height:6px;background:#3ddc97;border-radius:50%;box-shadow:0 0 0 3px #3ddc9733;animation:dot 1.3s infinite}
 .mapwrap{margin:0 15px;border-radius:20px;overflow:hidden;border:2px solid var(--gold);position:relative;box-shadow:0 0 0 4px var(--cream),0 0 0 5px #d9a93a80,0 12px 26px #04382a30}
-.mapwrap:after{content:'';position:absolute;inset:6px;z-index:1001;pointer-events:none;border:1px solid #f3d98aaa;border-radius:13px;background:url(assets/corner-tl.svg?v=5) left top/20px no-repeat,url(assets/corner-tr.svg?v=5) right top/20px no-repeat,url(assets/corner-bl.svg?v=5) left bottom/20px no-repeat,url(assets/corner-br.svg?v=5) right bottom/20px no-repeat}
+.mapwrap:after{content:'';position:absolute;inset:6px;z-index:1001;pointer-events:none;border:1px solid #f3d98aaa;border-radius:13px;background:url(assets/corner-tl.svg?v=6) left top/20px no-repeat,url(assets/corner-tr.svg?v=6) right top/20px no-repeat,url(assets/corner-bl.svg?v=6) left bottom/20px no-repeat,url(assets/corner-br.svg?v=6) right bottom/20px no-repeat}
 #map{height:300px;background:#e6e1cc;z-index:1;font-family:inherit}
 .leaflet-tile-pane{filter:sepia(.22) saturate(.85) hue-rotate(-6deg) contrast(1.02)}
 .leaflet-container{font-family:inherit;background:#e6e1cc}
@@ -365,7 +365,7 @@ dialog .primary{margin-top:22px}
 /* Splash */
 #splash{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;background:radial-gradient(70% 50% at 50% 42%,#0a7a58,transparent 72%),linear-gradient(180deg,#05452f,#021f17);color:var(--cream);text-align:center;cursor:pointer;animation:splashSafety .5s ease 4.2s forwards}
 #splash:before{content:'';position:absolute;inset:0;background:var(--cloud);background-size:140px;opacity:.1}
-#splash:after{content:'';position:absolute;inset:14px;border:1px solid #d9a93a99;pointer-events:none;background:url(assets/corner-tl.svg?v=5) left top/34px no-repeat,url(assets/corner-tr.svg?v=5) right top/34px no-repeat,url(assets/corner-bl.svg?v=5) left bottom/34px no-repeat,url(assets/corner-br.svg?v=5) right bottom/34px no-repeat}
+#splash:after{content:'';position:absolute;inset:14px;border:1px solid #d9a93a99;pointer-events:none;background:url(assets/corner-tl.svg?v=6) left top/34px no-repeat,url(assets/corner-tr.svg?v=6) right top/34px no-repeat,url(assets/corner-bl.svg?v=6) left bottom/34px no-repeat,url(assets/corner-br.svg?v=6) right bottom/34px no-repeat}
 #splash.out{opacity:0;visibility:hidden;transition:opacity .45s ease,visibility 0s .45s}
 .splash-logo{position:relative;width:204px;height:204px;display:grid;place-items:center;animation:splashIn .9s cubic-bezier(.2,.8,.2,1) both}
 .splash-logo:before{content:'';position:absolute;inset:-14px;border-radius:50%;border:1px solid #f3d98aaa;box-shadow:0 0 0 9px #d9a93a14,0 0 70px #3ddc9740;animation:glow 2.4s ease-in-out infinite}
@@ -386,3 +386,19 @@ dialog .primary{margin-top:22px}
 @keyframes splashSafety{to{opacity:0;visibility:hidden}}
 @media(prefers-reduced-motion:reduce){.radar,.waiting-dots i,.call-ring,.call-status>span,.rider:before,.splash-logo,.splash-logo:before,.splash-name,.splash-tag,.splash-bar,.splash-bar i,.livepill:before{animation:none}.radar.r2,.radar.r3{display:none}}
 @media(max-height:760px){.login-logo,.login-logo img{width:104px;height:104px}.login-screen h1{font-size:26px}.login-privacy{margin-top:14px}.call-portrait{margin-top:38px}.hangup{margin-top:35px}.splash-logo,.splash-logo img{width:170px;height:170px}}
+
+/* v6 — Novedades y promos (bocaditos chinos) */
+.novedades{margin-top:8px}
+.promo-lead{font-size:12px;color:var(--muted);margin:-4px 0 12px;line-height:1.55}
+.promo-scroller{padding-top:4px}
+.promo-scroller .product{min-width:188px;max-width:188px}
+.promo-card img,.product img[src*="bocaditos"]{object-fit:cover;background:#1a1a14;padding:0}
+.pct{position:absolute;left:10px;top:10px;z-index:2;background:linear-gradient(#d8383f,#a31a22);color:#fff6dc;border:1px solid var(--gold-l);border-radius:20px;padding:4px 8px;font-size:10px;font-weight:800;letter-spacing:.4px;box-shadow:inset 0 1px 0 #ffffff40,0 3px 8px #6b0f1540}
+.promo-price{display:flex;align-items:baseline;gap:8px;margin-top:10px;flex-wrap:wrap}
+.promo-price s{font-size:11px;color:var(--muted);text-decoration:line-through;text-decoration-thickness:1.5px;font-weight:500}
+.promo-price strong{font:800 15px var(--display);color:var(--lacquer-d);margin:0}
+.cart-price{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-size:12px}
+.cart-price s{color:var(--muted);text-decoration:line-through;font-size:10px}
+.cart-price strong{color:var(--lacquer-d);font-family:var(--display);font-size:14px}
+.cartline img[src*="bocaditos"]{object-fit:cover;padding:0}
+.novedades .sectiontitle{margin-top:10px}

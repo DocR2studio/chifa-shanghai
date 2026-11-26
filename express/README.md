@@ -76,3 +76,7 @@ Diseño e ilustraciones SVG originales. Logo Chifa Shanghai proporcionado por el
 ## Diseño v5 (premium chino)
 
 Nuevo logo de delivery (assets/logo-delivery.png) en splash, acceso, cabecera, favicon, apple-touch-icon y manifest.webmanifest. Paleta del logo: jade profundo (#04382a / #029368), laca roja (#b8222b) y oro (#d9a93a) sobre crema. Títulos en Playfair Display (WOFF local, OFL) con respaldo Songti SC/Noto Serif SC/Georgia. Motivos SVG: nubes (assets/cloud.svg), celosía (assets/lattice.svg) y esquinas de marco (assets/corner-*.svg) con baja opacidad. Sin emojis. La funcionalidad no cambia. Cache-busting `?v=5`.
+
+## Novedades v6
+
+En el inicio, bajo el encabezado, hay un carrusel «Novedades y promos» con los bocaditos chinos de Chifa Shanghai (nombres, precios y fotos de la bienvenida). Cada tarjeta muestra un % de descuento de ejemplo, el precio original tachado y el precio promo. Esos descuentos son solo de la beta. Se pueden agregar al carrito.
